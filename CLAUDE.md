@@ -4,9 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Bakery inventory management web application for a bakery in Guinea (Conakry), managed remotely by the owner in Atlanta, USA. The core differentiator is **strong inventory management** with stock tracking, low-stock alerts, and restock predictions.
+**Bakery Hub** - Bakery inventory management web application for a bakery in Guinea (Conakry), managed remotely by the owner in Atlanta, USA. The core differentiator is **strong inventory management** with stock tracking, low-stock alerts, and restock predictions.
 
-Based on the O'Takos Restaurant Dashboard reference application - see [docs/bakery-app-reference/](docs/bakery-app-reference/) for complete technical documentation.
+## Documentation
+
+- **Product Vision & MVP**: [docs/product/PRODUCT-VISION.md](docs/product/PRODUCT-VISION.md)
+- **Technical Specification**: [docs/product/TECHNICAL-SPEC.md](docs/product/TECHNICAL-SPEC.md)
+- **Reference Application**: [docs/bakery-app-reference/](docs/bakery-app-reference/)
+- **Design System**: [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md)
 
 ## Tech Stack
 
