@@ -799,6 +799,47 @@ export function useDebounce<T>(value: T, delay: number): T {
 }
 ```
 
+### Bakery Context
+
+The `BakeryProvider` manages multi-bakery support with automatic color theming.
+
+```typescript
+// components/providers/BakeryProvider.tsx
+interface BakeryContextType {
+  bakeries: Bakery[]           // All accessible bakeries for user
+  currentBakery: Bakery | null // Currently selected bakery
+  currentPalette: PaletteName  // Color palette for current bakery
+  setCurrentBakery: (bakery: Bakery) => void
+  loading: boolean
+}
+
+// Palette assignment by bakery index (cycles through 4 palettes)
+type PaletteName = 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
+```
+
+**Features:**
+- Automatic palette assignment by bakery index
+- localStorage persistence for selected bakery
+- Toast notification on bakery switch
+- Data automatically refreshes when switching bakeries
+
+**Color Palettes:**
+| Index | Palette | Primary Color |
+|-------|---------|---------------|
+| 0 | Terracotta | #C45C26 |
+| 1 | Warm Brown | #8B4513 |
+| 2 | Burnt Sienna | #A0522D |
+| 3 | Classic Gold | #D4AF37 |
+
+**Usage:**
+```typescript
+const { currentBakery, currentPalette, setCurrentBakery } = useBakery()
+
+// Access color values for dynamic styling
+import { colorPalettes } from '@/components/brand/Logo'
+const accentColor = colorPalettes[currentPalette].primary
+```
+
 ---
 
 ## 6. Authentication & Authorization

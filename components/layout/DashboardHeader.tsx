@@ -23,6 +23,7 @@ import {
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useBakery } from '@/components/providers/BakeryProvider'
+import { Logo, colorPalettes } from '@/components/brand/Logo'
 
 const managerLinks = [
   { href: '/dashboard', label: 'dashboard', icon: LayoutDashboard },
@@ -45,7 +46,8 @@ export function DashboardHeader() {
   const { data: session } = useSession()
   const { t, locale, setLocale } = useLocale()
   const { theme, toggleTheme } = useTheme()
-  const { bakeries, currentBakery, setCurrentBakery } = useBakery()
+  const { bakeries, currentBakery, currentPalette, setCurrentBakery } = useBakery()
+  const accentColor = colorPalettes[currentPalette].primary
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [bakeryDropdownOpen, setBakeryDropdownOpen] = useState(false)
@@ -57,56 +59,69 @@ export function DashboardHeader() {
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 backdrop-blur-sm bg-opacity-90 dark:bg-opacity-90">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo & Bakery Selector */}
           <div className="flex items-center space-x-4">
             {/* Logo */}
-            <Link href={isManager ? '/dashboard' : '/editor'} className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-gold-500 to-gold-600 rounded-lg flex items-center justify-center shadow-gold">
-                <span className="text-lg font-bold text-white">B</span>
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {t('common.appName')}
-                </h1>
-              </div>
+            <Link href={isManager ? '/dashboard' : '/editor'} className="flex items-center">
+              <Logo size="md" variant="full" palette={currentPalette} className="hidden sm:flex" />
+              <Logo size="md" variant="icon" palette={currentPalette} className="sm:hidden" />
             </Link>
 
-            {/* Bakery Selector (if multiple bakeries) */}
-            {bakeries.length > 1 && currentBakery && (
+            {/* Bakery Selector - Always visible */}
+            {currentBakery && (
               <div className="relative">
                 <button
-                  onClick={() => setBakeryDropdownOpen(!bakeryDropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => bakeries.length > 1 && setBakeryDropdownOpen(!bakeryDropdownOpen)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+                    bakeries.length > 1
+                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
+                      : 'cursor-default'
+                  }`}
+                  style={{
+                    backgroundColor: `${accentColor}15`,
+                    borderLeft: `3px solid ${accentColor}`
+                  }}
                 >
-                  <Store className="w-4 h-4 text-gold-600 dark:text-gold-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[120px] truncate">
+                  <Store className="w-4 h-4" style={{ color: accentColor }} />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[150px] truncate">
                     {currentBakery.name}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  {bakeries.length > 1 && (
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  )}
                 </button>
 
-                {bakeryDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                    {bakeries.map((bakery) => (
-                      <button
-                        key={bakery.id}
-                        onClick={() => {
-                          setCurrentBakery(bakery)
-                          setBakeryDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                          bakery.id === currentBakery.id
-                            ? 'text-gold-600 dark:text-gold-400 font-medium'
-                            : 'text-gray-700 dark:text-gray-300'
-                        }`}
-                      >
-                        {bakery.name}
-                        {bakery.location && (
-                          <span className="block text-xs text-gray-500">{bakery.location}</span>
-                        )}
-                      </button>
-                    ))}
+                {bakeryDropdownOpen && bakeries.length > 1 && (
+                  <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                    {bakeries.map((bakery, index) => {
+                      const bakeryPalette = colorPalettes[['terracotta', 'warmBrown', 'burntSienna', 'gold'][index % 4] as keyof typeof colorPalettes]
+                      return (
+                        <button
+                          key={bakery.id}
+                          onClick={() => {
+                            setCurrentBakery(bakery)
+                            setBakeryDropdownOpen(false)
+                          }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 ${
+                            bakery.id === currentBakery.id
+                              ? 'font-medium'
+                              : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: bakeryPalette.primary }}
+                          />
+                          <span className="flex-1">
+                            {bakery.name}
+                            {bakery.location && (
+                              <span className="block text-xs text-gray-500">{bakery.location}</span>
+                            )}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -124,9 +139,13 @@ export function DashboardHeader() {
                   href={link.href}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-gold-100 dark:bg-gold-900/20 text-gold-700 dark:text-gold-400'
+                      ? ''
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                   }`}
+                  style={isActive ? {
+                    backgroundColor: `${accentColor}15`,
+                    color: accentColor
+                  } : undefined}
                 >
                   <Icon className="w-4 h-4" />
                   {t(`common.${link.label}`)}
@@ -245,9 +264,13 @@ export function DashboardHeader() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
                     isActive
-                      ? 'bg-gold-100 dark:bg-gold-900/20 text-gold-700 dark:text-gold-400'
+                      ? ''
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
+                  style={isActive ? {
+                    backgroundColor: `${accentColor}15`,
+                    color: accentColor
+                  } : undefined}
                 >
                   <Icon className="w-5 h-5" />
                   {t(`common.${link.label}`)}

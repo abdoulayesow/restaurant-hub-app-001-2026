@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Language**: TypeScript
 - **Database**: PostgreSQL with Prisma ORM
 - **Auth**: NextAuth.js with Google OAuth (JWT sessions, email whitelist via ALLOWED_EMAILS env)
-- **Styling**: Tailwind CSS with gold brand color (#D4AF37)
+- **Styling**: Tailwind CSS with terracotta brand color (#C45C26), multi-palette support
 - **Charts**: Recharts
 - **Icons**: Lucide React
 - **PWA**: next-pwa
@@ -72,9 +72,34 @@ public/
 
 **Stock alerts**: Low stock (below minimum), critical (near zero), expiry warnings
 
+### Multi-Bakery Support
+
+Users can be assigned to multiple bakeries via the `UserBakery` junction table.
+
+**Bakery Switching:**
+- Bakery selector always visible in header (shows current bakery name)
+- Dropdown only appears if user has access to multiple bakeries
+- Each bakery has a unique accent color from the preset palette
+- Toast notification confirms bakery switch
+- Data automatically refreshes when switching
+
+**Color Palettes by Bakery Index:**
+| Index | Palette | Primary Color |
+|-------|---------|---------------|
+| 0 | Terracotta | #C45C26 |
+| 1 | Warm Brown | #8B4513 |
+| 2 | Burnt Sienna | #A0522D |
+| 3 | Classic Gold | #D4AF37 |
+
+**Context Hooks:**
+```typescript
+const { currentBakery, currentPalette, setCurrentBakery } = useBakery()
+// currentPalette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
+```
+
 ## Design System
 
-Gold theme (#D4AF37) with dark mode support. Key Tailwind patterns:
+Terracotta theme (#C45C26) as default, with four preset palettes for multi-bakery support. Dark mode fully supported. Key Tailwind patterns:
 
 ```tsx
 // Card

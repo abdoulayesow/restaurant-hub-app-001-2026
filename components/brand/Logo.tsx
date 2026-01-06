@@ -117,7 +117,7 @@ const WheatIcon = ({
   </svg>
 )
 
-// Alternative: Stylized bread loaf icon
+// Artisan bread loaf icon with steam - Primary logo icon
 const BreadIcon = ({
   size,
   colors
@@ -134,13 +134,13 @@ const BreadIcon = ({
     aria-hidden="true"
   >
     {/* Background circle */}
-    <circle cx="32" cy="32" r="30" fill={colors.cream} />
+    <circle cx="32" cy="32" r="30" fill="#FFF8E7" />
     <circle cx="32" cy="32" r="30" stroke={colors.primary} strokeWidth="2" />
 
     {/* Bread loaf body */}
     <path
       d="M14 38C14 38 14 30 20 26C26 22 38 22 44 26C50 30 50 38 50 38C50 42 46 46 32 46C18 46 14 42 14 38Z"
-      fill={colors.warm}
+      fill="#FFE4C4"
       stroke={colors.primary}
       strokeWidth="2"
     />
@@ -148,7 +148,7 @@ const BreadIcon = ({
     {/* Bread top crust - dome */}
     <path
       d="M18 30C18 30 22 18 32 18C42 18 46 30 46 30"
-      stroke={colors.accent}
+      stroke="#8B3A14"
       strokeWidth="2.5"
       strokeLinecap="round"
       fill="none"
@@ -160,9 +160,9 @@ const BreadIcon = ({
     <path d="M40 26L36 34" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" />
 
     {/* Steam lines */}
-    <path d="M26 14C26 14 27 10 26 8" stroke={colors.secondary} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-    <path d="M32 12C32 12 33 8 32 6" stroke={colors.secondary} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-    <path d="M38 14C38 14 39 10 38 8" stroke={colors.secondary} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+    <path d="M26 14C26 14 27 10 26 8" stroke="#E07B3C" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+    <path d="M32 12C32 12 33 8 32 6" stroke="#E07B3C" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+    <path d="M38 14C38 14 39 10 38 8" stroke="#E07B3C" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
   </svg>
 )
 
@@ -219,7 +219,7 @@ export function Logo({
   if (variant === 'icon') {
     return (
       <div className={className}>
-        <WheatIcon size={dimensions.icon} colors={colors} />
+        <BreadIcon size={dimensions.icon} colors={colors} />
       </div>
     )
   }
@@ -253,7 +253,7 @@ export function Logo({
         gap: dimensions.gap
       }}
     >
-      <WheatIcon size={dimensions.icon} colors={colors} />
+      <BreadIcon size={dimensions.icon} colors={colors} />
       <span
         style={{
           fontFamily: "var(--font-poppins), 'Poppins', sans-serif",

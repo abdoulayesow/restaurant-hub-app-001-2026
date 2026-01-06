@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Loader2, LogIn } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { Logo } from '@/components/brand/Logo'
 
 export default function LoginPage() {
   const { data: session, status } = useSession()
@@ -52,10 +53,10 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-gold-500 to-gold-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-gold-lg">
-            <span className="text-3xl font-bold text-white">B</span>
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" variant="icon" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('common.appName')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">

@@ -2,28 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import artisan bakery fonts */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
 @layer base {
+  :root {
+    /* Light mode - warm cream backgrounds */
+    --bg-primary: theme('colors.cream.50');
+    --bg-secondary: theme('colors.cream.100');
+    --bg-tertiary: theme('colors.cream.200');
+    --text-primary: theme('colors.terracotta.900');
+    --text-secondary: theme('colors.terracotta.700');
+    --text-muted: #A08060;
+    --accent: theme('colors.terracotta.500');
+    --accent-hover: theme('colors.terracotta.600');
+    --border: rgba(196, 92, 38, 0.15);
+    --shadow: rgba(92, 46, 19, 0.1);
+  }
+
+  .dark {
+    /* Dark mode - warm dark backgrounds */
+    --bg-primary: theme('colors.dark.900');
+    --bg-secondary: theme('colors.dark.800');
+    --bg-tertiary: theme('colors.dark.700');
+    --text-primary: theme('colors.cream.100');
+    --text-secondary: theme('colors.cream.200');
+    --text-muted: #A08060;
+    --accent: theme('colors.terracotta.400');
+    --accent-hover: theme('colors.terracotta.300');
+    --border: rgba(232, 154, 113, 0.2);
+    --shadow: rgba(0, 0, 0, 0.3);
+  }
+
   body {
-    @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50;
+    @apply bg-cream-50 dark:bg-dark-900 text-terracotta-900 dark:text-cream-100;
+    font-family: 'DM Sans', system-ui, sans-serif;
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar with brand colors */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
+  @apply bg-cream-100 dark:bg-dark-800;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gold-400 dark:bg-gold-600 rounded-full;
+  @apply bg-terracotta-400 dark:bg-terracotta-600 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gold-500;
+  @apply bg-terracotta-500;
 }
 
 /* Smooth transitions */
@@ -33,5 +65,104 @@
 
 /* Focus ring for accessibility */
 :focus-visible {
-  @apply outline-none ring-2 ring-gold-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
+  @apply outline-none ring-2 ring-terracotta-500 ring-offset-2 ring-offset-cream-50 dark:ring-offset-dark-900;
+}
+
+/* Flour grain texture overlay utility */
+.grain-overlay {
+  position: relative;
+}
+.grain-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.dark .grain-overlay::before {
+  opacity: 0.05;
+}
+
+/* Warm shadow utility */
+.warm-shadow {
+  box-shadow:
+    0 4px 6px -1px var(--shadow),
+    0 2px 4px -2px var(--shadow),
+    0 0 0 1px var(--border);
+}
+
+.warm-shadow-lg {
+  box-shadow:
+    0 10px 25px -5px var(--shadow),
+    0 8px 10px -6px var(--shadow),
+    0 0 0 1px var(--border);
+}
+
+/* Rising dough animation */
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes breadSteam {
+  0%, 100% { opacity: 0.4; transform: translateY(0) scaleY(1); }
+  50% { opacity: 0.7; transform: translateY(-3px) scaleY(1.1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animation utilities */
+.animate-rise:hover {
+  animation: rise 0.4s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.25s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
 }

@@ -42,6 +42,7 @@ model User {
   email            String       @unique
   name             String?
   image            String?
+  emailVerified    DateTime?    // Required by NextAuth Prisma Adapter
   role             UserRole     @default(Editor)
   phone            String?
   address          String?
@@ -183,25 +184,36 @@ enum MovementType {
 // ============================================================================
 
 model ProductionLog {
-  id             String           @id @default(uuid())
-  bakeryId       String
-  bakery         Bakery           @relation(fields: [bakeryId], references: [id])
-  date           DateTime
-  productName    String
-  productNameFr  String?
-  quantity       Int
-  ingredients    Json
-  notes          String?
-  status         SubmissionStatus @default(Pending)
-  createdBy      String
-  createdByName  String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  stockMovements StockMovement[]
+  id                  String            @id @default(uuid())
+  bakeryId            String
+  bakery              Bakery            @relation(fields: [bakeryId], references: [id])
+  date                DateTime
+  productName         String
+  productNameFr       String?
+  quantity            Int
+  ingredients         Json              // Basic recipe ingredients list
+  ingredientDetails   Json?             // Detailed breakdown: [{itemId, itemName, plannedQty, actualQty, unit}]
+  estimatedCostGNF    Float?            // Calculated cost from ingredients
+  preparationStatus   ProductionStatus  @default(Planning)
+  notes               String?
+  status              SubmissionStatus  @default(Pending)
+  createdBy           String
+  createdByName       String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  stockMovements      StockMovement[]
 
   @@index([bakeryId])
   @@index([date])
   @@index([status])
+  @@index([preparationStatus])
+}
+
+enum ProductionStatus {
+  Planning    // Production is being planned
+  Ready       // All ingredients available, ready to start
+  InProgress  // Production is underway
+  Complete    // Production finished
 }
 
 // ============================================================================

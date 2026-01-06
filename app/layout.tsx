@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: 'Bakery Hub',
   description: 'Bakery inventory and management system',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/icon.svg',
+    apple: '/icons/icon.svg',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
