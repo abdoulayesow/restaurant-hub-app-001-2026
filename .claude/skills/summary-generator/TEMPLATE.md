@@ -7,7 +7,7 @@ Use this template when generating session summaries. Copy and adapt as needed.
 ```markdown
 # Session Summary: [FEATURE_NAME]
 
-**Date:** YYYY-MM-DD
+**Date:** YYYY-MM-DD HH:mm
 **Session Focus:** [Brief description of what was worked on]
 
 ---
@@ -189,7 +189,7 @@ Previous session completed:
 - [Key accomplishment 2]
 - [Key accomplishment 3]
 
-Session summary: docs/summaries/YYYY-MM-DD_feature-name.md
+Session summary: .claude/summaries/MM-DD-YYYY/YYYYMMDD-HHmm_feature-name.md
 
 ## Key Files to Review First
 - path/to/main/file.tsx (primary changes)
@@ -220,8 +220,10 @@ Session summary: docs/summaries/YYYY-MM-DD_feature-name.md
 
 ## Template Usage Tips
 
-1. **Feature Name**: Use kebab-case for the filename (e.g., `enrollment-improvements`)
-2. **Completed Work**: Group by category for easier scanning
-3. **Files Table**: Include only files with significant changes
-4. **Resume Prompt**: Make it copy-paste ready for the next session
-5. **Status**: Use bold for emphasis (COMPLETED, PENDING, IN_PROGRESS)
+1. **File Naming**: `.claude/summaries/MM-DD-YYYY/YYYYMMDD-HHmm_feature-name.md`
+   - Example: `.claude/summaries/01-05-2026/20260105-1430_phase1-foundation.md`
+2. **Feature Name**: Use kebab-case for the filename (e.g., `enrollment-improvements`)
+3. **Completed Work**: Group by category for easier scanning
+4. **Files Table**: Include only files with significant changes
+5. **Resume Prompt**: Make it copy-paste ready for the next session
+6. **Status**: Use bold for emphasis (COMPLETED, PENDING, IN_PROGRESS)
