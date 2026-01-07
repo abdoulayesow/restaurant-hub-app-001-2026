@@ -1,12 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useBakery } from '@/components/providers/BakeryProvider'
+import { DepositFormModal } from '@/components/bank/DepositFormModal'
+import { DepositList } from '@/components/bank/DepositList'
+import { Toast } from '@/components/ui/Toast'
+
+interface Deposit {
+  id: string
+  date: string
+  amount: number
+  status: 'Pending' | 'Deposited'
+  saleId?: string | null
+  sale?: {
+    id: string
+    date: string
+    totalGNF: number
+  } | null
+  comments?: string | null
+  bankRef?: string | null
+  receiptUrl?: string | null
+  depositedAt?: string | null
+  depositedBy: string
+  depositedByName?: string | null
+}
 
 export default function BankPage() {
   const { data: session, status } = useSession()
@@ -14,7 +36,18 @@ export default function BankPage() {
   const { t, locale } = useLocale()
   const { currentBakery, loading: bakeryLoading } = useBakery()
 
+  // Data state
+  const [balances, setBalances] = useState({ cash: 0, orangeMoney: 0, card: 0, total: 0 })
+  const [deposits, setDeposits] = useState<Deposit[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Modal state
+  const [depositModalOpen, setDepositModalOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   const isManager = session?.user?.role === 'Manager'
 
@@ -25,11 +58,108 @@ export default function BankPage() {
     }
   }, [session, status, router])
 
+  // Fetch balances
+  const fetchBalances = useCallback(async () => {
+    if (!currentBakery) return
+
+    try {
+      const response = await fetch(`/api/bank/balances?bakeryId=${currentBakery.id}`)
+      if (!response.ok) throw new Error('Failed to fetch balances')
+
+      const data = await response.json()
+      setBalances(data.balances)
+    } catch (err) {
+      console.error('Error fetching balances:', err)
+      setError(t('errors.fetchFailed') || 'Failed to load data')
+    }
+  }, [currentBakery, t])
+
+  // Fetch deposits
+  const fetchDeposits = useCallback(async () => {
+    if (!currentBakery) return
+
+    try {
+      const response = await fetch(`/api/cash-deposits?bakeryId=${currentBakery.id}`)
+      if (!response.ok) throw new Error('Failed to fetch deposits')
+
+      const data = await response.json()
+      setDeposits(data.deposits || [])
+    } catch (err) {
+      console.error('Error fetching deposits:', err)
+      setError(t('errors.fetchFailed') || 'Failed to load data')
+    }
+  }, [currentBakery, t])
+
+  // Fetch data when bakery changes
   useEffect(() => {
     if (currentBakery) {
-      setLoading(false)
+      setLoading(true)
+      setError(null)
+      Promise.all([fetchBalances(), fetchDeposits()])
+        .finally(() => setLoading(false))
     }
-  }, [currentBakery])
+  }, [currentBakery, fetchBalances, fetchDeposits])
+
+  // Create deposit handler
+  const handleCreateDeposit = async (data: { date: string; amount: number; saleId?: string; comments?: string }) => {
+    if (!currentBakery) return
+
+    setSaving(true)
+    try {
+      const response = await fetch('/api/cash-deposits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, bakeryId: currentBakery.id }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create deposit')
+      }
+
+      setDepositModalOpen(false)
+      setToast({ message: t('bank.depositCreated') || 'Deposit created successfully', type: 'success' })
+      await fetchDeposits()
+    } catch (err) {
+      setToast({
+        message: err instanceof Error ? err.message : t('errors.generic') || 'An error occurred',
+        type: 'error'
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Mark deposit as deposited handler
+  const handleMarkDeposited = async (depositId: string) => {
+    const bankRef = prompt(t('bank.enterBankRef') || 'Enter bank reference number:')
+    if (!bankRef) return
+
+    try {
+      const response = await fetch(`/api/cash-deposits/${depositId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'Deposited',
+          bankRef: bankRef.trim(),
+          depositedAt: new Date().toISOString(),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update deposit')
+      }
+
+      setToast({ message: t('bank.depositMarked') || 'Deposit marked as deposited', type: 'success' })
+      await fetchDeposits()
+    } catch (err) {
+      setToast({
+        message: err instanceof Error ? err.message : t('errors.generic') || 'An error occurred',
+        type: 'error'
+      })
+    }
+  }
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -74,9 +204,12 @@ export default function BankPage() {
           </div>
 
           {isManager && (
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 transition-colors">
+            <button
+              onClick={() => setDepositModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 transition-colors"
+            >
               <Plus className="w-5 h-5" />
-              {t('bank.recordTransaction') || 'Record Transaction'}
+              {t('bank.recordDeposit') || 'Record Deposit'}
             </button>
           )}
         </div>
@@ -94,7 +227,7 @@ export default function BankPage() {
               </h3>
             </div>
             <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
-              {formatCurrency(0)}
+              {formatCurrency(balances.total)}
             </p>
             <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
               {t('bank.acrossAllAccounts') || 'Across all accounts'}
@@ -112,7 +245,7 @@ export default function BankPage() {
               </h3>
             </div>
             <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
-              {formatCurrency(0)}
+              {formatCurrency(balances.cash)}
             </p>
             <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
               {t('bank.physicalCash') || 'Physical cash'}
@@ -130,7 +263,7 @@ export default function BankPage() {
               </h3>
             </div>
             <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
-              {formatCurrency(0)}
+              {formatCurrency(balances.orangeMoney + balances.card)}
             </p>
             <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
               {t('bank.currentBalance') || 'Current balance'}
@@ -138,33 +271,29 @@ export default function BankPage() {
           </div>
         </div>
 
-        {/* Recent Transactions Section */}
+        {/* Cash Deposits Section */}
         <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay mb-8">
           <div className="flex items-center justify-between mb-6">
             <h3
               className="text-lg font-semibold text-terracotta-900 dark:text-cream-100"
               style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
             >
-              {t('bank.recentTransactions') || 'Recent Transactions'}
+              {t('bank.cashDeposits') || 'Cash Deposits'}
             </h3>
-            <button className="p-2 rounded-xl text-terracotta-700 dark:text-cream-300 hover:bg-cream-200 dark:hover:bg-dark-700">
+            <button
+              onClick={() => fetchDeposits()}
+              className="p-2 rounded-xl text-terracotta-700 dark:text-cream-300 hover:bg-cream-200 dark:hover:bg-dark-700"
+            >
               <RefreshCw className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Empty State */}
-          <div className="text-center py-12">
-            <Building2 className="w-16 h-16 mx-auto mb-4 text-terracotta-300 dark:text-dark-600" />
-            <h3
-              className="text-lg font-medium text-terracotta-900 dark:text-cream-100 mb-2"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
-              {t('bank.noTransactions') || 'No Transactions'}
-            </h3>
-            <p className="text-terracotta-600/60 dark:text-cream-300/60 mb-6 max-w-md mx-auto">
-              {t('bank.noTransactionsDescription') || 'Bank and cash transactions will appear here once you start recording them.'}
-            </p>
-          </div>
+          <DepositList
+            deposits={deposits}
+            onMarkDeposited={handleMarkDeposited}
+            canEdit={isManager}
+            loading={loading}
+          />
         </div>
 
         {/* Quick Actions */}
@@ -189,6 +318,7 @@ export default function BankPage() {
             </div>
             <button
               disabled={!isManager}
+              onClick={() => setDepositModalOpen(true)}
               className="w-full px-4 py-2 border border-green-500 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('bank.recordDeposit') || 'Record Deposit'}
@@ -222,6 +352,23 @@ export default function BankPage() {
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      <DepositFormModal
+        isOpen={depositModalOpen}
+        onClose={() => setDepositModalOpen(false)}
+        onSubmit={handleCreateDeposit}
+        isLoading={saving}
+      />
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }

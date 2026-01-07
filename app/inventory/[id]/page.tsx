@@ -5,8 +5,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import ItemDetailHeader from '@/components/inventory/ItemDetailHeader'
-import StockMovementHistory from '@/components/inventory/StockMovementHistory'
+import { ItemDetailClient } from '@/components/inventory/ItemDetailClient'
 
 export const metadata: Metadata = {
   title: 'Inventory Item Details | Bakery Hub',
@@ -89,7 +88,28 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
   )
   const initialStock = item.currentStock - totalChange
 
-  // Serialize data for client components
+  // Helper function to calculate stock status
+  const getStockStatus = (item: typeof item) => {
+    if (item.currentStock <= 0) return 'critical'
+    if (item.currentStock < item.minStock) return 'low'
+    return 'ok'
+  }
+
+  // Serialize item data for client components
+  const serializedItem = {
+    id: item.id,
+    name: item.name,
+    nameFr: item.nameFr,
+    category: item.category,
+    unit: item.unit,
+    currentStock: item.currentStock,
+    minStock: item.minStock,
+    unitCostGNF: item.unitCostGNF,
+    stockStatus: getStockStatus(item),
+    supplier: item.supplier ? { id: item.id, name: item.supplier.name } : null
+  }
+
+  // Serialize movements data for client components
   const serializedMovements = stockMovements.map((movement) => ({
     id: movement.id,
     type: movement.type,
@@ -98,10 +118,14 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
     reason: movement.reason,
     createdByName: movement.createdByName,
     createdAt: movement.createdAt.toISOString(),
-    productionLogId: movement.productionLogId,
-    expenseId: movement.expenseId,
-    productionLog: movement.productionLog,
-    expense: movement.expense,
+    productionLog: movement.productionLog ? {
+      id: movement.productionLog.id,
+      productName: movement.productionLog.productName
+    } : null,
+    expense: movement.expense ? {
+      id: movement.expense.id,
+      description: movement.expense.description || ''
+    } : null
   }))
 
   return (
@@ -115,8 +139,12 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
         Back to Inventory
       </Link>
 
-      {/* Item Header */}
-      <ItemDetailHeader item={item} />
+      {/* Item Detail with Stock Adjustment */}
+      <ItemDetailClient
+        item={serializedItem}
+        movements={serializedMovements}
+        initialStock={initialStock}
+      />
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -168,13 +196,6 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
           </p>
         </div>
       </div>
-
-      {/* Movement History */}
-      <StockMovementHistory
-        movements={serializedMovements}
-        unit={item.unit}
-        initialStock={initialStock}
-      />
     </div>
   )
 }

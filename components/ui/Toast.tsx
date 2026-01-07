@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CheckCircle, Info, X } from 'lucide-react'
+import { CheckCircle, Info, XCircle, X } from 'lucide-react'
 
 export interface ToastProps {
   message: string
-  type?: 'success' | 'info'
+  type?: 'success' | 'info' | 'error'
   duration?: number
   color?: string
   onClose: () => void
@@ -35,10 +35,10 @@ export function Toast({
 
   if (!isVisible) return null
 
-  const Icon = type === 'success' ? CheckCircle : Info
+  const Icon = type === 'success' ? CheckCircle : type === 'error' ? XCircle : Info
 
   // Use custom color or default based on type
-  const bgColor = color || (type === 'success' ? '#22c55e' : '#C45C26')
+  const bgColor = color || (type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#C45C26')
 
   return (
     <div

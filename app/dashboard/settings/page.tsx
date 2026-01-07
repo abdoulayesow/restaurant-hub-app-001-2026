@@ -7,6 +7,7 @@ import { Settings } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { BakerySettings } from '@/components/settings/BakerySettings'
+import { BakeryConfigSettings } from '@/components/settings/BakeryConfigSettings'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
@@ -65,18 +66,8 @@ export default function SettingsPage() {
           {/* Stock Deduction Settings */}
           <BakerySettings />
 
-          {/* Placeholder for future settings */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay opacity-50">
-            <h2
-              className="text-xl font-semibold text-terracotta-900 dark:text-cream-100 mb-2"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
-              {t('settings.moreSettings') || 'More Settings'}
-            </h2>
-            <p className="text-sm text-terracotta-600 dark:text-cream-300">
-              {t('settings.comingSoon') || 'Additional configuration options coming soon...'}
-            </p>
-          </div>
+          {/* Bakery Configuration */}
+          <BakeryConfigSettings />
         </div>
       </main>
     </div>
