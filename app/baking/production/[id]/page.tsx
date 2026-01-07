@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
@@ -13,12 +13,13 @@ export const metadata: Metadata = {
 }
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function ProductionDetailPage({ params }: PageProps) {
+  const { id } = await params
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
@@ -41,7 +42,7 @@ export default async function ProductionDetailPage({ params }: PageProps) {
   // Fetch production log with all details
   const productionLog = await prisma.productionLog.findUnique({
     where: {
-      id: params.id,
+      id,
     },
     include: {
       stockMovements: {

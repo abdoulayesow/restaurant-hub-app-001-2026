@@ -12,8 +12,8 @@ import {
   AlertCircle,
   ExternalLink,
 } from 'lucide-react'
-import { useLocale } from '@/contexts/LocaleContext'
-import { useBakery } from '@/contexts/BakeryContext'
+import { useLocale } from '@/components/providers/LocaleProvider'
+import { useBakery } from '@/components/providers/BakeryProvider'
 import { ProductionStatus, SubmissionStatus } from '@prisma/client'
 
 interface ProductionDetailProps {

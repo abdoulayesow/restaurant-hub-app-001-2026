@@ -3,16 +3,25 @@
 import { useState, useEffect } from 'react'
 import { X, Plus, Minus } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
-import { InventoryItem } from './InventoryTable'
 import { StockStatusBadge, getStockStatus } from './StockStatusBadge'
 
 type MovementType = 'Purchase' | 'Usage' | 'Waste' | 'Adjustment'
+
+interface InventoryItemMinimal {
+  name: string
+  nameFr?: string | null
+  currentStock: number
+  minStock: number
+  unit: string
+  unitCostGNF: number
+  stockStatus: 'critical' | 'low' | 'ok'
+}
 
 interface StockAdjustmentModalProps {
   isOpen: boolean
   onClose: () => void
   onAdjust: (data: { type: MovementType; quantity: number; reason?: string; unitCost?: number }) => Promise<void>
-  item: InventoryItem | null
+  item: InventoryItemMinimal | null
   isLoading?: boolean
 }
 

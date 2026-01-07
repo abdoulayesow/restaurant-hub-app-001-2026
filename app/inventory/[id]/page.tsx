@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
@@ -13,12 +13,13 @@ export const metadata: Metadata = {
 }
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function InventoryItemDetailPage({ params }: PageProps) {
+  const { id } = await params
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
@@ -40,7 +41,7 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
   // Fetch inventory item with supplier
   const item = await prisma.inventoryItem.findUnique({
     where: {
-      id: params.id,
+      id,
       bakeryId: bakeryId, // Ensure user can only access items from their bakery
     },
     include: {
@@ -59,7 +60,7 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
   // Fetch stock movements for this item
   const stockMovements = await prisma.stockMovement.findMany({
     where: {
-      itemId: params.id,
+      itemId: id,
       bakeryId: bakeryId,
     },
     include: {
@@ -89,9 +90,9 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
   const initialStock = item.currentStock - totalChange
 
   // Helper function to calculate stock status
-  const getStockStatus = (item: typeof item) => {
-    if (item.currentStock <= 0) return 'critical'
-    if (item.currentStock < item.minStock) return 'low'
+  const getStockStatus = (itemData: { currentStock: number; minStock: number }) => {
+    if (itemData.currentStock <= 0) return 'critical'
+    if (itemData.currentStock < itemData.minStock) return 'low'
     return 'ok'
   }
 
@@ -105,7 +106,7 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
     currentStock: item.currentStock,
     minStock: item.minStock,
     unitCostGNF: item.unitCostGNF,
-    stockStatus: getStockStatus(item),
+    stockStatus: getStockStatus(item) as 'critical' | 'low' | 'ok',
     supplier: item.supplier ? { id: item.id, name: item.supplier.name } : null
   }
 
@@ -118,6 +119,8 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
     reason: movement.reason,
     createdByName: movement.createdByName,
     createdAt: movement.createdAt.toISOString(),
+    productionLogId: movement.productionLogId,
+    expenseId: movement.expenseId,
     productionLog: movement.productionLog ? {
       id: movement.productionLog.id,
       productName: movement.productionLog.productName

@@ -10,8 +10,8 @@ import {
   Settings,
   ExternalLink,
 } from 'lucide-react'
-import { useLocale } from '@/contexts/LocaleContext'
-import { useBakery } from '@/contexts/BakeryContext'
+import { useLocale } from '@/components/providers/LocaleProvider'
+import { useBakery } from '@/components/providers/BakeryProvider'
 import { MovementType } from '@prisma/client'
 
 interface StockMovement {
@@ -67,19 +67,24 @@ export default function StockMovementHistory({
   )
 
   // Calculate running balance (from oldest to newest, then reverse for display)
-  const movementsWithBalance = [...filteredMovements].reverse().map((movement, index) => {
-    const previousBalance =
-      index === 0
-        ? initialStock
-        : movementsWithBalance[index - 1].runningBalance
+  const reversedMovements = [...filteredMovements].reverse()
+  const movementsWithBalance: (StockMovement & { runningBalance: number })[] = []
+
+  for (let index = 0; index < reversedMovements.length; index++) {
+    const movement = reversedMovements[index]
+    const previousBalance = index === 0
+      ? initialStock
+      : movementsWithBalance[index - 1].runningBalance
 
     const runningBalance = previousBalance + movement.quantity
 
-    return {
+    movementsWithBalance.push({
       ...movement,
       runningBalance,
-    }
-  }).reverse()
+    })
+  }
+
+  movementsWithBalance.reverse()
 
   const paginatedWithBalance = movementsWithBalance.slice(
     startIndex,

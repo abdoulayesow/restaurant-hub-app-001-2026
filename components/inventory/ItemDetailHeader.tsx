@@ -1,8 +1,8 @@
 'use client'
 
 import { Package, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react'
-import { useLocale } from '@/contexts/LocaleContext'
-import { useBakery } from '@/contexts/BakeryContext'
+import { useLocale } from '@/components/providers/LocaleProvider'
+import { useBakery } from '@/components/providers/BakeryProvider'
 
 interface ItemDetailHeaderProps {
   item: {

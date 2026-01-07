@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ItemDetailHeader } from './ItemDetailHeader'
-import { StockMovementHistory } from './StockMovementHistory'
+import ItemDetailHeader from './ItemDetailHeader'
+import StockMovementHistory from './StockMovementHistory'
 import { StockAdjustmentModal } from './StockAdjustmentModal'
 import { Toast } from '@/components/ui/Toast'
 import { useBakery } from '@/components/providers/BakeryProvider'
+import { MovementType } from '@prisma/client'
 
 interface SerializedItem {
   id: string
@@ -23,12 +24,14 @@ interface SerializedItem {
 
 interface SerializedMovement {
   id: string
-  type: string
+  type: MovementType
   quantity: number
   unitCost: number | null
   reason: string | null
   createdAt: string
   createdByName: string | null
+  productionLogId: string | null
+  expenseId: string | null
   productionLog: { id: string; productName: string } | null
   expense: { id: string; description: string } | null
 }
