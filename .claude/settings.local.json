@@ -13,7 +13,13 @@
       "Bash(git commit:*)",
       "Bash(git push)",
       "Bash(ls:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(git add:*)",
+      "Bash(git checkout:*)",
+      "Bash(npx prisma migrate deploy:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma db execute:*)",
+      "Bash(find:*)"
     ]
   }
 }

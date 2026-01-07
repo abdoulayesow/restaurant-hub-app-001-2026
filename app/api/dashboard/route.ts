@@ -13,24 +13,24 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
     const period = parseInt(searchParams.get('period') || '30', 10)
 
-    if (!bakeryId) {
-      return NextResponse.json({ error: 'bakeryId is required' }, { status: 400 })
+    if (!restaurantId) {
+      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
     }
 
     // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -48,12 +48,12 @@ export async function GET(request: NextRequest) {
       pendingSalesCount,
       pendingExpensesCount,
       lowStockItems,
-      bakery,
+      restaurant,
     ] = await Promise.all([
       // Approved sales in period
       prisma.sale.findMany({
         where: {
-          bakeryId,
+          restaurantId,
           status: 'Approved',
           date: { gte: startDate, lte: endDate },
         },
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       // Approved expenses in period with category
       prisma.expense.findMany({
         where: {
-          bakeryId,
+          restaurantId,
           status: 'Approved',
           date: { gte: startDate, lte: endDate },
         },
@@ -79,16 +79,16 @@ export async function GET(request: NextRequest) {
       }),
       // Pending sales count
       prisma.sale.count({
-        where: { bakeryId, status: 'Pending' },
+        where: { restaurantId, status: 'Pending' },
       }),
       // Pending expenses count
       prisma.expense.count({
-        where: { bakeryId, status: 'Pending' },
+        where: { restaurantId, status: 'Pending' },
       }),
       // Low stock items
       prisma.inventoryItem.findMany({
         where: {
-          bakeryId,
+          restaurantId,
           isActive: true,
         },
         select: {
@@ -101,8 +101,8 @@ export async function GET(request: NextRequest) {
         },
       }),
       // Bakery for initial balances
-      prisma.bakery.findUnique({
-        where: { id: bakeryId },
+      prisma.restaurant.findUnique({
+        where: { id: restaurantId },
         select: {
           initialCashBalance: true,
           initialOrangeBalance: true,
@@ -119,9 +119,9 @@ export async function GET(request: NextRequest) {
 
     // Calculate balance (initial + revenue - expenses)
     const initialBalance =
-      (bakery?.initialCashBalance || 0) +
-      (bakery?.initialOrangeBalance || 0) +
-      (bakery?.initialCardBalance || 0)
+      (restaurant?.initialCashBalance || 0) +
+      (restaurant?.initialOrangeBalance || 0) +
+      (restaurant?.initialCardBalance || 0)
     const balance = initialBalance + totalRevenue - totalExpenses
 
     // Aggregate revenue by day

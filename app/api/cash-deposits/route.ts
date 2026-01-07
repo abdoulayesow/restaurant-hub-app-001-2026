@@ -13,35 +13,35 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
     const status = searchParams.get('status') // "Pending" | "Deposited"
 
-    if (!bakeryId) {
+    if (!restaurantId) {
       return NextResponse.json(
-        { error: 'Bakery ID is required' },
+        { error: 'Restaurant ID is required' },
         { status: 400 }
       )
     }
 
-    // Verify user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Verify user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: bakeryId
+          restaurantId: restaurantId
         }
       }
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json(
-        { error: 'Access denied to this bakery' },
+        { error: 'Access denied to this restaurant' },
         { status: 403 }
       )
     }
 
     // Build where clause
-    const whereClause: any = { bakeryId }
+    const whereClause: any = { restaurantId }
     if (status === 'Pending' || status === 'Deposited') {
       whereClause.status = status
     }
@@ -93,9 +93,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     // Validate required fields
-    if (!body.bakeryId) {
+    if (!body.restaurantId) {
       return NextResponse.json(
-        { error: 'Bakery ID is required' },
+        { error: 'Restaurant ID is required' },
         { status: 400 }
       )
     }
@@ -114,19 +114,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Verify user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: body.bakeryId
+          restaurantId: body.restaurantId
         }
       }
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json(
-        { error: 'Access denied to this bakery' },
+        { error: 'Access denied to this restaurant' },
         { status: 403 }
       )
     }
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
     // Create deposit
     const deposit = await prisma.cashDeposit.create({
       data: {
-        bakeryId: body.bakeryId,
+        restaurantId: body.restaurantId,
         date: depositDate,
         amount: body.amount,
         status: 'Pending',

@@ -13,38 +13,38 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
     const status = searchParams.get('status')
     const categoryId = searchParams.get('categoryId')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
-    if (!bakeryId) {
-      return NextResponse.json({ error: 'bakeryId is required' }, { status: 400 })
+    if (!restaurantId) {
+      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Build query filters
     const where: {
-      bakeryId: string
+      restaurantId: string
       status?: 'Pending' | 'Approved' | 'Rejected'
       categoryId?: string
       date?: { gte?: Date; lte?: Date }
     } = {
-      bakeryId,
+      restaurantId,
     }
 
     if (status && ['Pending', 'Approved', 'Rejected'].includes(status)) {
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const {
-      bakeryId,
+      restaurantId,
       date,
       categoryId,
       categoryName,
@@ -165,17 +165,9 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!bakeryId || !date || !categoryName || amountGNF === undefined || !paymentMethod) {
+    if (!restaurantId || !date || !categoryName || amountGNF === undefined || !paymentMethod) {
       return NextResponse.json(
-        { error: 'Missing required fields: bakeryId, date, categoryName, amountGNF, paymentMethod' },
-        { status: 400 }
-      )
-    }
-
-    // Validate payment method
-    if (!['Cash', 'OrangeMoney', 'Card'].includes(paymentMethod)) {
-      return NextResponse.json(
-        { error: 'Invalid paymentMethod. Must be Cash, OrangeMoney, or Card' },
+        { error: 'Missing required fields: restaurantId, date, categoryName, amountGNF, paymentMethod' },
         { status: 400 }
       )
     }
@@ -188,17 +180,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -208,12 +200,12 @@ export async function POST(request: NextRequest) {
 
     // Validate expense items if inventory purchase
     if (isInventoryPurchase && expenseItems.length > 0) {
-      // Validate all inventory items exist and belong to the bakery
+      // Validate all inventory items exist and belong to the restaurant
       const inventoryItemIds = expenseItems.map((item: { inventoryItemId: string }) => item.inventoryItemId)
       const validItems = await prisma.inventoryItem.findMany({
         where: {
           id: { in: inventoryItemIds },
-          bakeryId,
+          restaurantId,
           isActive: true,
         },
         select: { id: true },
@@ -221,7 +213,7 @@ export async function POST(request: NextRequest) {
 
       if (validItems.length !== inventoryItemIds.length) {
         return NextResponse.json(
-          { error: 'One or more inventory items are invalid or do not belong to this bakery' },
+          { error: 'One or more inventory items are invalid or do not belong to this restaurant' },
           { status: 400 }
         )
       }
@@ -242,7 +234,7 @@ export async function POST(request: NextRequest) {
       // Create expense
       const newExpense = await tx.expense.create({
         data: {
-          bakeryId,
+          restaurantId,
           date: expenseDate,
           categoryId: categoryId || null,
           categoryName,

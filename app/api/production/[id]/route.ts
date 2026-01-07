@@ -22,7 +22,7 @@ export async function GET(
     const productionLog = await prisma.productionLog.findUnique({
       where: { id },
       include: {
-        bakery: {
+        restaurant: {
           select: {
             id: true,
             name: true,
@@ -47,16 +47,16 @@ export async function GET(
     }
 
     // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: productionLog.bakeryId,
+          restaurantId: productionLog.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -95,16 +95,16 @@ export async function PATCH(
     }
 
     // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingLog.bakeryId,
+          restaurantId: existingLog.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -186,7 +186,7 @@ export async function PATCH(
           const inventoryItems = await tx.inventoryItem.findMany({
             where: {
               id: { in: itemIds },
-              bakeryId: existingLog.bakeryId,
+              restaurantId: existingLog.restaurantId,
               isActive: true,
             },
           })
@@ -210,7 +210,7 @@ export async function PATCH(
           for (const ingredient of ingredientDetails) {
             await tx.stockMovement.create({
               data: {
-                bakeryId: existingLog.bakeryId,
+                restaurantId: existingLog.restaurantId,
                 itemId: ingredient.itemId,
                 type: 'Usage' as any,
                 quantity: -ingredient.quantity,
@@ -325,16 +325,16 @@ export async function DELETE(
     }
 
     // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingLog.bakeryId,
+          restaurantId: existingLog.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

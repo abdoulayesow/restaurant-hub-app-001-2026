@@ -13,35 +13,35 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
 
-    if (!bakeryId) {
+    if (!restaurantId) {
       return NextResponse.json(
-        { error: 'Bakery ID is required' },
+        { error: 'Restaurant ID is required' },
         { status: 400 }
       )
     }
 
-    // Verify user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Verify user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: bakeryId
+          restaurantId: restaurantId
         }
       }
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json(
-        { error: 'Access denied to this bakery' },
+        { error: 'Access denied to this restaurant' },
         { status: 403 }
       )
     }
 
     // Fetch latest DailySummary for bakery
     const latestSummary = await prisma.dailySummary.findFirst({
-      where: { bakeryId },
+      where: { restaurantId },
       orderBy: { date: 'desc' },
       select: {
         cumulativeCashBalance: true,
@@ -51,31 +51,32 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // If no daily summary exists, fallback to bakery initial balances
+    // If no daily summary exists, fallback to restaurant initial balances
     if (!latestSummary) {
-      const bakery = await prisma.bakery.findUnique({
-        where: { id: bakeryId },
+      const restaurant = await prisma.restaurant.findUnique({
+        where: { id: restaurantId },
         select: {
+          restaurantType: true,
           initialCashBalance: true,
           initialOrangeBalance: true,
           initialCardBalance: true
         }
       })
 
-      if (!bakery) {
+      if (!restaurant) {
         return NextResponse.json(
-          { error: 'Bakery not found' },
+          { error: 'Restaurant not found' },
           { status: 404 }
         )
       }
 
-      const total = bakery.initialCashBalance + bakery.initialOrangeBalance + bakery.initialCardBalance
+      const total = restaurant.initialCashBalance + restaurant.initialOrangeBalance + restaurant.initialCardBalance
 
       return NextResponse.json({
         balances: {
-          cash: bakery.initialCashBalance,
-          orangeMoney: bakery.initialOrangeBalance,
-          card: bakery.initialCardBalance,
+          cash: restaurant.initialCashBalance,
+          orangeMoney: restaurant.initialOrangeBalance,
+          card: restaurant.initialCardBalance,
           total,
           asOfDate: null
         }

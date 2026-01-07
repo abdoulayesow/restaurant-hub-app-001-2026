@@ -34,17 +34,17 @@ export async function POST(
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingExpense.bakeryId,
+          restaurantId: existingExpense.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -74,7 +74,7 @@ export async function POST(
           : existingExpense.comments,
       },
       include: {
-        bakery: true,
+        restaurant: true,
         category: {
           select: {
             id: true,
@@ -100,8 +100,8 @@ export async function POST(
       // Get existing summary to add to expenses
       const existingSummary = await prisma.dailySummary.findUnique({
         where: {
-          bakeryId_date: {
-            bakeryId: expense.bakeryId,
+          restaurantId_date: {
+            restaurantId: expense.restaurantId,
             date: expenseDate,
           },
         },
@@ -109,13 +109,13 @@ export async function POST(
 
       // Calculate expense amount by payment method
       const cashExpense = expense.paymentMethod === 'Cash' ? expense.amountGNF : 0
-      const orangeExpense = expense.paymentMethod === 'OrangeMoney' ? expense.amountGNF : 0
+      const orangeExpense = expense.paymentMethod === 'Orange Money' ? expense.amountGNF : 0
       const cardExpense = expense.paymentMethod === 'Card' ? expense.amountGNF : 0
 
       await prisma.dailySummary.upsert({
         where: {
-          bakeryId_date: {
-            bakeryId: expense.bakeryId,
+          restaurantId_date: {
+            restaurantId: expense.restaurantId,
             date: expenseDate,
           },
         },
@@ -125,7 +125,7 @@ export async function POST(
           dailyCardExpenses: (existingSummary?.dailyCardExpenses || 0) + cardExpense,
         },
         create: {
-          bakeryId: expense.bakeryId,
+          restaurantId: expense.restaurantId,
           date: expenseDate,
           dailyCashExpenses: cashExpense,
           dailyOrangeExpenses: orangeExpense,
@@ -147,7 +147,7 @@ export async function POST(
               // Create Purchase stock movement
               await tx.stockMovement.create({
                 data: {
-                  bakeryId: expense.bakeryId,
+                  restaurantId: expense.restaurantId,
                   itemId: item.inventoryItemId,
                   type: 'Purchase',
                   quantity: item.quantity,

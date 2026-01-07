@@ -48,17 +48,17 @@ export async function GET(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: item.bakeryId,
+          restaurantId: item.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -94,7 +94,7 @@ export async function PUT(
 
     const { id } = await params
 
-    // First, get the existing item to check bakery access
+    // First, get the existing item to check restaurant access
     const existingItem = await prisma.inventoryItem.findUnique({
       where: { id },
     })
@@ -103,17 +103,17 @@ export async function PUT(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingItem.bakeryId,
+          restaurantId: existingItem.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -180,7 +180,7 @@ export async function DELETE(
 
     const { id } = await params
 
-    // First, get the existing item to check bakery access
+    // First, get the existing item to check restaurant access
     const existingItem = await prisma.inventoryItem.findUnique({
       where: { id },
     })
@@ -189,17 +189,17 @@ export async function DELETE(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingItem.bakeryId,
+          restaurantId: existingItem.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

@@ -30,13 +30,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { bakeryId, ingredients } = body as {
-      bakeryId: string
+    const { restaurantId, ingredients } = body as {
+      restaurantId: string
       ingredients: IngredientInput[]
     }
 
-    if (!bakeryId) {
-      return NextResponse.json({ error: 'bakeryId is required' }, { status: 400 })
+    if (!restaurantId) {
+      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
     }
 
     if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
@@ -44,16 +44,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const inventoryItems = await prisma.inventoryItem.findMany({
       where: {
         id: { in: itemIds },
-        bakeryId,
+        restaurantId,
         isActive: true,
       },
     })

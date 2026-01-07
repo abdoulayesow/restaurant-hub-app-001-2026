@@ -26,17 +26,17 @@ export default async function ProductionDetailPage({ params }: PageProps) {
     redirect('/auth/signin')
   }
 
-  // Get user's default bakery and role
+  // Get user's default restaurant and role
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { defaultBakeryId: true, role: true },
+    select: { defaultRestaurantId: true, role: true },
   })
 
-  if (!user?.defaultBakeryId) {
+  if (!user?.defaultRestaurantId) {
     redirect('/dashboard')
   }
 
-  const bakeryId = user.defaultBakeryId
+  const restaurantId = user.defaultRestaurantId
   const isManager = user.role === 'Manager'
 
   // Fetch production log with all details
@@ -60,8 +60,8 @@ export default async function ProductionDetailPage({ params }: PageProps) {
     },
   })
 
-  // Verify the production log belongs to the user's bakery
-  if (!productionLog || productionLog.bakeryId !== bakeryId) {
+  // Verify the production log belongs to the user's restaurant
+  if (!productionLog || productionLog.restaurantId !== restaurantId) {
     redirect('/baking/production')
   }
 
@@ -74,7 +74,7 @@ export default async function ProductionDetailPage({ params }: PageProps) {
   const inventoryItems = await prisma.inventoryItem.findMany({
     where: {
       id: { in: ingredientIds },
-      bakeryId: bakeryId,
+      restaurantId: restaurantId,
     },
     select: {
       id: true,

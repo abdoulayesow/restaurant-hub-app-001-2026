@@ -34,17 +34,17 @@ export async function POST(
       return NextResponse.json({ error: 'Sale not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingSale.bakeryId,
+          restaurantId: existingSale.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -74,7 +74,7 @@ export async function POST(
           : existingSale.comments,
       },
       include: {
-        bakery: true,
+        restaurant: true,
         cashDeposit: true,
       },
     })
@@ -86,8 +86,8 @@ export async function POST(
 
       await prisma.dailySummary.upsert({
         where: {
-          bakeryId_date: {
-            bakeryId: sale.bakeryId,
+          restaurantId_date: {
+            restaurantId: sale.restaurantId,
             date: saleDate,
           },
         },
@@ -97,7 +97,7 @@ export async function POST(
           dailyCardSales: sale.cardGNF,
         },
         create: {
-          bakeryId: sale.bakeryId,
+          restaurantId: sale.restaurantId,
           date: saleDate,
           dailyCashSales: sale.cashGNF,
           dailyOrangeSales: sale.orangeMoneyGNF,

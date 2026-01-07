@@ -1,12 +1,12 @@
-import { PrismaClient, ProductionStatus, SubmissionStatus, PaymentMethod } from '@prisma/client'
+import { PrismaClient, ProductionStatus, SubmissionStatus } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Starting seed...')
 
-  // Create bakeries
-  const bakery1 = await prisma.bakery.upsert({
+  // Create restaurants
+  const restaurant1 = await prisma.restaurant.upsert({
     where: { id: 'bakery-conakry-main' },
     update: {},
     create: {
@@ -14,6 +14,7 @@ async function main() {
       name: 'Boulangerie Centrale',
       location: 'Conakry - Centre',
       currency: 'GNF',
+      restaurantType: 'Bakery',
       initialCapital: 50000000,
       initialCashBalance: 5000000,
       initialOrangeBalance: 1000000,
@@ -24,9 +25,9 @@ async function main() {
       isActive: true,
     },
   })
-  console.log('✅ Created bakery:', bakery1.name)
+  console.log('✅ Created restaurant:', restaurant1.name)
 
-  const bakery2 = await prisma.bakery.upsert({
+  const restaurant2 = await prisma.restaurant.upsert({
     where: { id: 'bakery-kaloum' },
     update: {},
     create: {
@@ -34,6 +35,7 @@ async function main() {
       name: 'Boulangerie Kaloum',
       location: 'Conakry - Kaloum',
       currency: 'GNF',
+      restaurantType: 'Bakery',
       initialCapital: 35000000,
       initialCashBalance: 3000000,
       initialOrangeBalance: 800000,
@@ -44,9 +46,9 @@ async function main() {
       isActive: true,
     },
   })
-  console.log('✅ Created bakery:', bakery2.name)
+  console.log('✅ Created restaurant:', restaurant2.name)
 
-  const bakery3 = await prisma.bakery.upsert({
+  const restaurant3 = await prisma.restaurant.upsert({
     where: { id: 'bakery-ratoma' },
     update: {},
     create: {
@@ -54,6 +56,7 @@ async function main() {
       name: 'Boulangerie Ratoma',
       location: 'Conakry - Ratoma',
       currency: 'GNF',
+      restaurantType: 'Bakery',
       initialCapital: 40000000,
       initialCashBalance: 4000000,
       initialOrangeBalance: 900000,
@@ -64,13 +67,13 @@ async function main() {
       isActive: true,
     },
   })
-  console.log('✅ Created bakery:', bakery3.name)
+  console.log('✅ Created restaurant:', restaurant3.name)
 
-  // Use first bakery as the main one for inventory
-  const bakery = bakery1
+  // Use first restaurant as the main one for inventory
+  const restaurant = restaurant1
 
   // Find or create the user (will be created by NextAuth on first login)
-  // This ensures the user exists and is assigned to the bakery
+  // This ensures the user exists and is assigned to the restaurant
   const userEmail = process.env.SEED_USER_EMAIL || 'abdoulaye.sow.1989@gmail.com'
 
   let user = await prisma.user.findUnique({
@@ -96,45 +99,45 @@ async function main() {
   }
 
   // Assign user to all bakeries
-  await prisma.userBakery.upsert({
+  await prisma.userRestaurant.upsert({
     where: {
-      userId_bakeryId: {
+      userId_restaurantId: {
         userId: user.id,
-        bakeryId: bakery1.id,
+        restaurantId: restaurant1.id,
       },
     },
     update: {},
     create: {
       userId: user.id,
-      bakeryId: bakery1.id,
+      restaurantId: restaurant1.id,
     },
   })
 
-  await prisma.userBakery.upsert({
+  await prisma.userRestaurant.upsert({
     where: {
-      userId_bakeryId: {
+      userId_restaurantId: {
         userId: user.id,
-        bakeryId: bakery2.id,
+        restaurantId: restaurant2.id,
       },
     },
     update: {},
     create: {
       userId: user.id,
-      bakeryId: bakery2.id,
+      restaurantId: restaurant2.id,
     },
   })
 
-  await prisma.userBakery.upsert({
+  await prisma.userRestaurant.upsert({
     where: {
-      userId_bakeryId: {
+      userId_restaurantId: {
         userId: user.id,
-        bakeryId: bakery3.id,
+        restaurantId: restaurant3.id,
       },
     },
     update: {},
     create: {
       userId: user.id,
-      bakeryId: bakery3.id,
+      restaurantId: restaurant3.id,
     },
   })
   console.log('✅ Assigned user to 3 bakeries')
@@ -142,7 +145,7 @@ async function main() {
   // Set default bakery for user
   await prisma.user.update({
     where: { id: user.id },
-    data: { defaultBakeryId: bakery.id },
+    data: { defaultRestaurantId: restaurant.id },
   })
   console.log('✅ Set default bakery for user')
 
@@ -266,7 +269,7 @@ async function main() {
       update: {},
       create: {
         ...item,
-        bakeryId: bakery.id,
+        restaurantId: restaurant.id,
       },
     })
   }
@@ -278,7 +281,7 @@ async function main() {
     update: {},
     create: {
       id: 'movement-initial-001',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-flour-001',
       type: 'Purchase',
       quantity: 150,
@@ -377,7 +380,7 @@ async function main() {
     // Baguettes - Complete with stock deducted
     {
       id: 'prod-001',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
       productName: 'Baguettes',
       productNameFr: 'Baguettes',
@@ -399,7 +402,7 @@ async function main() {
     // Croissants - In Progress
     {
       id: 'prod-002',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       productName: 'Croissants',
       productNameFr: 'Croissants',
@@ -423,7 +426,7 @@ async function main() {
     // Pain au Chocolat - Ready
     {
       id: 'prod-003',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
       productName: 'Pain au Chocolat',
       productNameFr: 'Pain au Chocolat',
@@ -445,7 +448,7 @@ async function main() {
     // Baguettes - Today Planning (deferred mode test)
     {
       id: 'prod-004',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(),
       productName: 'Baguettes',
       productNameFr: 'Baguettes',
@@ -479,7 +482,7 @@ async function main() {
     // Baguettes production movements (prod-001)
     {
       id: 'movement-prod-001-flour',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-flour-001',
       type: 'Usage',
       quantity: -40,
@@ -492,7 +495,7 @@ async function main() {
     },
     {
       id: 'movement-prod-001-yeast',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-yeast-001',
       type: 'Usage',
       quantity: -0.5,
@@ -505,7 +508,7 @@ async function main() {
     },
     {
       id: 'movement-prod-001-salt',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-salt-001',
       type: 'Usage',
       quantity: -1,
@@ -519,7 +522,7 @@ async function main() {
     // Croissants production movements (prod-002)
     {
       id: 'movement-prod-002-flour',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-flour-001',
       type: 'Usage',
       quantity: -25,
@@ -532,7 +535,7 @@ async function main() {
     },
     {
       id: 'movement-prod-002-butter',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-butter-001',
       type: 'Usage',
       quantity: -15,
@@ -546,7 +549,7 @@ async function main() {
     // Purchase movements
     {
       id: 'movement-purchase-sugar',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-sugar-001',
       type: 'Purchase',
       quantity: 50,
@@ -558,7 +561,7 @@ async function main() {
     },
     {
       id: 'movement-purchase-butter',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-butter-001',
       type: 'Purchase',
       quantity: 20,
@@ -571,7 +574,7 @@ async function main() {
     // Waste movement
     {
       id: 'movement-waste-eggs',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-eggs-001',
       type: 'Waste',
       quantity: -10,
@@ -584,7 +587,7 @@ async function main() {
     // Adjustment
     {
       id: 'movement-adjust-milk',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       itemId: 'inv-milk-001',
       type: 'Adjustment',
       quantity: 5,
@@ -640,7 +643,7 @@ async function main() {
   const sales = [
     {
       id: 'sale-001',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
       totalGNF: 2500000,
       cashGNF: 1500000,
@@ -657,7 +660,7 @@ async function main() {
     },
     {
       id: 'sale-002',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       totalGNF: 2800000,
       cashGNF: 1800000,
@@ -674,7 +677,7 @@ async function main() {
     },
     {
       id: 'sale-003',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
       totalGNF: 2200000,
       cashGNF: 1400000,
@@ -691,7 +694,7 @@ async function main() {
     },
     {
       id: 'sale-004',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       totalGNF: 3100000,
       cashGNF: 2000000,
@@ -705,7 +708,7 @@ async function main() {
     },
     {
       id: 'sale-005',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       totalGNF: 2900000,
       cashGNF: 1700000,
@@ -738,12 +741,12 @@ async function main() {
     // Inventory purchase - Flour (with ExpenseItems)
     {
       id: 'exp-001',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       categoryId: flourCat?.id,
       categoryName: 'Flour',
       amountGNF: 2250000, // 150 kg * 15000
-      paymentMethod: PaymentMethod.Cash,
+      paymentMethod: 'Cash',
       description: 'Weekly flour purchase',
       isInventoryPurchase: true,
       status: SubmissionStatus.Approved,
@@ -757,12 +760,12 @@ async function main() {
     // Inventory purchase - Butter & Sugar (with ExpenseItems)
     {
       id: 'exp-002',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       categoryId: butterCat?.id,
       categoryName: 'Butter',
       amountGNF: 1500000, // 20kg butter * 45000 + 50kg sugar * 12000
-      paymentMethod: PaymentMethod.OrangeMoney,
+      paymentMethod: 'Orange Money',
       description: 'Weekly butter and sugar restock',
       isInventoryPurchase: true,
       status: SubmissionStatus.Approved,
@@ -776,12 +779,12 @@ async function main() {
     // Electricity bill
     {
       id: 'exp-003',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       categoryId: electricityCat?.id,
       categoryName: 'Electricity',
       amountGNF: 850000,
-      paymentMethod: PaymentMethod.Cash,
+      paymentMethod: 'Cash',
       description: 'Monthly electricity bill',
       isInventoryPurchase: false,
       status: SubmissionStatus.Approved,
@@ -795,12 +798,12 @@ async function main() {
     // Staff salaries
     {
       id: 'exp-004',
-      bakeryId: bakery.id,
+      restaurantId: restaurant.id,
       date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       categoryId: salariesCat?.id,
       categoryName: 'Staff Salaries',
       amountGNF: 5000000,
-      paymentMethod: PaymentMethod.OrangeMoney,
+      paymentMethod: 'Orange Money',
       description: 'Monthly staff salaries',
       isInventoryPurchase: false,
       status: SubmissionStatus.Pending,
@@ -858,10 +861,10 @@ async function main() {
   console.log('🎉 Seed completed successfully!')
   console.log('')
   console.log('📋 Summary:')
-  console.log(`   - Bakeries:`)
-  console.log(`     • ${bakery1.name} (${bakery1.location})`)
-  console.log(`     • ${bakery2.name} (${bakery2.location})`)
-  console.log(`     • ${bakery3.name} (${bakery3.location})`)
+  console.log(`   - Restaurants:`)
+  console.log(`     • ${restaurant1.name} (${restaurant1.location})`)
+  console.log(`     • ${restaurant2.name} (${restaurant2.location})`)
+  console.log(`     • ${restaurant3.name} (${restaurant3.location})`)
   console.log(`   - User: ${user.email} (${user.role})`)
   console.log(`   - Inventory Items: ${inventoryItems.length}`)
   console.log(`   - Production Logs: ${productionLogs.length}`)

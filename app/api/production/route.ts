@@ -22,38 +22,38 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
     const dateFrom = searchParams.get('dateFrom')
     const dateTo = searchParams.get('dateTo')
     const status = searchParams.get('status') as SubmissionStatus | null
     const preparationStatus = searchParams.get('preparationStatus') as ProductionStatus | null
 
-    if (!bakeryId) {
-      return NextResponse.json({ error: 'bakeryId is required' }, { status: 400 })
+    if (!restaurantId) {
+      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
     }
 
     // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Build query filters
     const where: {
-      bakeryId: string
+      restaurantId: string
       date?: { gte?: Date; lte?: Date }
       status?: SubmissionStatus
       preparationStatus?: ProductionStatus
     } = {
-      bakeryId,
+      restaurantId,
     }
 
     if (dateFrom || dateTo) {
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const {
-      bakeryId,
+      restaurantId,
       date,
       productName,
       productNameFr,
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       notes,
       deductStock = true, // Whether to deduct stock immediately
     } = body as {
-      bakeryId: string
+      restaurantId: string
       date: string
       productName: string
       productNameFr?: string
@@ -132,40 +132,40 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    if (!bakeryId || !date || !productName || !quantity) {
+    if (!restaurantId || !date || !productName || !quantity) {
       return NextResponse.json(
-        { error: 'Missing required fields: bakeryId, date, productName, quantity' },
+        { error: 'Missing required fields: restaurantId, date, productName, quantity' },
         { status: 400 }
       )
     }
 
     // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Fetch bakery to check stock deduction mode
-    const bakery = await prisma.bakery.findUnique({
-      where: { id: bakeryId },
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
       select: { stockDeductionMode: true },
     })
 
-    if (!bakery) {
-      return NextResponse.json({ error: 'Bakery not found' }, { status: 404 })
+    if (!restaurant) {
+      return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
     // Determine if we should deduct stock now based on bakery settings
     const shouldDeductNow =
-      deductStock && bakery.stockDeductionMode === 'immediate'
+      deductStock && restaurant.stockDeductionMode === 'immediate'
 
     // If ingredient details provided, verify availability first
     if (shouldDeductNow && ingredientDetails && ingredientDetails.length > 0) {
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       const inventoryItems = await prisma.inventoryItem.findMany({
         where: {
           id: { in: itemIds },
-          bakeryId,
+          restaurantId,
           isActive: true,
         },
       })
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
       // Create the production log
       const productionLog = await tx.productionLog.create({
         data: {
-          bakeryId,
+          restaurantId,
           date: new Date(date),
           productName,
           productNameFr: productNameFr || null,
@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
           // Create stock movement (negative quantity for usage)
           await tx.stockMovement.create({
             data: {
-              bakeryId,
+              restaurantId,
               itemId: ingredient.itemId,
               type: MovementType.Usage,
               quantity: -ingredient.quantity, // Negative for usage

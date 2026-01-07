@@ -14,38 +14,38 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
     const category = searchParams.get('category')
     const search = searchParams.get('search')
     const lowStock = searchParams.get('lowStock') === 'true'
 
-    if (!bakeryId) {
-      return NextResponse.json({ error: 'bakeryId is required' }, { status: 400 })
+    if (!restaurantId) {
+      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Build query filters
     const where: {
-      bakeryId: string
+      restaurantId: string
       isActive: boolean
       category?: string
       name?: { contains: string; mode: 'insensitive' }
       currentStock?: { lt: number } | { lte: number }
     } = {
-      bakeryId,
+      restaurantId,
       isActive: true,
     }
 
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const {
-      bakeryId,
+      restaurantId,
       name,
       nameFr,
       category,
@@ -122,31 +122,31 @@ export async function POST(request: NextRequest) {
       expiryDays,
     } = body
 
-    if (!bakeryId || !name || !category || !unit) {
+    if (!restaurantId || !name || !category || !unit) {
       return NextResponse.json(
-        { error: 'Missing required fields: bakeryId, name, category, unit' },
+        { error: 'Missing required fields: restaurantId, name, category, unit' },
         { status: 400 }
       )
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Create inventory item
     const item = await prisma.inventoryItem.create({
       data: {
-        bakeryId,
+        restaurantId,
         name,
         nameFr,
         category,

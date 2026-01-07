@@ -27,17 +27,17 @@ export async function POST(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: item.bakeryId,
+          restaurantId: item.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -85,7 +85,7 @@ export async function POST(
       // Create stock movement
       prisma.stockMovement.create({
         data: {
-          bakeryId: item.bakeryId,
+          restaurantId: item.restaurantId,
           itemId,
           type: type as MovementType,
           quantity: stockChange,

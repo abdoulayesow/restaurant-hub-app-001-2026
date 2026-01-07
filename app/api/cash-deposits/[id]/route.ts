@@ -43,19 +43,19 @@ export async function PUT(
       )
     }
 
-    // Verify user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Verify user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingDeposit.bakeryId
+          restaurantId: existingDeposit.restaurantId
         }
       }
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json(
-        { error: 'Access denied to this bakery' },
+        { error: 'Access denied to this restaurant' },
         { status: 403 }
       )
     }

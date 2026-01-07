@@ -26,23 +26,23 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
     redirect('/auth/signin')
   }
 
-  // Get user's default bakery
+  // Get user's default restaurant
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { defaultBakeryId: true },
+    select: { defaultRestaurantId: true },
   })
 
-  if (!user?.defaultBakeryId) {
+  if (!user?.defaultRestaurantId) {
     redirect('/dashboard')
   }
 
-  const bakeryId = user.defaultBakeryId
+  const restaurantId = user.defaultRestaurantId
 
   // Fetch inventory item with supplier
   const item = await prisma.inventoryItem.findUnique({
     where: {
       id,
-      bakeryId: bakeryId, // Ensure user can only access items from their bakery
+      restaurantId: restaurantId, // Ensure user can only access items from their restaurant
     },
     include: {
       supplier: {
@@ -61,7 +61,7 @@ export default async function InventoryItemDetailPage({ params }: PageProps) {
   const stockMovements = await prisma.stockMovement.findMany({
     where: {
       itemId: id,
-      bakeryId: bakeryId,
+      restaurantId: restaurantId,
     },
     include: {
       productionLog: {

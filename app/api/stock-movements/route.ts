@@ -14,39 +14,39 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
     const itemId = searchParams.get('itemId')
     const type = searchParams.get('type') as MovementType | null
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
     const limit = parseInt(searchParams.get('limit') || '50', 10)
 
-    if (!bakeryId) {
-      return NextResponse.json({ error: 'bakeryId is required' }, { status: 400 })
+    if (!restaurantId) {
+      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Build query filters
     const where: {
-      bakeryId: string
+      restaurantId: string
       itemId?: string
       type?: MovementType
       createdAt?: { gte?: Date; lte?: Date }
     } = {
-      bakeryId,
+      restaurantId,
     }
 
     if (itemId) {
@@ -101,36 +101,36 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { bakeryId, itemId, type, quantity, unitCost, reason } = body
+    const { restaurantId, itemId, type, quantity, unitCost, reason } = body
 
     // Validate required fields
-    if (!bakeryId || !itemId || !type || quantity === undefined) {
+    if (!restaurantId || !itemId || !type || quantity === undefined) {
       return NextResponse.json(
-        { error: 'Missing required fields: bakeryId, itemId, type, quantity' },
+        { error: 'Missing required fields: restaurantId, itemId, type, quantity' },
         { status: 400 }
       )
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId,
+          restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Validate item exists and belongs to bakery
+    // Validate item exists and belongs to restaurant
     const item = await prisma.inventoryItem.findUnique({
       where: { id: itemId },
     })
 
-    if (!item || item.bakeryId !== bakeryId) {
+    if (!item || item.restaurantId !== restaurantId) {
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     const [movement, updatedItem] = await prisma.$transaction([
       prisma.stockMovement.create({
         data: {
-          bakeryId,
+          restaurantId,
           itemId,
           type: type as MovementType,
           quantity: stockChange,

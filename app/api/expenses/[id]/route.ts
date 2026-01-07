@@ -21,7 +21,7 @@ export async function GET(
     const expense = await prisma.expense.findUnique({
       where: { id },
       include: {
-        bakery: true,
+        restaurant: true,
         category: {
           select: {
             id: true,
@@ -56,17 +56,17 @@ export async function GET(
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: expense.bakeryId,
+          restaurantId: expense.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -99,17 +99,17 @@ export async function PUT(
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingExpense.bakeryId,
+          restaurantId: existingExpense.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -139,14 +139,6 @@ export async function PUT(
       expenseItems, // Array of { inventoryItemId, quantity, unitCostGNF } or undefined to keep existing
     } = body
 
-    // Validate payment method if provided
-    if (paymentMethod && !['Cash', 'OrangeMoney', 'Card'].includes(paymentMethod)) {
-      return NextResponse.json(
-        { error: 'Invalid paymentMethod. Must be Cash, OrangeMoney, or Card' },
-        { status: 400 }
-      )
-    }
-
     // Validate amount if provided
     if (amountGNF !== undefined && amountGNF <= 0) {
       return NextResponse.json(
@@ -164,7 +156,7 @@ export async function PUT(
       const validItems = await prisma.inventoryItem.findMany({
         where: {
           id: { in: inventoryItemIds },
-          bakeryId: existingExpense.bakeryId,
+          restaurantId: existingExpense.restaurantId,
           isActive: true,
         },
         select: { id: true },
@@ -172,7 +164,7 @@ export async function PUT(
 
       if (validItems.length !== inventoryItemIds.length) {
         return NextResponse.json(
-          { error: 'One or more inventory items are invalid or do not belong to this bakery' },
+          { error: 'One or more inventory items are invalid or do not belong to this restaurant' },
           { status: 400 }
         )
       }

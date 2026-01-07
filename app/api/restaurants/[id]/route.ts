@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// GET /api/bakeries/[id] - Fetch bakery details
+// GET /api/restaurants/[id] - Fetch restaurant details
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -19,25 +19,25 @@ export async function GET(
 
     const { id } = await params
 
-    // Verify user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Verify user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: id
+          restaurantId: id
         }
       }
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json(
-        { error: 'You do not have access to this bakery' },
+        { error: 'You do not have access to this restaurant' },
         { status: 403 }
       )
     }
 
-    // Fetch bakery details
-    const bakery = await prisma.bakery.findUnique({
+    // Fetch restaurant details
+    const restaurant = await prisma.restaurant.findUnique({
       where: { id },
       select: {
         id: true,
@@ -52,20 +52,23 @@ export async function GET(
         contactPhone: true,
         contactEmail: true,
         managerName: true,
-        currency: true
+        currency: true,
+        restaurantType: true,
+        inventoryEnabled: true,
+        productionEnabled: true
       }
     })
 
-    if (!bakery) {
+    if (!restaurant) {
       return NextResponse.json(
-        { error: 'Bakery not found' },
+        { error: 'Restaurant not found' },
         { status: 404 }
       )
     }
 
-    return NextResponse.json({ bakery })
+    return NextResponse.json({ restaurant })
   } catch (error) {
-    console.error('Error fetching bakery:', error)
+    console.error('Error fetching restaurant:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -73,7 +76,7 @@ export async function GET(
   }
 }
 
-// PATCH /api/bakeries/[id] - Update bakery configuration
+// PATCH /api/restaurants/[id] - Update restaurant configuration
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -89,12 +92,12 @@ export async function PATCH(
 
     const { id } = await params
 
-    // Verify user has access to this bakery AND check Manager role (combined query)
-    const userBakery = await prisma.userBakery.findUnique({
+    // Verify user has access to this restaurant AND check Manager role (combined query)
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: id
+          restaurantId: id
         }
       },
       include: {
@@ -104,16 +107,16 @@ export async function PATCH(
       }
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json(
-        { error: 'You do not have access to this bakery' },
+        { error: 'You do not have access to this restaurant' },
         { status: 403 }
       )
     }
 
-    if (userBakery.user.role !== 'Manager') {
+    if (userRestaurant.user.role !== 'Manager') {
       return NextResponse.json(
-        { error: 'Only managers can update bakery configuration' },
+        { error: 'Only managers can update restaurant configuration' },
         { status: 403 }
       )
     }
@@ -123,7 +126,7 @@ export async function PATCH(
     // Validate required fields
     if (!body.name || !body.name.trim()) {
       return NextResponse.json(
-        { error: 'Bakery name is required' },
+        { error: 'Restaurant name is required' },
         { status: 400 }
       )
     }
@@ -202,8 +205,8 @@ export async function PATCH(
       }
     }
 
-    // Update bakery with conditional spread pattern
-    const updatedBakery = await prisma.bakery.update({
+    // Update restaurant with conditional spread pattern
+    const updatedRestaurant = await prisma.restaurant.update({
       where: { id },
       data: {
         name: body.name.trim(),
@@ -223,7 +226,10 @@ export async function PATCH(
         ...(body.managerName !== undefined && { managerName: body.managerName?.trim() || null }),
         ...(body.currency !== undefined && { currency: body.currency }),
         ...(body.stockDeductionMode !== undefined && { stockDeductionMode: body.stockDeductionMode }),
-        ...(body.isActive !== undefined && { isActive: body.isActive })
+        ...(body.isActive !== undefined && { isActive: body.isActive }),
+        ...(body.restaurantType !== undefined && { restaurantType: body.restaurantType }),
+        ...(body.inventoryEnabled !== undefined && { inventoryEnabled: body.inventoryEnabled }),
+        ...(body.productionEnabled !== undefined && { productionEnabled: body.productionEnabled })
       },
       select: {
         id: true,
@@ -240,13 +246,16 @@ export async function PATCH(
         managerName: true,
         currency: true,
         stockDeductionMode: true,
-        isActive: true
+        isActive: true,
+        restaurantType: true,
+        inventoryEnabled: true,
+        productionEnabled: true
       }
     })
 
-    return NextResponse.json({ bakery: updatedBakery })
+    return NextResponse.json({ restaurant: updatedRestaurant })
   } catch (error) {
-    console.error('Error updating bakery:', error)
+    console.error('Error updating restaurant:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

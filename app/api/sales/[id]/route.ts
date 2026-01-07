@@ -21,7 +21,7 @@ export async function GET(
     const sale = await prisma.sale.findUnique({
       where: { id },
       include: {
-        bakery: true,
+        restaurant: true,
         cashDeposit: true,
       },
     })
@@ -30,17 +30,17 @@ export async function GET(
       return NextResponse.json({ error: 'Sale not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: sale.bakeryId,
+          restaurantId: sale.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -73,17 +73,17 @@ export async function PUT(
       return NextResponse.json({ error: 'Sale not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Validate user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: existingSale.bakeryId,
+          restaurantId: existingSale.restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

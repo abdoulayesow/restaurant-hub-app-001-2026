@@ -13,32 +13,32 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const bakeryId = searchParams.get('bakeryId')
+    const restaurantId = searchParams.get('restaurantId')
     const itemId = searchParams.get('itemId')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
-    if (!bakeryId) {
-      return NextResponse.json({ error: 'Bakery ID is required' }, { status: 400 })
+    if (!restaurantId) {
+      return NextResponse.json({ error: 'Restaurant ID is required' }, { status: 400 })
     }
 
-    // Verify user has access to this bakery
-    const userBakery = await prisma.userBakery.findUnique({
+    // Verify user has access to this restaurant
+    const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
-        userId_bakeryId: {
+        userId_restaurantId: {
           userId: session.user.id,
-          bakeryId: bakeryId,
+          restaurantId: restaurantId,
         },
       },
     })
 
-    if (!userBakery) {
+    if (!userRestaurant) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
     // Build filter conditions
     const whereConditions: any = {
-      bakeryId: bakeryId,
+      restaurantId: restaurantId,
     }
 
     if (itemId) {

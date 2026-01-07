@@ -11,26 +11,32 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user with their bakeries
+    // Get user with their restaurants
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        bakeries: {
+        restaurants: {
           include: {
-            bakery: {
+            restaurant: {
               select: {
                 id: true,
                 name: true,
                 location: true,
+                restaurantType: true,
+                inventoryEnabled: true,
+                productionEnabled: true,
               },
             },
           },
         },
-        defaultBakery: {
+        defaultRestaurant: {
           select: {
             id: true,
             name: true,
             location: true,
+            restaurantType: true,
+            inventoryEnabled: true,
+            productionEnabled: true,
           },
         },
       },
@@ -40,14 +46,14 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const bakeries = user.bakeries.map((ub) => ub.bakery)
+    const restaurants = user.restaurants.map((ur) => ur.restaurant)
 
     return NextResponse.json({
-      bakeries,
-      defaultBakery: user.defaultBakery,
+      restaurants,
+      defaultRestaurant: user.defaultRestaurant,
     })
   } catch (error) {
-    console.error('Error fetching bakeries:', error)
+    console.error('Error fetching restaurants:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
