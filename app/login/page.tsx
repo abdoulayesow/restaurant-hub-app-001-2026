@@ -1,0 +1,146 @@
+'use client'
+
+import { signIn, useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { Loader2, LogIn } from 'lucide-react'
+import { useLocale } from '@/components/providers/LocaleProvider'
+import { Logo } from '@/components/brand/Logo'
+
+export default function LoginPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const { t, locale, setLocale } = useLocale()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      const role = session?.user?.role
+      if (role === 'Manager') {
+        router.push('/dashboard')
+      } else {
+        router.push('/editor')
+      }
+    }
+  }, [session, status, router])
+
+  const handleSignIn = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await signIn('google', { callbackUrl: '/' })
+      if (result?.error) {
+        setError(t('auth.unauthorized'))
+      }
+    } catch (err) {
+      setError(t('errors.generic'))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+      <div className="max-w-md w-full">
+        {/* Logo and Title */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" variant="icon" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('common.appName')}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {t('auth.description')}
+          </p>
+        </div>
+
+        {/* Login Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white text-center mb-6">
+            {t('auth.welcome')}
+          </h2>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-400 text-sm text-center">
+              {error}
+              <p className="mt-1 text-xs">{t('auth.contactAdmin')}</p>
+            </div>
+          )}
+
+          <button
+            onClick={handleSignIn}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-300" />
+            ) : (
+              <>
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                <span className="text-gray-700 dark:text-gray-200 font-medium">
+                  {t('auth.signInWith')} {t('auth.google')}
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Language Switcher */}
+        <div className="mt-6 flex justify-center gap-2">
+          <button
+            onClick={() => setLocale('fr')}
+            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              locale === 'fr'
+                ? 'bg-gold-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Français
+          </button>
+          <button
+            onClick={() => setLocale('en')}
+            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              locale === 'en'
+                ? 'bg-gold-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            English
+          </button>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-500 dark:text-gray-500 mt-8">
+          Bakery Hub © {new Date().getFullYear()}
+        </p>
+      </div>
+    </div>
+  )
+}

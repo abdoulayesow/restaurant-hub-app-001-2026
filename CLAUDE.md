@@ -1,0 +1,131 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**Bakery Hub** - Bakery inventory management web application for a bakery in Guinea (Conakry), managed remotely by the owner in Atlanta, USA. The core differentiator is **strong inventory management** with stock tracking, low-stock alerts, and restock predictions.
+
+## Documentation
+
+- **Product Vision & MVP**: [docs/product/PRODUCT-VISION.md](docs/product/PRODUCT-VISION.md)
+- **Technical Specification**: [docs/product/TECHNICAL-SPEC.md](docs/product/TECHNICAL-SPEC.md)
+- **Reference Application**: [docs/bakery-app-reference/](docs/bakery-app-reference/)
+- **Design System**: [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md)
+
+## Tech Stack
+
+- **Framework**: Next.js 16+ with App Router
+- **Language**: TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Auth**: NextAuth.js with Google OAuth (JWT sessions, email whitelist via ALLOWED_EMAILS env)
+- **Styling**: Tailwind CSS with terracotta brand color (#C45C26), multi-palette support
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **PWA**: next-pwa
+- **i18n**: Custom context-based (French primary, English secondary)
+
+## Build & Development Commands
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Start development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npx prisma generate  # Generate Prisma client
+npx prisma migrate dev  # Run database migrations
+npx prisma studio    # Open Prisma database GUI
+```
+
+## Architecture
+
+### Directory Structure (Target)
+```
+app/                    # Next.js App Router pages and API routes
+  api/                  # REST API endpoints
+  (pages)/              # Page components
+components/             # React components
+hooks/                  # Custom React hooks
+lib/                    # Utilities (prisma client, auth helpers, formatters)
+config/                 # Configuration (routes, constants)
+prisma/                 # Database schema and migrations
+public/
+  locales/              # Translation files (en.json, fr.json)
+```
+
+### Core Domain Models
+
+- **InventoryItem**: Ingredients with stock levels, thresholds, units, costs
+- **StockMovement**: Track purchases, usage, waste, adjustments
+- **ProductionLog**: Daily production with ingredient usage
+- **Expense**: Linked to inventory purchases
+- **User**: Manager/Editor roles with different permissions
+
+### Key Patterns
+
+**Role-based access**: Manager (full access, approvals) vs Editor (submit only)
+
+**Approval workflow**: Items start as Pending, Manager approves/rejects
+
+**Multi-currency**: GNF (Guinean Franc) primary, EUR for reference
+
+**Stock alerts**: Low stock (below minimum), critical (near zero), expiry warnings
+
+### Multi-Bakery Support
+
+Users can be assigned to multiple bakeries via the `UserBakery` junction table.
+
+**Bakery Switching:**
+- Bakery selector always visible in header (shows current bakery name)
+- Dropdown only appears if user has access to multiple bakeries
+- Each bakery has a unique accent color from the preset palette
+- Toast notification confirms bakery switch
+- Data automatically refreshes when switching
+
+**Color Palettes by Bakery Index:**
+| Index | Palette | Primary Color |
+|-------|---------|---------------|
+| 0 | Terracotta | #C45C26 |
+| 1 | Warm Brown | #8B4513 |
+| 2 | Burnt Sienna | #A0522D |
+| 3 | Classic Gold | #D4AF37 |
+
+**Context Hooks:**
+```typescript
+const { currentBakery, currentPalette, setCurrentBakery } = useBakery()
+// currentPalette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
+```
+
+## Design System
+
+Terracotta theme (#C45C26) as default, with four preset palettes for multi-bakery support. Dark mode fully supported. Key Tailwind patterns:
+
+```tsx
+// Card
+"bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+
+// Primary button
+"px-4 py-2 bg-gold-600 text-white rounded-lg hover:bg-gold-700"
+
+// Input
+"w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 dark:bg-gray-700 dark:text-white"
+```
+
+Always pair light/dark mode classes. See [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md) for complete design system.
+
+## Internationalization
+
+Translation files in `public/locales/{en,fr}.json`. Usage:
+```typescript
+const { t, locale, setLocale } = useLocale()
+t('common.appName')  // Returns translated string
+```
+
+## Business Context
+
+- **Location**: Conakry, Guinea
+- **Owner**: Remote from Atlanta, USA
+- **Currency**: GNF (Guinean Franc)
+- **Languages**: French (default), English
+- **Key pain point**: Real-time inventory visibility for remote owner
