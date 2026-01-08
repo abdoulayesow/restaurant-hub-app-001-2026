@@ -332,6 +332,12 @@
       "Cafe": "Café",
       "Restaurant": "Restaurant",
       "FastFood": "Fast Food"
+    },
+    "appNames": {
+      "bakery": "Bakery Hub",
+      "cafe": "Cafe Hub",
+      "restaurant": "Restaurant Hub",
+      "fastFood": "Food Hub"
     }
   },
   "validation": {

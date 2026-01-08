@@ -5,15 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Target,
-  ChefHat,
-  Utensils,
-  Package,
-  Wallet,
-  Receipt,
-  Building2,
   Sun,
   Moon,
   User,
@@ -22,84 +13,17 @@ import {
   ChevronDown,
   Menu,
   X,
-  MapPin,
-  Check,
-  Store,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { Logo, colorPalettes, type PaletteName } from '@/components/brand/Logo'
-import { BottomSheet } from '@/components/ui/BottomSheet'
 import { FloatingActionPicker, type FloatingActionItem } from '@/components/ui/FloatingActionPicker'
-
-// Navigation configuration
-export interface NavSubItem {
-  id: string
-  label: string
-  labelFr: string
-  icon: React.ElementType
-  href: string
-}
-
-export interface NavItemConfig {
-  id: string
-  label: string
-  labelFr: string
-  icon: React.ElementType
-  subItems: NavSubItem[]
-}
-
-const navigationItems: NavItemConfig[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    labelFr: 'Tableau',
-    icon: LayoutDashboard,
-    subItems: [
-      { id: 'current', label: 'Current', labelFr: 'Actuel', icon: TrendingUp, href: '/dashboard' },
-      { id: 'projection', label: 'Projection', labelFr: 'Projection', icon: Target, href: '/dashboard/projection' },
-    ]
-  },
-  {
-    id: 'baking',
-    label: 'Baking',
-    labelFr: 'Boulangerie',
-    icon: ChefHat,
-    subItems: [
-      { id: 'production', label: 'Production', labelFr: 'Production', icon: Utensils, href: '/baking/production' },
-      { id: 'inventory', label: 'Inventory', labelFr: 'Inventaire', icon: Package, href: '/baking/inventory' },
-    ]
-  },
-  {
-    id: 'finances',
-    label: 'Finances',
-    labelFr: 'Finances',
-    icon: Wallet,
-    subItems: [
-      { id: 'sales', label: 'Sales', labelFr: 'Ventes', icon: TrendingUp, href: '/finances/sales' },
-      { id: 'expenses', label: 'Expenses', labelFr: 'Dépenses', icon: Receipt, href: '/finances/expenses' },
-      { id: 'bank', label: 'Bank', labelFr: 'Banque', icon: Building2, href: '/finances/bank' },
-    ]
-  },
-]
-
-// Map routes to sub-item IDs for active state
-const routeToSubItem: Record<string, string> = {
-  '/dashboard': 'current',
-  '/dashboard/projection': 'projection',
-  '/baking': 'production',
-  '/baking/production': 'production',
-  '/baking/inventory': 'inventory',
-  '/inventory': 'inventory',
-  '/production': 'production',
-  '/finances/sales': 'sales',
-  '/finances/expenses': 'expenses',
-  '/finances/bank': 'bank',
-  '/sales': 'sales',
-  '/expenses': 'expenses',
-  '/bank': 'bank',
-}
+import { RestaurantTypeIcon } from '@/components/ui/RestaurantTypeIcon'
+import { getRestaurantTypeConfig } from '@/config/restaurantTypes'
+import { routeToSubItem } from '@/config/navigation'
+import { useFilteredNavigation } from '@/hooks/useFilteredNavigation'
+import { useAppName } from '@/hooks/useAppName'
 
 const paletteNames: PaletteName[] = ['terracotta', 'warmBrown', 'burntSienna', 'gold']
 
@@ -109,6 +33,8 @@ export function NavigationHeader() {
   const { theme, toggleTheme } = useTheme()
   const { restaurants, currentRestaurant, currentPalette, setCurrentRestaurant } = useRestaurant()
   const pathname = usePathname()
+  const filteredNavItems = useFilteredNavigation()
+  const appName = useAppName()
 
   const [navSheetOpen, setNavSheetOpen] = useState<string | null>(null)
   const [restaurantSheetOpen, setRestaurantSheetOpen] = useState(false)
@@ -147,17 +73,21 @@ export function NavigationHeader() {
     }
   }
 
-  // Map restaurants to FloatingActionItems - same color for all, active gets current palette color
-  const restaurantPickerItems: FloatingActionItem[] = restaurants.map((restaurant, index) => ({
-    id: restaurant.id,
-    label: restaurant.name,
-    sublabel: restaurant.location || undefined,
-    color: restaurant.id === currentRestaurant?.id
-      ? accentColor
-      : colorPalettes.terracotta.primary, // All unselected use terracotta
-    icon: <Store className="w-5 h-5" strokeWidth={2.5} />,
-    isActive: restaurant.id === currentRestaurant?.id
-  }))
+  // Map restaurants to FloatingActionItems - use type-based icons
+  const restaurantPickerItems: FloatingActionItem[] = restaurants.map((restaurant) => {
+    const typeConfig = getRestaurantTypeConfig(restaurant.restaurantType)
+    const TypeIcon = typeConfig.icon
+    return {
+      id: restaurant.id,
+      label: restaurant.name,
+      sublabel: restaurant.location || undefined,
+      color: restaurant.id === currentRestaurant?.id
+        ? accentColor
+        : colorPalettes.terracotta.primary,
+      icon: <TypeIcon className="w-5 h-5" strokeWidth={2.5} />,
+      isActive: restaurant.id === currentRestaurant?.id,
+    }
+  })
 
   return (
     <>
@@ -217,10 +147,11 @@ export function NavigationHeader() {
                   className="text-xl font-bold text-terracotta-900 dark:text-cream-100 leading-tight tracking-tight"
                   style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
                 >
-                  Bakery<span style={{ color: accentColor }}>Hub</span>
+                  {appName.replace(/\s*Hub$/i, '')}<span style={{ color: accentColor }}>Hub</span>
                 </h1>
                 {currentRestaurant && (
                   <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 flex items-center gap-1">
+                    <RestaurantTypeIcon type={currentRestaurant.restaurantType} size="sm" className="text-terracotta-500 dark:text-cream-400" />
                     <span
                       className="w-2 h-2 rounded-full inline-block"
                       style={{ backgroundColor: accentColor }}
@@ -233,7 +164,7 @@ export function NavigationHeader() {
 
             {/* CENTER: Navigation pills (Desktop) */}
             <nav className="hidden lg:flex items-center gap-2" aria-label="Main navigation">
-              {navigationItems.map(item => {
+              {filteredNavItems.map(item => {
                 const hasActiveSubItem = item.subItems.some(sub => sub.id === activeSubItemId)
                 const Icon = item.icon
 
@@ -414,7 +345,7 @@ export function NavigationHeader() {
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
             <nav className="lg:hidden py-4 border-t border-terracotta-500/15 dark:border-terracotta-400/20" aria-label="Mobile navigation">
-              {navigationItems.map(item => {
+              {filteredNavItems.map(item => {
                 const Icon = item.icon
                 const hasActiveSubItem = item.subItems.some(sub => sub.id === activeSubItemId)
 
@@ -486,7 +417,7 @@ export function NavigationHeader() {
       />
 
       {/* Navigation Floating Pickers */}
-      {navigationItems.map(item => {
+      {filteredNavItems.map(item => {
         const navItems: FloatingActionItem[] = item.subItems.map(subItem => ({
           id: subItem.id,
           label: locale === 'fr' ? subItem.labelFr : subItem.label,

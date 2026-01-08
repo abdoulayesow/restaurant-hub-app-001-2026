@@ -10,7 +10,9 @@ interface Restaurant {
   id: string
   name: string
   location: string | null
-  restaurantType?: string
+  restaurantType: string
+  inventoryEnabled: boolean
+  productionEnabled: boolean
 }
 
 type ToastState = {
@@ -24,6 +26,9 @@ interface RestaurantContextType {
   currentPalette: PaletteName
   setCurrentRestaurant: (restaurant: Restaurant) => void
   loading: boolean
+  restaurantType: string
+  inventoryEnabled: boolean
+  productionEnabled: boolean
 }
 
 const RestaurantContext = createContext<RestaurantContextType | null>(null)
@@ -117,8 +122,22 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     }
   }, [restaurants, currentRestaurant, isInitialLoad, t])
 
+  // Derive feature flags from current restaurant with defaults
+  const restaurantType = currentRestaurant?.restaurantType || 'Bakery'
+  const inventoryEnabled = currentRestaurant?.inventoryEnabled ?? true
+  const productionEnabled = currentRestaurant?.productionEnabled ?? true
+
   return (
-    <RestaurantContext.Provider value={{ restaurants, currentRestaurant, currentPalette, setCurrentRestaurant, loading }}>
+    <RestaurantContext.Provider value={{
+      restaurants,
+      currentRestaurant,
+      currentPalette,
+      setCurrentRestaurant,
+      loading,
+      restaurantType,
+      inventoryEnabled,
+      productionEnabled,
+    }}>
       {children}
       {toast && (
         <Toast
