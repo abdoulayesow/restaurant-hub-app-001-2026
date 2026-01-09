@@ -303,7 +303,7 @@ export function NavigationHeader() {
               </button>
 
               {/* User menu */}
-              <div className="user-dropdown-container">
+              <div className="relative user-dropdown-container">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className="
@@ -423,12 +423,12 @@ export function NavigationHeader() {
         </div>
       </header>
 
-      {/* User Dropdown Menu - Positioned below header */}
+      {/* User Dropdown Menu - Positioned below user button */}
       {userDropdownOpen && (
         <div
           className="
             animate-fade-in-up
-            fixed right-4 top-20 w-60
+            fixed right-4 sm:right-6 lg:right-8 top-[84px] w-60
             bg-cream-50 dark:bg-dark-900
             border border-terracotta-200/60 dark:border-terracotta-400/20
             rounded-2xl warm-shadow-lg grain-overlay
