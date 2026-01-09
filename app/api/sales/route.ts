@@ -69,18 +69,73 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate summary statistics
+    const totalRevenue = sales.reduce((sum, s) => sum + s.totalGNF, 0)
+    const totalCash = sales.reduce((sum, s) => sum + s.cashGNF, 0)
+    const totalOrangeMoney = sales.reduce((sum, s) => sum + s.orangeMoneyGNF, 0)
+    const totalCard = sales.reduce((sum, s) => sum + s.cardGNF, 0)
+
+    // Calculate previous period revenue for comparison
+    let previousPeriodRevenue = 0
+    let revenueChangePercent = 0
+
+    if (startDate) {
+      const currentStart = new Date(startDate)
+      const currentEnd = endDate ? new Date(endDate) : new Date()
+      const periodDays = Math.ceil((currentEnd.getTime() - currentStart.getTime()) / (1000 * 60 * 60 * 24))
+
+      const previousEnd = new Date(currentStart)
+      previousEnd.setDate(previousEnd.getDate() - 1)
+      const previousStart = new Date(previousEnd)
+      previousStart.setDate(previousStart.getDate() - periodDays)
+
+      const previousSales = await prisma.sale.findMany({
+        where: {
+          restaurantId,
+          date: {
+            gte: previousStart,
+            lte: previousEnd,
+          },
+        },
+        select: { totalGNF: true },
+      })
+
+      previousPeriodRevenue = previousSales.reduce((sum, s) => sum + s.totalGNF, 0)
+
+      if (previousPeriodRevenue > 0) {
+        revenueChangePercent = ((totalRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100
+      } else if (totalRevenue > 0) {
+        revenueChangePercent = 100 // New revenue from zero
+      }
+    }
+
+    // Build salesByDay for trend chart (sorted ascending for chart)
+    const salesByDay = sales
+      .reduce((acc: { date: string; amount: number }[], sale) => {
+        const dateStr = new Date(sale.date).toISOString().split('T')[0]
+        const existing = acc.find(d => d.date === dateStr)
+        if (existing) {
+          existing.amount += sale.totalGNF
+        } else {
+          acc.push({ date: dateStr, amount: sale.totalGNF })
+        }
+        return acc
+      }, [])
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
     const summary = {
       totalSales: sales.length,
-      totalRevenue: sales.reduce((sum, s) => sum + s.totalGNF, 0),
+      totalRevenue,
       pendingCount: sales.filter(s => s.status === 'Pending').length,
       approvedCount: sales.filter(s => s.status === 'Approved').length,
       rejectedCount: sales.filter(s => s.status === 'Rejected').length,
-      totalCash: sales.reduce((sum, s) => sum + s.cashGNF, 0),
-      totalOrangeMoney: sales.reduce((sum, s) => sum + s.orangeMoneyGNF, 0),
-      totalCard: sales.reduce((sum, s) => sum + s.cardGNF, 0),
+      totalCash,
+      totalOrangeMoney,
+      totalCard,
+      previousPeriodRevenue,
+      revenueChangePercent: Math.round(revenueChangePercent * 10) / 10,
     }
 
-    return NextResponse.json({ sales, summary })
+    return NextResponse.json({ sales, summary, salesByDay })
   } catch (error) {
     console.error('Error fetching sales:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

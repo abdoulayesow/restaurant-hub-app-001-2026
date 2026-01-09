@@ -3,12 +3,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Plus, Search, TrendingUp, RefreshCw, Calendar, Filter } from 'lucide-react'
+import { Plus, Search, TrendingUp, RefreshCw, Calendar, Filter, Wallet, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { SalesTable } from '@/components/sales/SalesTable'
 import { AddEditSaleModal } from '@/components/sales/AddEditSaleModal'
+import { SalesTrendChart } from '@/components/sales/SalesTrendChart'
+import { PaymentMethodChart } from '@/components/sales/PaymentMethodChart'
+import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
 
 interface Sale {
   id: string
@@ -35,6 +38,13 @@ interface SalesSummary {
   totalCash: number
   totalOrangeMoney: number
   totalCard: number
+  previousPeriodRevenue: number
+  revenueChangePercent: number
+}
+
+interface SalesTrendDataPoint {
+  date: string
+  amount: number
 }
 
 export default function FinancesSalesPage() {
@@ -46,8 +56,10 @@ export default function FinancesSalesPage() {
   const [loading, setLoading] = useState(true)
   const [sales, setSales] = useState<Sale[]>([])
   const [summary, setSummary] = useState<SalesSummary | null>(null)
+  const [salesByDay, setSalesByDay] = useState<SalesTrendDataPoint[]>([])
   const [statusFilter, setStatusFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [dateRange, setDateRange] = useState<DateRangeValue>('30days')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -68,9 +80,13 @@ export default function FinancesSalesPage() {
 
     setLoading(true)
     try {
+      const { startDate, endDate } = getDateRangeFromFilter(dateRange)
+
       const params = new URLSearchParams({
         restaurantId: currentRestaurant.id,
         ...(statusFilter && { status: statusFilter }),
+        ...(startDate && { startDate: startDate.toISOString() }),
+        endDate: endDate.toISOString(),
       })
 
       const res = await fetch(`/api/sales?${params}`)
@@ -78,13 +94,14 @@ export default function FinancesSalesPage() {
         const data = await res.json()
         setSales(data.sales || [])
         setSummary(data.summary || null)
+        setSalesByDay(data.salesByDay || [])
       }
     } catch (error) {
       console.error('Error fetching sales:', error)
     } finally {
       setLoading(false)
     }
-  }, [currentRestaurant?.id, statusFilter])
+  }, [currentRestaurant?.id, statusFilter, dateRange])
 
   useEffect(() => {
     if (currentRestaurant?.id) {
@@ -215,7 +232,7 @@ export default function FinancesSalesPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1
               className="text-3xl font-bold text-terracotta-900 dark:text-cream-100"
@@ -240,22 +257,27 @@ export default function FinancesSalesPage() {
           </button>
         </div>
 
+        {/* Date Range Filter */}
+        <div className="mb-6">
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        </div>
+
         {/* Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           {/* Today's Sales */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-green-500/10 dark:bg-green-400/10">
-                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-xl bg-green-500/10 dark:bg-green-400/10">
+                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
+              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
                 {t('sales.todaysSales') || "Today's Sales"}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
               {formatCurrency(todaysTotal)}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
               {todaysSales.length > 0
                 ? `${todaysSales.length} ${t('sales.recordsToday') || 'records today'}`
                 : (t('sales.noSalesYet') || 'No sales recorded yet')
@@ -264,39 +286,121 @@ export default function FinancesSalesPage() {
           </div>
 
           {/* Total Revenue */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
-                <Calendar className="w-6 h-6 text-terracotta-500 dark:text-terracotta-400" />
+          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
+                <Calendar className="w-5 h-5 text-terracotta-500 dark:text-terracotta-400" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
+              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
                 {t('sales.totalRevenue') || 'Total Revenue'}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
               {formatCurrency(summary?.totalRevenue || 0)}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
-              {summary?.totalSales || 0} {t('sales.salesRecorded') || 'sales recorded'}
-            </p>
+            {summary && dateRange !== 'all' && summary.revenueChangePercent !== 0 ? (
+              <p className={`text-xs flex items-center gap-1 ${
+                summary.revenueChangePercent > 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}>
+                {summary.revenueChangePercent > 0 ? (
+                  <ArrowUpRight className="w-3 h-3" />
+                ) : (
+                  <ArrowDownRight className="w-3 h-3" />
+                )}
+                {Math.abs(summary.revenueChangePercent)}% {t('sales.vsLastPeriod') || 'vs last period'}
+              </p>
+            ) : (
+              <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+                {summary?.totalSales || 0} {t('sales.salesRecorded') || 'sales recorded'}
+              </p>
+            )}
           </div>
 
           {/* Pending Approvals */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-amber-500/10 dark:bg-amber-400/10">
-                <Filter className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-xl bg-amber-500/10 dark:bg-amber-400/10">
+                <Filter className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
+              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
                 {t('sales.pendingApprovals') || 'Pending Approvals'}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
               {summary?.pendingCount || 0}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
               {t('sales.awaitingReview') || 'awaiting review'}
             </p>
+          </div>
+
+          {/* Payment Breakdown */}
+          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-xl bg-blue-500/10 dark:bg-blue-400/10">
+                <Wallet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
+                {t('sales.paymentBreakdown') || 'Payment Methods'}
+              </h3>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-terracotta-700 dark:text-cream-200">{t('sales.cash') || 'Cash'}</span>
+                <span className="font-medium text-green-600 dark:text-green-400">
+                  {summary && summary.totalRevenue > 0
+                    ? `${Math.round((summary.totalCash / summary.totalRevenue) * 100)}%`
+                    : '0%'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-terracotta-700 dark:text-cream-200">{t('sales.orangeMoney') || 'Orange'}</span>
+                <span className="font-medium text-orange-600 dark:text-orange-400">
+                  {summary && summary.totalRevenue > 0
+                    ? `${Math.round((summary.totalOrangeMoney / summary.totalRevenue) * 100)}%`
+                    : '0%'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-terracotta-700 dark:text-cream-200">{t('sales.card') || 'Card'}</span>
+                <span className="font-medium text-blue-600 dark:text-blue-400">
+                  {summary && summary.totalRevenue > 0
+                    ? `${Math.round((summary.totalCard / summary.totalRevenue) * 100)}%`
+                    : '0%'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          {/* Sales Trend Chart */}
+          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+            <h3
+              className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 mb-4"
+              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
+            >
+              {t('sales.salesTrend') || 'Sales Trend'}
+            </h3>
+            <SalesTrendChart data={salesByDay} />
+          </div>
+
+          {/* Payment Method Distribution */}
+          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+            <h3
+              className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 mb-4"
+              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
+            >
+              {t('sales.paymentMethods') || 'Payment Methods'}
+            </h3>
+            <PaymentMethodChart
+              cash={summary?.totalCash || 0}
+              orangeMoney={summary?.totalOrangeMoney || 0}
+              card={summary?.totalCard || 0}
+            />
           </div>
         </div>
 

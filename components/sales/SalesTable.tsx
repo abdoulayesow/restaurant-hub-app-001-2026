@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, Banknote, Smartphone, CreditCard } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { SaleStatusBadge } from './SaleStatusBadge'
 
@@ -141,13 +141,22 @@ export function SalesTable({
               </div>
             </th>
             <th className="px-6 py-4 text-right text-sm font-semibold text-terracotta-900 dark:text-cream-100 hidden md:table-cell">
-              {t('sales.cash') || 'Cash'}
+              <div className="flex items-center justify-end gap-1.5">
+                <Banknote className="w-4 h-4 text-green-600 dark:text-green-400" />
+                {t('sales.cash') || 'Cash'}
+              </div>
             </th>
             <th className="px-6 py-4 text-right text-sm font-semibold text-terracotta-900 dark:text-cream-100 hidden md:table-cell">
-              {t('sales.orangeMoney') || 'Orange Money'}
+              <div className="flex items-center justify-end gap-1.5">
+                <Smartphone className="w-4 h-4 text-orange-500" />
+                {t('sales.orangeMoney') || 'Orange Money'}
+              </div>
             </th>
             <th className="px-6 py-4 text-right text-sm font-semibold text-terracotta-900 dark:text-cream-100 hidden lg:table-cell">
-              {t('sales.card') || 'Card'}
+              <div className="flex items-center justify-end gap-1.5">
+                <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                {t('sales.card') || 'Card'}
+              </div>
             </th>
             <th
               className="px-6 py-4 text-center text-sm font-semibold text-terracotta-900 dark:text-cream-100 cursor-pointer hover:bg-cream-300 dark:hover:bg-dark-600"
@@ -188,14 +197,20 @@ export function SalesTable({
               <td className="px-6 py-4 text-right font-semibold text-terracotta-900 dark:text-cream-100">
                 {formatCurrency(sale.totalGNF)}
               </td>
-              <td className="px-6 py-4 text-right text-terracotta-700 dark:text-cream-200 hidden md:table-cell">
-                {formatCurrency(sale.cashGNF)}
+              <td className="px-6 py-4 text-right hidden md:table-cell">
+                <span className={sale.cashGNF > 0 ? 'text-green-700 dark:text-green-400' : 'text-terracotta-400 dark:text-dark-500'}>
+                  {formatCurrency(sale.cashGNF)}
+                </span>
               </td>
-              <td className="px-6 py-4 text-right text-terracotta-700 dark:text-cream-200 hidden md:table-cell">
-                {formatCurrency(sale.orangeMoneyGNF)}
+              <td className="px-6 py-4 text-right hidden md:table-cell">
+                <span className={sale.orangeMoneyGNF > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-terracotta-400 dark:text-dark-500'}>
+                  {formatCurrency(sale.orangeMoneyGNF)}
+                </span>
               </td>
-              <td className="px-6 py-4 text-right text-terracotta-700 dark:text-cream-200 hidden lg:table-cell">
-                {formatCurrency(sale.cardGNF)}
+              <td className="px-6 py-4 text-right hidden lg:table-cell">
+                <span className={sale.cardGNF > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-terracotta-400 dark:text-dark-500'}>
+                  {formatCurrency(sale.cardGNF)}
+                </span>
               </td>
               <td className="px-6 py-4 text-center">
                 <SaleStatusBadge status={sale.status} size="sm" />

@@ -230,7 +230,14 @@
     "by": "by",
     "confirmApprove": "Are you sure you want to approve this sale?",
     "rejectReason": "Please provide a reason for rejection:",
-    "totalMustBePositive": "Total must be greater than 0"
+    "totalMustBePositive": "Total must be greater than 0",
+    "salesTrend": "Sales Trend",
+    "paymentMethods": "Payment Methods",
+    "last7Days": "7 Days",
+    "last30Days": "30 Days",
+    "last90Days": "90 Days",
+    "allTime": "All",
+    "vsLastPeriod": "vs last period"
   },
   "expenses": {
     "title": "Expenses",
@@ -289,7 +296,10 @@
     "maintenance": "Maintenance",
     "rent": "Rent",
     "marketing": "Marketing",
-    "other": "Other"
+    "other": "Other",
+    "periodTotal": "Period Total",
+    "expenseTrend": "Expense Trend",
+    "categoryDistribution": "By Category"
   },
   "bank": {
     "title": "Bank & Cash",

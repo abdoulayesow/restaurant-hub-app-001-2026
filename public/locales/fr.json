@@ -230,7 +230,14 @@
     "by": "par",
     "confirmApprove": "Êtes-vous sûr de vouloir approuver cette vente ?",
     "rejectReason": "Veuillez fournir une raison pour le rejet :",
-    "totalMustBePositive": "Le total doit être supérieur à 0"
+    "totalMustBePositive": "Le total doit être supérieur à 0",
+    "salesTrend": "Tendance des ventes",
+    "paymentMethods": "Modes de paiement",
+    "last7Days": "7 jours",
+    "last30Days": "30 jours",
+    "last90Days": "90 jours",
+    "allTime": "Tout",
+    "vsLastPeriod": "vs période précédente"
   },
   "expenses": {
     "title": "Dépenses",
@@ -289,7 +296,10 @@
     "maintenance": "Entretien",
     "rent": "Loyer",
     "marketing": "Marketing",
-    "other": "Autres"
+    "other": "Autres",
+    "periodTotal": "Total de la période",
+    "expenseTrend": "Tendance des dépenses",
+    "categoryDistribution": "Par catégorie"
   },
   "bank": {
     "title": "Banque & Caisse",

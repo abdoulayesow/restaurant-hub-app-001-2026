@@ -22,7 +22,8 @@
       "Bash(find:*)",
       "Bash(gh run view:*)",
       "Skill(frontend-design)",
-      "Skill(frontend-design:*)"
+      "Skill(frontend-design:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }
