@@ -14,6 +14,7 @@ export interface RestaurantTypeConfig {
   labelFr: string
   descriptionEn: string
   descriptionFr: string
+  appName: string
 }
 
 export const restaurantTypeConfigs: Record<RestaurantType, RestaurantTypeConfig> = {
@@ -24,6 +25,7 @@ export const restaurantTypeConfigs: Record<RestaurantType, RestaurantTypeConfig>
     labelFr: 'Boulangerie',
     descriptionEn: 'Bread, pastries, and baked goods',
     descriptionFr: 'Pain, pâtisseries et produits de boulangerie',
+    appName: 'Bakery Hub',
   },
   Cafe: {
     type: 'Cafe',
@@ -32,6 +34,7 @@ export const restaurantTypeConfigs: Record<RestaurantType, RestaurantTypeConfig>
     labelFr: 'Café',
     descriptionEn: 'Coffee shop with light food',
     descriptionFr: 'Café avec restauration légère',
+    appName: 'Cafe Hub',
   },
   Restaurant: {
     type: 'Restaurant',
@@ -40,6 +43,7 @@ export const restaurantTypeConfigs: Record<RestaurantType, RestaurantTypeConfig>
     labelFr: 'Restaurant',
     descriptionEn: 'Full-service dining',
     descriptionFr: 'Service de restauration complet',
+    appName: 'Restaurant Hub',
   },
   FastFood: {
     type: 'FastFood',
@@ -48,6 +52,7 @@ export const restaurantTypeConfigs: Record<RestaurantType, RestaurantTypeConfig>
     labelFr: 'Restauration Rapide',
     descriptionEn: 'Quick service restaurant',
     descriptionFr: 'Service rapide',
+    appName: 'Food Hub',
   },
 }
 
