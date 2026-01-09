@@ -3,15 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Settings, Store, Settings2, Building2, LayoutGrid } from 'lucide-react'
+import { Settings, Store, Settings2, Building2, LayoutGrid, Bell } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { RestaurantTypeSettings } from '@/components/settings/RestaurantTypeSettings'
 import { RestaurantSettings } from '@/components/settings/RestaurantSettings'
 import { RestaurantConfigSettings } from '@/components/settings/RestaurantConfigSettings'
 import { RestaurantManagement } from '@/components/settings/RestaurantManagement'
+import { NotificationPreferences } from '@/components/settings/NotificationPreferences'
 
-type TabId = 'type' | 'operations' | 'config' | 'restaurants'
+type TabId = 'type' | 'operations' | 'config' | 'restaurants' | 'notifications'
 
 interface Tab {
   id: TabId
@@ -26,6 +27,7 @@ const tabs: Tab[] = [
   { id: 'operations', labelKey: 'settings.tabOperations', labelFallback: 'Operations', labelFr: 'Opérations', icon: Settings2 },
   { id: 'config', labelKey: 'settings.tabConfig', labelFallback: 'Configuration', labelFr: 'Configuration', icon: Building2 },
   { id: 'restaurants', labelKey: 'settings.tabRestaurants', labelFallback: 'Restaurants', labelFr: 'Restaurants', icon: LayoutGrid },
+  { id: 'notifications', labelKey: 'settings.tabNotifications', labelFallback: 'Notifications', labelFr: 'Notifications', icon: Bell },
 ]
 
 export default function SettingsPage() {
@@ -196,6 +198,8 @@ export default function SettingsPage() {
           {activeTab === 'config' && <RestaurantConfigSettings />}
 
           {activeTab === 'restaurants' && <RestaurantManagement />}
+
+          {activeTab === 'notifications' && <NotificationPreferences />}
         </div>
       </main>
     </div>

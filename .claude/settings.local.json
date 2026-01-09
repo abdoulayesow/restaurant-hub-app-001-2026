@@ -19,7 +19,10 @@
       "Bash(npx prisma migrate deploy:*)",
       "Bash(npx prisma migrate:*)",
       "Bash(npx prisma db execute:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(gh run view:*)",
+      "Skill(frontend-design)",
+      "Skill(frontend-design:*)"
     ]
   }
 }

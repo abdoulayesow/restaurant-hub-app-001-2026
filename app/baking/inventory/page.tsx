@@ -7,11 +7,14 @@ import { Plus, Search, Package, RefreshCw } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { InventoryTable, InventoryItem } from '@/components/inventory/InventoryTable'
+import { InventoryCardGrid } from '@/components/inventory/InventoryCardGrid'
+import { InventoryItem } from '@/components/inventory/InventoryCard'
 import { CategoryFilter } from '@/components/inventory/CategoryFilter'
 import { AddEditItemModal } from '@/components/inventory/AddEditItemModal'
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal'
 import { MovementHistoryModal } from '@/components/inventory/MovementHistoryModal'
+import { DeleteConfirmModal } from '@/components/inventory/DeleteConfirmModal'
+import { ViewItemModal } from '@/components/inventory/ViewItemModal'
 
 export default function BakingInventoryPage() {
   const { data: session, status } = useSession()
@@ -33,8 +36,12 @@ export default function BakingInventoryPage() {
   const [addEditModalOpen, setAddEditModalOpen] = useState(false)
   const [adjustModalOpen, setAdjustModalOpen] = useState(false)
   const [historyModalOpen, setHistoryModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const isManager = session?.user?.role === 'Manager'
 
@@ -99,7 +106,7 @@ export default function BakingInventoryPage() {
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [searchQuery])
+  }, [searchQuery, currentRestaurant, fetchItems])
 
   // Handlers
   const handleAddItem = () => {
@@ -112,11 +119,18 @@ export default function BakingInventoryPage() {
     setAddEditModalOpen(true)
   }
 
-  const handleDeleteItem = async (item: InventoryItem) => {
-    if (!confirm(t('inventory.confirmDelete'))) return
+  const handleDeleteItem = (item: InventoryItem) => {
+    setItemToDelete(item)
+    setDeleteModalOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return
+
+    setDeleting(true)
 
     try {
-      const response = await fetch(`/api/inventory/${item.id}`, {
+      const response = await fetch(`/api/inventory/${itemToDelete.id}`, {
         method: 'DELETE',
       })
 
@@ -124,10 +138,14 @@ export default function BakingInventoryPage() {
         throw new Error('Failed to delete item')
       }
 
+      setDeleteModalOpen(false)
+      setItemToDelete(null)
       await fetchItems()
     } catch (err) {
       console.error('Error deleting item:', err)
       alert(t('errors.generic'))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -139,6 +157,11 @@ export default function BakingInventoryPage() {
   const handleViewHistory = (item: InventoryItem) => {
     setSelectedItem(item)
     setHistoryModalOpen(true)
+  }
+
+  const handleViewItem = (item: InventoryItem) => {
+    setSelectedItem(item)
+    setViewModalOpen(true)
   }
 
   const handleSaveItem = async (data: Partial<InventoryItem>) => {
@@ -355,13 +378,14 @@ export default function BakingInventoryPage() {
             )}
           </div>
         ) : (
-          <InventoryTable
+          <InventoryCardGrid
             items={items}
             isManager={isManager}
             onEdit={handleEditItem}
             onDelete={handleDeleteItem}
             onAdjust={handleAdjustStock}
             onViewHistory={handleViewHistory}
+            onView={handleViewItem}
           />
         )}
       </main>
@@ -396,6 +420,30 @@ export default function BakingInventoryPage() {
           setSelectedItem(null)
         }}
         item={selectedItem}
+      />
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setItemToDelete(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        itemName={itemToDelete?.name || ''}
+        loading={deleting}
+      />
+
+      <ViewItemModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false)
+          setSelectedItem(null)
+        }}
+        item={selectedItem}
+        isManager={isManager}
+        onEdit={handleEditItem}
+        onAdjust={handleAdjustStock}
+        onViewHistory={handleViewHistory}
       />
     </div>
   )

@@ -246,7 +246,8 @@ export function NavigationHeader() {
                     aria-expanded={navSheetOpen === item.id}
                     aria-haspopup="true"
                     className={`
-                      flex items-center gap-2 px-4 py-2.5 rounded-full
+                      flex items-center justify-center gap-2
+                      min-w-[130px] px-4 py-2.5 rounded-full
                       font-medium text-sm tracking-wide
                       transition-all duration-300 ease-out
                       ${hasActiveSubItem
@@ -509,7 +510,8 @@ export function NavigationHeader() {
                 window.location.href = subItem.href
               }
             }}
-            position="bottom"
+            position="top"
+            showCloseButton={false}
           />
         )
       })}

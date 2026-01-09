@@ -16,5 +16,11 @@
         { "key": "Cache-Control", "value": "no-store, must-revalidate" }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-notifications",
+      "schedule": "0 18 * * *"
+    }
   ]
 }

@@ -54,6 +54,7 @@ model User {
   updatedAt           DateTime         @updatedAt
   accounts            Account[]
   sessions            Session[]
+  notificationPreference NotificationPreference?
 }
 
 // Junction table for User <-> Restaurant (many-to-many)
@@ -127,6 +128,7 @@ model Restaurant {
   cashDeposits         CashDeposit[]
   dailySummaries       DailySummary[]
   paymentMethods       PaymentMethod[]
+  notificationLogs     NotificationLog[]
 
   @@index([isActive])
   @@index([restaurantType])
@@ -469,4 +471,52 @@ model DailySummary {
   @@unique([restaurantId, date]) // One summary per restaurant per day
   @@index([restaurantId])
   @@index([date])
+}
+
+// ============================================================================
+// NOTIFICATION PREFERENCES & LOGS
+// ============================================================================
+
+model NotificationPreference {
+  id                    String   @id @default(uuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Notification toggles
+  lowStockAlerts        Boolean  @default(true)
+  criticalStockAlerts   Boolean  @default(true)
+  expenseAlerts         Boolean  @default(true)
+  approvalAlerts        Boolean  @default(true)
+  dailySummary          Boolean  @default(true)
+
+  // Thresholds
+  largeExpenseThreshold Float?   @default(500000) // GNF threshold for alerts
+
+  // Preferences
+  preferredLocale       String   @default("fr") // 'fr' | 'en'
+  quietHoursStart       String?  // e.g., "22:00"
+  quietHoursEnd         String?  // e.g., "07:00"
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([userId])
+}
+
+model NotificationLog {
+  id            String     @id @default(uuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  recipientPhone String
+  messageType   String     // 'low_stock', 'expense_approved', etc.
+  message       String
+  status        String     // 'sent', 'failed', 'delivered'
+  providerMsgId String?    // Twilio message SID
+  errorMessage  String?
+  sentAt        DateTime   @default(now())
+  deliveredAt   DateTime?
+
+  @@index([restaurantId])
+  @@index([sentAt])
+  @@index([status])
 }
