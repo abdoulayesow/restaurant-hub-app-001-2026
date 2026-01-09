@@ -339,56 +339,84 @@ export function NavigationHeader() {
                   <div
                     className="
                       animate-fade-in-up
-                      absolute right-0 top-14 w-56
+                      absolute right-0 top-14 w-60
                       bg-cream-50 dark:bg-dark-900
                       border border-terracotta-200/60 dark:border-terracotta-400/20
                       rounded-2xl warm-shadow-lg grain-overlay
-                      py-2 z-50
+                      overflow-hidden
+                      z-50
                     "
                     role="menu"
                   >
-                    <div className="px-4 py-3 border-b border-terracotta-500/15 dark:border-terracotta-400/20">
-                      <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100 truncate">
+                    {/* User info header */}
+                    <div className="px-4 py-4 border-b border-terracotta-500/15 dark:border-terracotta-400/20 bg-gradient-to-br from-cream-100/50 to-transparent dark:from-dark-800/50">
+                      <p className="text-sm font-semibold text-terracotta-900 dark:text-cream-100 truncate">
                         {session?.user?.name}
                       </p>
-                      <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 truncate">
+                      <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 truncate mt-0.5">
                         {session?.user?.email}
                       </p>
                       <span
-                        className="inline-block mt-2 px-2 py-0.5 text-xs rounded-full text-white"
+                        className="inline-block mt-2.5 px-2.5 py-0.5 text-xs font-medium rounded-full text-white shadow-sm"
                         style={{ backgroundColor: accentColor }}
                       >
                         {session?.user?.role}
                       </span>
                     </div>
-                    <Link
-                      href="/profile"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-terracotta-900 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-dark-800"
-                      role="menuitem"
-                    >
-                      <User className="w-4 h-4" />
-                      {t('common.profile')}
-                    </Link>
-                    {isManager && (
+
+                    {/* Menu items */}
+                    <div className="py-1.5">
                       <Link
-                        href="/settings"
+                        href="/profile"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-terracotta-900 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-dark-800"
+                        className="
+                          flex items-center gap-3 px-4 py-2.5
+                          text-sm font-medium text-terracotta-900 dark:text-cream-100
+                          hover:bg-terracotta-50 dark:hover:bg-dark-800
+                          transition-colors duration-200
+                          group
+                        "
                         role="menuitem"
                       >
-                        <Settings className="w-4 h-4" />
-                        {t('common.settings')}
+                        <User className="w-4 h-4 text-terracotta-600 dark:text-cream-300 group-hover:text-terracotta-700 dark:group-hover:text-cream-100 transition-colors" />
+                        <span>{t('common.profile')}</span>
                       </Link>
-                    )}
-                    <button
-                      onClick={() => signOut({ callbackUrl: '/login' })}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-cream-100 dark:hover:bg-dark-800"
-                      role="menuitem"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      {t('common.logout')}
-                    </button>
+                      {isManager && (
+                        <Link
+                          href="/settings"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="
+                            flex items-center gap-3 px-4 py-2.5
+                            text-sm font-medium text-terracotta-900 dark:text-cream-100
+                            hover:bg-terracotta-50 dark:hover:bg-dark-800
+                            transition-colors duration-200
+                            group
+                          "
+                          role="menuitem"
+                        >
+                          <Settings className="w-4 h-4 text-terracotta-600 dark:text-cream-300 group-hover:text-terracotta-700 dark:group-hover:text-cream-100 transition-colors" />
+                          <span>{t('common.settings')}</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Logout - separated with border */}
+                    <div className="border-t border-terracotta-500/15 dark:border-terracotta-400/20 py-1.5">
+                      <button
+                        onClick={() => signOut({ callbackUrl: '/login' })}
+                        className="
+                          w-full flex items-center gap-3 px-4 py-2.5
+                          text-sm font-medium text-red-600 dark:text-red-400
+                          hover:bg-red-50 dark:hover:bg-red-950/30
+                          transition-colors duration-200
+                          group
+                        "
+                        role="menuitem"
+                      >
+                        <LogOut className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        <span>{t('common.logout')}</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
