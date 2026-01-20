@@ -1,8 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Calendar, DollarSign, Smartphone, CreditCard, Clock, Users, ShoppingBag, FileText } from 'lucide-react'
+import { X, Calendar, DollarSign, Smartphone, CreditCard, Clock, Users, ShoppingBag, FileText, Plus, Trash2, UserCheck } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { useRestaurant } from '@/components/providers/RestaurantProvider'
+
+interface Customer {
+  id: string
+  name: string
+  phone: string | null
+  company: string | null
+  creditLimit: number | null
+  outstandingDebt?: number
+}
+
+interface DebtItem {
+  customerId: string
+  amountGNF: number
+  dueDate: string
+  description: string
+}
 
 interface Sale {
   id?: string
@@ -17,6 +34,7 @@ interface Sale {
   openingTime?: string | null
   closingTime?: string | null
   comments?: string | null
+  debts?: DebtItem[]
 }
 
 interface AddEditSaleModalProps {
@@ -35,6 +53,7 @@ export function AddEditSaleModal({
   loading = false,
 }: AddEditSaleModalProps) {
   const { t, locale } = useLocale()
+  const { currentRestaurant } = useRestaurant()
   const isEditMode = !!sale?.id
 
   const [formData, setFormData] = useState({
@@ -49,7 +68,31 @@ export function AddEditSaleModal({
     comments: '',
   })
 
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [debtItems, setDebtItems] = useState<DebtItem[]>([])
+  const [showCreditSection, setShowCreditSection] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Fetch customers
+  useEffect(() => {
+    if (isOpen && currentRestaurant) {
+      fetchCustomers()
+    }
+  }, [isOpen, currentRestaurant])
+
+  const fetchCustomers = async () => {
+    if (!currentRestaurant) return
+
+    try {
+      const response = await fetch(`/api/customers?restaurantId=${currentRestaurant.id}&includeActive=true`)
+      if (response.ok) {
+        const data = await response.json()
+        setCustomers(data.customers || [])
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error)
+    }
+  }
 
   // Initialize form with sale data
   useEffect(() => {
@@ -65,6 +108,10 @@ export function AddEditSaleModal({
         closingTime: sale.closingTime || '',
         comments: sale.comments || '',
       })
+      if (sale.debts && sale.debts.length > 0) {
+        setDebtItems(sale.debts)
+        setShowCreditSection(true)
+      }
     } else {
       // Default to today for new sales
       setFormData({
@@ -78,12 +125,16 @@ export function AddEditSaleModal({
         closingTime: '',
         comments: '',
       })
+      setDebtItems([])
+      setShowCreditSection(false)
     }
     setErrors({})
   }, [sale, isOpen])
 
-  // Calculate total
-  const totalGNF = formData.cashGNF + formData.orangeMoneyGNF + formData.cardGNF
+  // Calculate totals
+  const immediatePaymentGNF = formData.cashGNF + formData.orangeMoneyGNF + formData.cardGNF
+  const creditTotalGNF = debtItems.reduce((sum, item) => sum + item.amountGNF, 0)
+  const totalGNF = immediatePaymentGNF + creditTotalGNF
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -112,6 +163,36 @@ export function AddEditSaleModal({
     handleChange(field, numValue)
   }
 
+  // Add debt item
+  const addDebtItem = () => {
+    setDebtItems([
+      ...debtItems,
+      {
+        customerId: '',
+        amountGNF: 0,
+        dueDate: '',
+        description: ''
+      }
+    ])
+    setShowCreditSection(true)
+  }
+
+  // Remove debt item
+  const removeDebtItem = (index: number) => {
+    const updated = debtItems.filter((_, i) => i !== index)
+    setDebtItems(updated)
+    if (updated.length === 0) {
+      setShowCreditSection(false)
+    }
+  }
+
+  // Update debt item
+  const updateDebtItem = (index: number, field: keyof DebtItem, value: string | number) => {
+    const updated = [...debtItems]
+    updated[index] = { ...updated[index], [field]: value }
+    setDebtItems(updated)
+  }
+
   // Validate form
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -123,6 +204,27 @@ export function AddEditSaleModal({
     if (totalGNF <= 0) {
       newErrors.total = t('sales.totalMustBePositive') || 'Total must be greater than 0'
     }
+
+    // Validate debt items
+    debtItems.forEach((item, index) => {
+      if (!item.customerId) {
+        newErrors[`debt_${index}_customer`] = 'Customer required'
+      }
+      if (item.amountGNF <= 0) {
+        newErrors[`debt_${index}_amount`] = 'Amount must be positive'
+      }
+
+      // Check credit limit
+      if (item.customerId && item.amountGNF > 0) {
+        const customer = customers.find(c => c.id === item.customerId)
+        if (customer?.creditLimit) {
+          const currentDebt = customer.outstandingDebt || 0
+          if (currentDebt + item.amountGNF > customer.creditLimit) {
+            newErrors[`debt_${index}_amount`] = `Exceeds credit limit (${formatCurrency(customer.creditLimit - currentDebt)} available)`
+          }
+        }
+      }
+    })
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -145,6 +247,7 @@ export function AddEditSaleModal({
       openingTime: formData.openingTime || null,
       closingTime: formData.closingTime || null,
       comments: formData.comments || null,
+      debts: debtItems.length > 0 ? debtItems : undefined,
     })
   }
 
@@ -273,20 +376,215 @@ export function AddEditSaleModal({
                 />
               </div>
 
-              {/* Total */}
+              {/* Immediate Payment Summary */}
               <div className="p-4 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10 border border-terracotta-500/20">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-terracotta-700 dark:text-cream-200">
-                    {t('sales.total') || 'Total'}
+                    {t('sales.immediatePayment') || 'Immediate Payment'}
                   </span>
-                  <span className="text-xl font-bold text-terracotta-900 dark:text-cream-100">
+                  <span className="text-lg font-semibold text-terracotta-900 dark:text-cream-100">
+                    {formatCurrency(immediatePaymentGNF)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Credit Sales Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-terracotta-800 dark:text-cream-200 uppercase tracking-wider">
+                  {t('sales.creditSales') || 'Credit Sales'} ({t('common.optional') || 'Optional'})
+                </h3>
+                {!showCreditSection && (
+                  <button
+                    type="button"
+                    onClick={addDebtItem}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-terracotta-600 dark:text-cream-300 hover:bg-terracotta-500/10 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('sales.addCreditSale') || 'Add Credit Sale'}
+                  </button>
+                )}
+              </div>
+
+              {showCreditSection && (
+                <div className="space-y-3">
+                  {debtItems.map((item, index) => {
+                    const customer = customers.find(c => c.id === item.customerId)
+                    const availableCredit = customer?.creditLimit
+                      ? customer.creditLimit - (customer.outstandingDebt || 0)
+                      : null
+
+                    return (
+                      <div
+                        key={index}
+                        className="p-4 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-50 dark:bg-dark-800/50 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-terracotta-700 dark:text-cream-200">
+                            Credit Item {index + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeDebtItem(index)}
+                            className="p-1 text-red-600 hover:bg-red-500/10 rounded transition-colors"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {/* Customer Selection */}
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                              <UserCheck className="w-4 h-4" />
+                              Customer *
+                            </label>
+                            <select
+                              value={item.customerId}
+                              onChange={(e) => updateDebtItem(index, 'customerId', e.target.value)}
+                              className={`w-full px-3 py-2 rounded-lg border ${
+                                errors[`debt_${index}_customer`]
+                                  ? 'border-red-500'
+                                  : 'border-terracotta-200 dark:border-dark-600'
+                              } bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500`}
+                            >
+                              <option value="">Select customer</option>
+                              {customers.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name} {c.company ? `(${c.company})` : ''}
+                                </option>
+                              ))}
+                            </select>
+                            {errors[`debt_${index}_customer`] && (
+                              <p className="mt-1 text-xs text-red-500">{errors[`debt_${index}_customer`]}</p>
+                            )}
+                            {customer?.creditLimit && (
+                              <p className="mt-1 text-xs text-terracotta-600/70 dark:text-cream-300/70">
+                                Available credit: {formatCurrency(availableCredit || 0)}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Amount */}
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                              <DollarSign className="w-4 h-4" />
+                              Amount (GNF) *
+                            </label>
+                            <input
+                              type="number"
+                              value={item.amountGNF || ''}
+                              onChange={(e) => updateDebtItem(index, 'amountGNF', parseFloat(e.target.value) || 0)}
+                              min="0"
+                              className={`w-full px-3 py-2 rounded-lg border ${
+                                errors[`debt_${index}_amount`]
+                                  ? 'border-red-500'
+                                  : 'border-terracotta-200 dark:border-dark-600'
+                              } bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500`}
+                            />
+                            {errors[`debt_${index}_amount`] && (
+                              <p className="mt-1 text-xs text-red-500">{errors[`debt_${index}_amount`]}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {/* Due Date */}
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                              <Calendar className="w-4 h-4" />
+                              Due Date
+                            </label>
+                            <input
+                              type="date"
+                              value={item.dueDate}
+                              onChange={(e) => updateDebtItem(index, 'dueDate', e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                            />
+                          </div>
+
+                          {/* Description */}
+                          <div>
+                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                              <FileText className="w-4 h-4" />
+                              Description
+                            </label>
+                            <input
+                              type="text"
+                              value={item.description}
+                              onChange={(e) => updateDebtItem(index, 'description', e.target.value)}
+                              placeholder="Optional note"
+                              className="w-full px-3 py-2 rounded-lg border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={addDebtItem}
+                    className="w-full px-4 py-2 border-2 border-dashed border-terracotta-300 dark:border-dark-600 rounded-xl text-terracotta-600 dark:text-cream-300 hover:bg-terracotta-500/5 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('sales.addAnotherCreditSale') || 'Add Another Credit Sale'}
+                  </button>
+
+                  {/* Credit Total */}
+                  {creditTotalGNF > 0 && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                          {t('sales.creditTotal') || 'Credit Total'}
+                        </span>
+                        <span className="text-lg font-semibold text-amber-900 dark:text-amber-200">
+                          {formatCurrency(creditTotalGNF)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Grand Total */}
+            <div className="p-5 rounded-xl bg-gradient-to-br from-terracotta-500/20 to-terracotta-600/20 dark:from-terracotta-400/20 dark:to-terracotta-500/20 border-2 border-terracotta-500/30">
+              <div className="space-y-2">
+                {creditTotalGNF > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-terracotta-700 dark:text-cream-200">
+                      Immediate Payment
+                    </span>
+                    <span className="font-medium text-terracotta-800 dark:text-cream-100">
+                      {formatCurrency(immediatePaymentGNF)}
+                    </span>
+                  </div>
+                )}
+                {creditTotalGNF > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-amber-700 dark:text-amber-300">
+                      Credit Sales
+                    </span>
+                    <span className="font-medium text-amber-800 dark:text-amber-200">
+                      {formatCurrency(creditTotalGNF)}
+                    </span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-terracotta-500/30 flex items-center justify-between">
+                  <span className="text-base font-semibold text-terracotta-900 dark:text-cream-100">
+                    {t('sales.grandTotal') || 'Grand Total'}
+                  </span>
+                  <span className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
                     {formatCurrency(totalGNF)}
                   </span>
                 </div>
-                {errors.total && (
-                  <p className="mt-2 text-sm text-red-500">{errors.total}</p>
-                )}
               </div>
+              {errors.total && (
+                <p className="mt-2 text-sm text-red-500">{errors.total}</p>
+              )}
             </div>
 
             {/* Optional Fields */}

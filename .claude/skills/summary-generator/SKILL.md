@@ -112,6 +112,7 @@ The resume prompt is the MOST IMPORTANT part of the summary. It must be:
 - **Copy-paste ready** - User can start a new session with this exact text
 - **Self-contained** - Includes all context needed to continue
 - **Action-oriented** - Clear next steps, not just status
+- **Skill-aware** - Include which skills to use for remaining tasks
 
 **Required Elements:**
 
@@ -150,7 +151,32 @@ B) [Option B description] - [trade-offs]
 - Port: [if applicable]
 - Database: [migration status]
 - Other setup: [any requirements]
+
+### Skills to Use (auto-trigger)
+Based on remaining tasks, use these skills automatically:
+- [ ] `/api-route` - If creating new API endpoints
+- [ ] `/component` - If creating new UI components (modal, table, card, chart)
+- [ ] `/i18n` - For any new user-facing text (add EN + FR)
+- [ ] `/review staged` - Before committing changes
+- [ ] `/frontend-design` - For complex UI work
+- [ ] `/po-requirements [feature]` - Before implementing features
+- [ ] Use `Explore` agent for codebase searches (not manual Grep/Glob)
 ```
+
+### Step 3.5: Analyze Skills for Remaining Tasks
+
+For each remaining task, determine which skill should be used:
+
+| Task Pattern | Skill to Recommend |
+|--------------|-------------------|
+| "Add API endpoint for..." | `/api-route [path] [methods]` |
+| "Create modal/table/card for..." | `/component [name] [type]` |
+| "Add translation for..." | `/i18n [key] [en] [fr]` |
+| "Implement [feature]..." | `/po-requirements [feature]` first |
+| "Build UI for..." | `/frontend-design` |
+| "Find where X is handled..." | Use `Explore` agent |
+
+Include these recommendations in the "Skills to Use" section of the resume prompt.
 
 ### Step 4: Analyze Token Usage
 

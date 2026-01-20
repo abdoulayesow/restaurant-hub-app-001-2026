@@ -23,7 +23,17 @@
       "Bash(gh run view:*)",
       "Skill(frontend-design)",
       "Skill(frontend-design:*)",
-      "Bash(npm ls:*)"
+      "Skill(add-api-route)",
+      "Skill(add-api-route:*)",
+      "Skill(add-i18n)",
+      "Skill(add-i18n:*)",
+      "Skill(code-review)",
+      "Skill(code-review:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(dir:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }

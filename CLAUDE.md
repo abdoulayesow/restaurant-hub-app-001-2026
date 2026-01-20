@@ -129,3 +129,46 @@ t('common.appName')  // Returns translated string
 - **Currency**: GNF (Guinean Franc)
 - **Languages**: French (default), English
 - **Key pain point**: Real-time inventory visibility for remote owner
+
+## Skill & Agent Usage Guidelines
+
+Use these skills and agents automatically based on the task type. Do NOT wait for the user to request them.
+
+### Skills (invoke with /command or Skill tool)
+
+| Trigger | Skill | Use When |
+|---------|-------|----------|
+| Creating API endpoints | `/api-route [path] [methods]` | User asks to add/create API route, endpoint, or backend functionality |
+| Creating UI components | `/component [name] [type]` | User asks to add modal, table, card, form, or chart component |
+| Adding text/labels | `/i18n [key] [en] [fr]` | Any new user-facing text needs translation keys |
+| Before committing | `/review staged` | Review code before git commit for security, patterns, i18n |
+| UI design work | `/frontend-design` | Complex UI implementation requiring design quality |
+| End of session | `/summary` | User says "wrap up", "end session", or significant work completed |
+| Feature requirements | `/po-requirements [feature]` | Before implementing a feature, look up documented requirements |
+| Implementation gaps | `/po-gaps` | Check what's implemented vs documented at session start |
+
+### Sub-agents (via Task tool)
+
+| Agent | Use When |
+|-------|----------|
+| `Explore` | Searching codebase, understanding patterns, answering "where is X?" or "how does Y work?" |
+| `Plan` | Complex features requiring architectural decisions |
+| `haiku` model | Simple edits, formatting, straightforward tasks (cost-efficient) |
+
+### Automatic Triggers
+
+**MUST use these skills automatically:**
+
+1. **New API route requested** → `/api-route` first, then customize
+2. **New component requested** → `/component` first, then customize
+3. **New user-facing text** → `/i18n` to add both EN and FR translations
+4. **Before commit** → `/review staged` to catch issues
+5. **Session ending** → `/summary` to create handoff
+6. **Codebase questions** → Use `Explore` agent instead of manual Grep/Glob
+
+### Token Optimization
+
+- Start sessions with resume prompt from `/summary` (saves re-exploration)
+- Use `/po-requirements` instead of reading full docs
+- Use `Explore` agent for multi-file searches
+- Request `model: haiku` for simple tasks when appropriate

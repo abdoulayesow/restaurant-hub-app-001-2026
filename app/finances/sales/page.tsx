@@ -3,15 +3,28 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { Plus, Search, TrendingUp, RefreshCw, Calendar, Filter, Wallet, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
+import { QuickActionsMenu } from '@/components/layout/QuickActionsMenu'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { SalesTable } from '@/components/sales/SalesTable'
-import { AddEditSaleModal } from '@/components/sales/AddEditSaleModal'
-import { SalesTrendChart } from '@/components/sales/SalesTrendChart'
-import { PaymentMethodChart } from '@/components/sales/PaymentMethodChart'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
+
+// Dynamic imports for heavy components to reduce initial bundle size
+const AddEditSaleModal = dynamic(
+  () => import('@/components/sales/AddEditSaleModal').then(mod => ({ default: mod.AddEditSaleModal })),
+  { ssr: false }
+)
+const SalesTrendChart = dynamic(
+  () => import('@/components/sales/SalesTrendChart').then(mod => ({ default: mod.SalesTrendChart })),
+  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-cream-200 dark:bg-dark-700 rounded"></div> }
+)
+const PaymentMethodChart = dynamic(
+  () => import('@/components/sales/PaymentMethodChart').then(mod => ({ default: mod.PaymentMethodChart })),
+  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-cream-200 dark:bg-dark-700 rounded"></div> }
+)
 
 interface Sale {
   id: string
@@ -28,6 +41,14 @@ interface Sale {
   openingTime?: string | null
   closingTime?: string | null
   comments?: string | null
+  activeDebtsCount?: number
+  outstandingDebtAmount?: number
+  debts?: Array<{
+    customerId: string
+    amountGNF: number
+    dueDate: string
+    description: string
+  }>
 }
 
 interface SalesSummary {
@@ -484,6 +505,9 @@ export default function FinancesSalesPage() {
         sale={selectedSale}
         loading={isSaving}
       />
+
+      {/* Quick Actions Menu - Floating */}
+      <QuickActionsMenu />
     </div>
   )
 }

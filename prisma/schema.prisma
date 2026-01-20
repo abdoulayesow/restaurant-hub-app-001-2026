@@ -129,6 +129,9 @@ model Restaurant {
   dailySummaries       DailySummary[]
   paymentMethods       PaymentMethod[]
   notificationLogs     NotificationLog[]
+  customers            Customer[]
+  debts                Debt[]
+  debtPayments         DebtPayment[]
 
   @@index([isActive])
   @@index([restaurantType])
@@ -266,6 +269,7 @@ model Sale {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   cashDeposit        CashDeposit?
+  debts              Debt[]
 
   @@unique([restaurantId, date]) // One sale per restaurant per day
   @@index([restaurantId])
@@ -277,6 +281,107 @@ enum SubmissionStatus {
   Pending
   Approved
   Rejected
+}
+
+// ============================================================================
+// CUSTOMER & DEBT MANAGEMENT
+// ============================================================================
+
+model Customer {
+  id             String          @id @default(uuid())
+  restaurantId   String
+  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id])
+  name           String
+  phone          String?
+  email          String?
+  address        String?
+  company        String?
+  customerType   CustomerType    @default(Individual)
+  creditLimit    Float?
+  notes          String?
+  isActive       Boolean         @default(true)
+  debts          Debt[]
+  debtPayments   DebtPayment[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([restaurantId])
+  @@index([restaurantId, isActive])
+  @@index([restaurantId, name])
+}
+
+enum CustomerType {
+  Individual
+  Corporate
+  Wholesale
+}
+
+model Debt {
+  id                String        @id @default(uuid())
+  restaurantId      String
+  restaurant        Restaurant    @relation(fields: [restaurantId], references: [id])
+  saleId            String?
+  sale              Sale?         @relation(fields: [saleId], references: [id])
+  customerId        String
+  customer          Customer      @relation(fields: [customerId], references: [id])
+
+  principalAmount   Float
+  paidAmount        Float         @default(0)
+  remainingAmount   Float
+
+  dueDate           DateTime?
+  status            DebtStatus    @default(Outstanding)
+
+  description       String?
+  notes             String?
+
+  createdBy         String
+  createdByName     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  payments          DebtPayment[]
+
+  @@index([restaurantId])
+  @@index([saleId])
+  @@index([customerId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([restaurantId, status])
+}
+
+enum DebtStatus {
+  Outstanding
+  PartiallyPaid
+  FullyPaid
+  Overdue
+  WrittenOff
+}
+
+model DebtPayment {
+  id              String        @id @default(uuid())
+  restaurantId    String
+  restaurant      Restaurant    @relation(fields: [restaurantId], references: [id])
+  debtId          String
+  debt            Debt          @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id])
+
+  amount          Float
+  paymentMethod   String
+  paymentDate     DateTime
+
+  receiptNumber   String?
+  notes           String?
+
+  receivedBy      String
+  receivedByName  String?
+  createdAt       DateTime      @default(now())
+
+  @@index([restaurantId])
+  @@index([debtId])
+  @@index([customerId])
+  @@index([paymentDate])
 }
 
 // ============================================================================

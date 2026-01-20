@@ -14,6 +14,7 @@ import {
   Wallet,
   Receipt,
   Building2,
+  DollarSign,
   Sun,
   Moon,
   User,
@@ -76,6 +77,7 @@ const navigationItems: NavItemConfig[] = [
     icon: Wallet,
     subItems: [
       { id: 'sales', label: 'Sales', labelFr: 'Ventes', icon: TrendingUp, href: '/finances/sales' },
+      { id: 'debts', label: 'Debts', labelFr: 'Dettes', icon: DollarSign, href: '/finances/debts' },
       { id: 'expenses', label: 'Expenses', labelFr: 'Dépenses', icon: Receipt, href: '/finances/expenses' },
       { id: 'bank', label: 'Bank', labelFr: 'Banque', icon: Building2, href: '/finances/bank' },
     ]
@@ -92,9 +94,11 @@ const routeToSubItem: Record<string, string> = {
   '/inventory': 'inventory',
   '/production': 'production',
   '/finances/sales': 'sales',
+  '/finances/debts': 'debts',
   '/finances/expenses': 'expenses',
   '/finances/bank': 'bank',
   '/sales': 'sales',
+  '/debts': 'debts',
   '/expenses': 'expenses',
   '/bank': 'bank',
 }

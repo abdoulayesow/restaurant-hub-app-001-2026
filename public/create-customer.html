@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Test Customer - Bakery Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Create Test Customer</h1>
+
+        <form id="customerForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Restaurant ID</label>
+                <input type="text" id="restaurantId" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Get from your session">
+                <p class="text-xs text-gray-500 mt-1">Open DevTools (F12) → Console → Type: localStorage.getItem('currentRestaurantId')</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
+                <input type="text" id="name" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Aminata Sylla">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Customer Type *</label>
+                <select id="customerType" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="Individual">Individual</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Wholesale">Wholesale</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                <input type="text" id="phone"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., +224 621 00 00 01">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input type="email" id="email"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., aminata@example.com">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Company</label>
+                <input type="text" id="company"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Sylla Enterprises (optional)">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Credit Limit (GNF)</label>
+                <input type="number" id="creditLimit"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., 5000000" value="0">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                <textarea id="notes" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Any additional notes (optional)"></textarea>
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <button type="submit"
+                    class="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Create Customer
+                </button>
+                <button type="button" id="quickFillBtn"
+                    class="px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                    Quick Fill Test Data
+                </button>
+            </div>
+        </form>
+
+        <div id="result" class="mt-6 p-4 rounded-lg hidden"></div>
+
+        <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+            <h2 class="text-lg font-semibold text-blue-900 mb-2">Quick Test Customers</h2>
+            <p class="text-sm text-blue-700 mb-3">Click "Quick Fill Test Data" button multiple times to create these customers:</p>
+            <ul class="text-sm text-blue-800 space-y-1">
+                <li><strong>Aminata Sylla</strong> - Individual, 5,000,000 GNF credit limit</li>
+                <li><strong>Mamadou Diallo</strong> - Corporate, 10,000,000 GNF credit limit</li>
+                <li><strong>Fatou Camara</strong> - Wholesale, 15,000,000 GNF credit limit</li>
+                <li><strong>Ibrahim Bah</strong> - Individual, 2,000,000 GNF credit limit</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const testCustomers = [
+            {
+                name: 'Aminata Sylla',
+                customerType: 'Individual',
+                phone: '+224 621 00 00 01',
+                email: 'aminata.sylla@example.com',
+                creditLimit: 5000000,
+                notes: 'Regular customer - Test data'
+            },
+            {
+                name: 'Mamadou Diallo',
+                customerType: 'Corporate',
+                phone: '+224 621 00 00 02',
+                email: 'mamadou.diallo@enterprise.gn',
+                company: 'Diallo Enterprises',
+                creditLimit: 10000000,
+                notes: 'Corporate client - Test data'
+            },
+            {
+                name: 'Fatou Camara',
+                customerType: 'Wholesale',
+                phone: '+224 621 00 00 03',
+                email: 'fatou.camara@wholesale.gn',
+                company: 'Camara Wholesale',
+                creditLimit: 15000000,
+                notes: 'Wholesale partner - Test data'
+            },
+            {
+                name: 'Ibrahim Bah',
+                customerType: 'Individual',
+                phone: '+224 621 00 00 04',
+                email: 'ibrahim.bah@example.com',
+                creditLimit: 2000000,
+                notes: 'Small orders - Test data'
+            }
+        ];
+
+        let currentTestIndex = 0;
+
+        document.getElementById('quickFillBtn').addEventListener('click', () => {
+            const customer = testCustomers[currentTestIndex % testCustomers.length];
+            document.getElementById('name').value = customer.name;
+            document.getElementById('customerType').value = customer.customerType;
+            document.getElementById('phone').value = customer.phone;
+            document.getElementById('email').value = customer.email || '';
+            document.getElementById('company').value = customer.company || '';
+            document.getElementById('creditLimit').value = customer.creditLimit;
+            document.getElementById('notes').value = customer.notes;
+            currentTestIndex++;
+        });
+
+        document.getElementById('customerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'mt-6 p-4 rounded-lg hidden';
+
+            const restaurantId = document.getElementById('restaurantId').value.trim();
+            if (!restaurantId) {
+                resultDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 border border-red-400';
+                resultDiv.innerHTML = '<p class="text-red-700 font-medium">Please provide Restaurant ID</p>';
+                return;
+            }
+
+            const customerData = {
+                restaurantId: restaurantId,
+                name: document.getElementById('name').value.trim(),
+                customerType: document.getElementById('customerType').value,
+                phone: document.getElementById('phone').value.trim() || null,
+                email: document.getElementById('email').value.trim() || null,
+                company: document.getElementById('company').value.trim() || null,
+                creditLimit: parseInt(document.getElementById('creditLimit').value) || 0,
+                notes: document.getElementById('notes').value.trim() || null,
+                isActive: true
+            };
+
+            try {
+                const response = await fetch('/api/customers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(customerData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'mt-6 p-4 rounded-lg bg-green-100 border border-green-400';
+                    resultDiv.innerHTML = `
+                        <p class="text-green-700 font-medium">✅ Customer created successfully!</p>
+                        <pre class="mt-2 text-sm text-green-800 overflow-auto">${JSON.stringify(data.customer, null, 2)}</pre>
+                    `;
+
+                    // Reset form except restaurant ID
+                    document.getElementById('customerForm').reset();
+                    document.getElementById('restaurantId').value = restaurantId;
+                } else {
+                    resultDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 border border-red-400';
+                    resultDiv.innerHTML = `
+                        <p class="text-red-700 font-medium">❌ Error: ${data.error || 'Failed to create customer'}</p>
+                        <pre class="mt-2 text-sm text-red-800 overflow-auto">${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 border border-red-400';
+                resultDiv.innerHTML = `
+                    <p class="text-red-700 font-medium">❌ Network Error</p>
+                    <p class="text-sm text-red-800 mt-2">${error.message}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

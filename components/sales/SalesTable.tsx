@@ -17,6 +17,8 @@ interface Sale {
   approvedByName?: string | null
   itemsCount?: number | null
   customersCount?: number | null
+  activeDebtsCount?: number
+  outstandingDebtAmount?: number
 }
 
 interface SalesTableProps {
@@ -158,6 +160,9 @@ export function SalesTable({
                 {t('sales.card') || 'Card'}
               </div>
             </th>
+            <th className="px-6 py-4 text-center text-sm font-semibold text-terracotta-900 dark:text-cream-100">
+              {t('sales.paymentStatus') || 'Payment Status'}
+            </th>
             <th
               className="px-6 py-4 text-center text-sm font-semibold text-terracotta-900 dark:text-cream-100 cursor-pointer hover:bg-cream-300 dark:hover:bg-dark-600"
               onClick={() => handleSort('status')}
@@ -211,6 +216,30 @@ export function SalesTable({
                 <span className={sale.cardGNF > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-terracotta-400 dark:text-dark-500'}>
                   {formatCurrency(sale.cardGNF)}
                 </span>
+              </td>
+              <td className="px-6 py-4 text-center">
+                {sale.activeDebtsCount && sale.activeDebtsCount > 0 ? (
+                  <div
+                    className="inline-flex flex-col items-center gap-1 cursor-help"
+                    title={`${sale.activeDebtsCount} customer${sale.activeDebtsCount > 1 ? 's' : ''} with outstanding credit`}
+                  >
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                      Has Debts ({sale.activeDebtsCount})
+                    </span>
+                    {sale.outstandingDebtAmount && sale.outstandingDebtAmount > 0 && (
+                      <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                        {formatCurrency(sale.outstandingDebtAmount)}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 cursor-help"
+                    title="All payments received in cash, card, or mobile money"
+                  >
+                    Fully Paid
+                  </span>
+                )}
               </td>
               <td className="px-6 py-4 text-center">
                 <SaleStatusBadge status={sale.status} size="sm" />

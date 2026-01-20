@@ -60,13 +60,42 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch sales
-    const sales = await prisma.sale.findMany({
+    const salesData = await prisma.sale.findMany({
       where,
       orderBy: { date: 'desc' },
       include: {
         cashDeposit: true,
+        debts: {
+          where: {
+            status: {
+              in: ['Outstanding', 'PartiallyPaid', 'Overdue']
+            }
+          },
+          select: {
+            id: true,
+            customerId: true,
+            principalAmount: true,
+            remainingAmount: true,
+            status: true,
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                customerType: true
+              }
+            }
+          }
+        }
       },
     })
+
+    // Transform sales to include activeDebtsCount and outstandingDebtAmount
+    const sales = salesData.map(sale => ({
+      ...sale,
+      activeDebtsCount: sale.debts.length,
+      outstandingDebtAmount: sale.debts.reduce((sum, debt) => sum + debt.remainingAmount, 0)
+    }))
 
     // Calculate summary statistics
     const totalRevenue = sales.reduce((sum, s) => sum + s.totalGNF, 0)
@@ -164,6 +193,7 @@ export async function POST(request: NextRequest) {
       openingTime,
       closingTime,
       comments,
+      debts = [], // Optional debts array
     } = body
 
     if (!restaurantId || !date) {
@@ -187,6 +217,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    // Get user details for debt creation
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true }
+    })
+
     // Check for existing sale on the same date (one sale per day per restaurant)
     const saleDate = new Date(date)
     saleDate.setHours(0, 0, 0, 0)
@@ -207,34 +243,148 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate total
-    const totalGNF = cashGNF + orangeMoneyGNF + cardGNF
+    // Validate debts if provided
+    if (debts.length > 0) {
+      for (const debt of debts) {
+        if (!debt.customerId) {
+          return NextResponse.json(
+            { error: 'Each debt must have a customerId' },
+            { status: 400 }
+          )
+        }
 
-    // Create sale
-    const sale = await prisma.sale.create({
-      data: {
-        restaurantId,
-        date: saleDate,
-        totalGNF,
-        cashGNF,
-        orangeMoneyGNF,
-        cardGNF,
-        itemsCount: itemsCount || null,
-        customersCount: customersCount || null,
-        receiptUrl: receiptUrl || null,
-        openingTime: openingTime || null,
-        closingTime: closingTime || null,
-        comments: comments || null,
-        status: 'Pending',
-        submittedBy: session.user.id,
-        submittedByName: session.user.name || session.user.email,
-      },
-      include: {
-        cashDeposit: true,
-      },
+        if (!debt.amountGNF || debt.amountGNF <= 0) {
+          return NextResponse.json(
+            { error: 'Each debt must have a positive amount' },
+            { status: 400 }
+          )
+        }
+
+        // Verify customer exists and belongs to this restaurant
+        const customer = await prisma.customer.findUnique({
+          where: { id: debt.customerId }
+        })
+
+        if (!customer) {
+          return NextResponse.json(
+            { error: `Customer not found: ${debt.customerId}` },
+            { status: 404 }
+          )
+        }
+
+        if (customer.restaurantId !== restaurantId) {
+          return NextResponse.json(
+            { error: 'Customer does not belong to this restaurant' },
+            { status: 400 }
+          )
+        }
+
+        // Check credit limit if set
+        if (customer.creditLimit !== null && customer.creditLimit !== undefined) {
+          const existingDebts = await prisma.debt.findMany({
+            where: {
+              customerId: debt.customerId,
+              status: {
+                in: ['Outstanding', 'PartiallyPaid', 'Overdue']
+              }
+            },
+            select: {
+              remainingAmount: true
+            }
+          })
+
+          const currentOutstanding = existingDebts.reduce(
+            (sum, d) => sum + d.remainingAmount,
+            0
+          )
+
+          const newTotalOutstanding = currentOutstanding + debt.amountGNF
+
+          if (newTotalOutstanding > customer.creditLimit) {
+            return NextResponse.json(
+              {
+                error: `Credit limit exceeded for customer ${customer.name}. Limit: ${customer.creditLimit} GNF, Current outstanding: ${currentOutstanding} GNF, New total would be: ${newTotalOutstanding} GNF`
+              },
+              { status: 400 }
+            )
+          }
+        }
+      }
+    }
+
+    // Calculate credit total
+    const creditTotal = debts.reduce((sum: number, debt: any) => sum + debt.amountGNF, 0)
+
+    // Calculate total including immediate payments and credit sales
+    const totalGNF = cashGNF + orangeMoneyGNF + cardGNF + creditTotal
+
+    // Use transaction to create sale and debts atomically
+    const result = await prisma.$transaction(async (tx) => {
+      // Create sale
+      const sale = await tx.sale.create({
+        data: {
+          restaurantId,
+          date: saleDate,
+          totalGNF,
+          cashGNF,
+          orangeMoneyGNF,
+          cardGNF,
+          itemsCount: itemsCount || null,
+          customersCount: customersCount || null,
+          receiptUrl: receiptUrl || null,
+          openingTime: openingTime || null,
+          closingTime: closingTime || null,
+          comments: comments || null,
+          status: 'Pending',
+          submittedBy: session.user.id,
+          submittedByName: session.user.name || session.user.email,
+        }
+      })
+
+      // Create debts if any
+      if (debts.length > 0) {
+        await tx.debt.createMany({
+          data: debts.map((debt: any) => ({
+            restaurantId,
+            saleId: sale.id,
+            customerId: debt.customerId,
+            principalAmount: debt.amountGNF,
+            paidAmount: 0,
+            remainingAmount: debt.amountGNF,
+            dueDate: debt.dueDate ? new Date(debt.dueDate) : null,
+            status: 'Outstanding',
+            description: debt.description?.trim() || null,
+            notes: debt.notes?.trim() || null,
+            createdBy: session.user.id,
+            createdByName: user?.name || null
+          }))
+        })
+      }
+
+      // Fetch created sale with relations
+      const saleWithRelations = await tx.sale.findUnique({
+        where: { id: sale.id },
+        include: {
+          cashDeposit: true,
+          debts: {
+            include: {
+              customer: {
+                select: {
+                  id: true,
+                  name: true,
+                  phone: true,
+                  customerType: true
+                }
+              }
+            }
+          }
+        }
+      })
+
+      return saleWithRelations
     })
 
-    return NextResponse.json({ sale }, { status: 201 })
+    return NextResponse.json({ sale: result }, { status: 201 })
   } catch (error) {
     console.error('Error creating sale:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
