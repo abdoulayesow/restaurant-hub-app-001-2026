@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { X, ArrowUpCircle, ArrowDownCircle, RefreshCw, AlertTriangle, History, Loader2 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
@@ -34,13 +34,7 @@ export function MovementHistoryModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (isOpen && item && currentRestaurant) {
-      fetchMovements()
-    }
-  }, [isOpen, item, currentRestaurant])
-
-  const fetchMovements = async () => {
+  const fetchMovements = useCallback(async () => {
     if (!item || !currentRestaurant) return
 
     setLoading(true)
@@ -63,7 +57,13 @@ export function MovementHistoryModal({
     } finally {
       setLoading(false)
     }
-  }
+  }, [item, currentRestaurant, t])
+
+  useEffect(() => {
+    if (isOpen && item && currentRestaurant) {
+      fetchMovements()
+    }
+  }, [isOpen, item, currentRestaurant, fetchMovements])
 
   if (!isOpen || !item) return null
 

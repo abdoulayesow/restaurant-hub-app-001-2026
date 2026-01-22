@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma, DebtStatus } from '@prisma/client'
 
 // GET /api/debts - List debts with filters
 export async function GET(request: NextRequest) {
@@ -44,14 +45,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Build filter conditions
-    const where: any = { restaurantId }
+    const where: Prisma.DebtWhereInput = { restaurantId }
 
     if (customerId) {
       where.customerId = customerId
     }
 
     if (status) {
-      where.status = status
+      where.status = status as DebtStatus
     }
 
     if (saleId) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Edit2, Trash2, Search, Loader2, X, Save, Users, Building2, ShoppingCart } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
@@ -62,13 +62,7 @@ export function CustomersTab() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (currentRestaurant) {
-      fetchCustomers()
-    }
-  }, [showInactive, currentRestaurant])
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     if (!currentRestaurant) return
 
     try {
@@ -84,7 +78,13 @@ export function CustomersTab() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentRestaurant, showInactive])
+
+  useEffect(() => {
+    if (currentRestaurant) {
+      fetchCustomers()
+    }
+  }, [currentRestaurant, fetchCustomers])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -444,7 +444,7 @@ export function CustomersTab() {
                   </label>
                   <select
                     value={formData.customerType}
-                    onChange={(e) => setFormData({ ...formData, customerType: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, customerType: e.target.value as CustomerFormData['customerType'] })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
                   >
                     <option value="Individual">Individual</option>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
@@ -320,9 +321,11 @@ export function NavigationHeader() {
                   aria-haspopup="true"
                 >
                   {session?.user?.image ? (
-                    <img
+                    <Image
                       src={session.user.image}
                       alt=""
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full"
                     />
                   ) : (

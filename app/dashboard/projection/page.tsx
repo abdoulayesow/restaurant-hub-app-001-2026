@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Target, TrendingUp, Calendar, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react'

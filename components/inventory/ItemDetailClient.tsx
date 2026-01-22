@@ -49,7 +49,7 @@ export function ItemDetailClient({ item, movements, initialStock }: Props) {
   const router = useRouter()
   const { currentRestaurant } = useRestaurant()
 
-  const handleAdjust = async (data: any) => {
+  const handleAdjust = async (data: { type: string; quantity: number; reason?: string }) => {
     if (!currentRestaurant) return
 
     setIsLoading(true)

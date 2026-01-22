@@ -40,7 +40,7 @@ export default function BankPage() {
   const [balances, setBalances] = useState({ cash: 0, orangeMoney: 0, card: 0, total: 0 })
   const [deposits, setDeposits] = useState<Deposit[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [, setError] = useState<string | null>(null)
 
   // Modal state
   const [depositModalOpen, setDepositModalOpen] = useState(false)

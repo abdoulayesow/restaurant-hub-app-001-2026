@@ -6,7 +6,6 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import {
   getAllRestaurantTypes,
-  getRestaurantTypeConfig,
   type RestaurantType,
 } from '@/config/restaurantTypes'
 
@@ -101,9 +100,6 @@ export function RestaurantTypeSettings() {
       </div>
     )
   }
-
-  const selectedTypeConfig = getRestaurantTypeConfig(settings.restaurantType)
-  const TypeIcon = selectedTypeConfig.icon
 
   return (
     <div className="max-w-4xl">

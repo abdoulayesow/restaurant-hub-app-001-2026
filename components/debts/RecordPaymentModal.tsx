@@ -32,7 +32,7 @@ export default function RecordPaymentModal({
   onClose,
   onSuccess
 }: RecordPaymentModalProps) {
-  const { t, locale } = useLocale()
+  const { t } = useLocale()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 

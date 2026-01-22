@@ -46,7 +46,7 @@ export function formatGuineaPhone(phone: string): string {
 /**
  * Send SMS via Twilio
  */
-export async function sendSMS({ to, message, restaurantId }: SendSMSParams): Promise<SMSResult> {
+export async function sendSMS({ to, message, restaurantId: _restaurantId }: SendSMSParams): Promise<SMSResult> {
   if (!twilioClient) {
     console.warn('SMS service not configured - TWILIO credentials missing')
     return { success: false, error: 'SMS service not configured' }

@@ -57,7 +57,7 @@ export default function DebtDetailsModal({
   onUpdate,
   isManager = false
 }: DebtDetailsModalProps) {
-  const { t, locale } = useLocale()
+  const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<'details' | 'payments'>('details')
   const [showWriteOffConfirm, setShowWriteOffConfirm] = useState(false)
   const [writeOffReason, setWriteOffReason] = useState('')
@@ -118,8 +118,8 @@ export default function DebtDetailsModal({
         onUpdate()
       }
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'An error occurred')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsSubmitting(false)
     }

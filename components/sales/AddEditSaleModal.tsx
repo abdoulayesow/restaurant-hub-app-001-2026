@@ -75,24 +75,24 @@ export function AddEditSaleModal({
 
   // Fetch customers
   useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!currentRestaurant) return
+
+      try {
+        const response = await fetch(`/api/customers?restaurantId=${currentRestaurant.id}&includeActive=true`)
+        if (response.ok) {
+          const data = await response.json()
+          setCustomers(data.customers || [])
+        }
+      } catch (error) {
+        console.error('Error fetching customers:', error)
+      }
+    }
+
     if (isOpen && currentRestaurant) {
       fetchCustomers()
     }
   }, [isOpen, currentRestaurant])
-
-  const fetchCustomers = async () => {
-    if (!currentRestaurant) return
-
-    try {
-      const response = await fetch(`/api/customers?restaurantId=${currentRestaurant.id}&includeActive=true`)
-      if (response.ok) {
-        const data = await response.json()
-        setCustomers(data.customers || [])
-      }
-    } catch (error) {
-      console.error('Error fetching customers:', error)
-    }
-  }
 
   // Initialize form with sale data
   useEffect(() => {

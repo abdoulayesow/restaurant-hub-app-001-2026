@@ -80,7 +80,7 @@ export function RestaurantConfigSettings() {
     }
 
     fetchConfig()
-  }, [currentRestaurant])
+  }, [currentRestaurant, t])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}

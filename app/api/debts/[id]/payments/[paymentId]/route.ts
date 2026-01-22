@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 // PUT /api/debts/[id]/payments/[paymentId] - Update payment (Manager only)
 export async function PUT(
@@ -69,7 +70,7 @@ export async function PUT(
     }
 
     // Build update data (only allow updating non-critical fields)
-    const updateData: any = {}
+    const updateData: Prisma.DebtPaymentUpdateInput = {}
 
     if (body.receiptNumber !== undefined) {
       updateData.receiptNumber = body.receiptNumber?.trim() || null

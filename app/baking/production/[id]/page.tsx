@@ -18,6 +18,14 @@ interface PageProps {
   }>
 }
 
+interface IngredientDetail {
+  itemId: string
+  itemName: string
+  quantity: number
+  unit: string
+  unitCostGNF: number
+}
+
 export default async function ProductionDetailPage({ params }: PageProps) {
   const { id } = await params
   const session = await getServerSession(authOptions)
@@ -65,11 +73,20 @@ export default async function ProductionDetailPage({ params }: PageProps) {
     redirect('/baking/production')
   }
 
-  // Parse ingredient details
-  const ingredientDetails = productionLog.ingredientDetails as any[] || []
+  // Parse ingredient details from Prisma's JsonValue type
+  // The JSON stored matches IngredientDetail[] structure at runtime
+  const ingredientDetails: IngredientDetail[] = Array.isArray(productionLog.ingredientDetails)
+    ? productionLog.ingredientDetails.map((ing) => ({
+        itemId: String((ing as Record<string, unknown>).itemId || ''),
+        itemName: String((ing as Record<string, unknown>).itemName || ''),
+        quantity: Number((ing as Record<string, unknown>).quantity || 0),
+        unit: String((ing as Record<string, unknown>).unit || ''),
+        unitCostGNF: Number((ing as Record<string, unknown>).unitCostGNF || 0),
+      }))
+    : []
 
   // Fetch current stock for each ingredient
-  const ingredientIds = ingredientDetails.map((ing: any) => ing.itemId).filter(Boolean)
+  const ingredientIds = ingredientDetails.map((ing) => ing.itemId).filter(Boolean)
 
   const inventoryItems = await prisma.inventoryItem.findMany({
     where: {
@@ -87,7 +104,7 @@ export default async function ProductionDetailPage({ params }: PageProps) {
   )
 
   // Enhance ingredient details with current stock
-  const enhancedIngredients = ingredientDetails.map((ing: any) => ({
+  const enhancedIngredients = ingredientDetails.map((ing) => ({
     ...ing,
     currentStock: inventoryMap.get(ing.itemId),
   }))

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 // GET /api/debts/[id] - Get debt details with payment history
 export async function GET(
@@ -175,7 +176,7 @@ export async function PUT(
     }
 
     // Build update data
-    const updateData: any = {}
+    const updateData: Prisma.DebtUpdateInput = {}
 
     if (body.description !== undefined) {
       updateData.description = body.description?.trim() || null

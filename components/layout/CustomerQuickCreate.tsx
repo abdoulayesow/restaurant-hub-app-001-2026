@@ -34,7 +34,7 @@ const initialFormData: FormData = {
 }
 
 export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProps) {
-  const { t, locale } = useLocale()
+  const { locale } = useLocale()
   const { currentRestaurant, currentPalette } = useRestaurant()
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [loading, setLoading] = useState(false)
@@ -416,41 +416,6 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
           </form>
         </div>
       </div>
-
-      {/* Animations */}
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes modalSlideIn {
-          from {
-            opacity: 0;
-            transform: scale(0.9) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-
-        @keyframes shake {
-          0%, 100% {
-            transform: translateX(0);
-          }
-          25% {
-            transform: translateX(-5px);
-          }
-          75% {
-            transform: translateX(5px);
-          }
-        }
-      `}</style>
     </>
   )
 }

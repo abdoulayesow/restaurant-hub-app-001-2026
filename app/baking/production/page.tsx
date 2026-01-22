@@ -44,7 +44,7 @@ export default function BakingProductionPage() {
   const [statusFilter, setStatusFilter] = useState<ProductionStatus | 'all'>('all')
   const [submissionFilter, setSubmissionFilter] = useState<SubmissionStatus | 'all'>('all')
 
-  const isManager = session?.user?.role === 'Manager'
+  // Role-based UI control is handled in child components
 
   // Auth check
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import {
@@ -183,9 +184,11 @@ export function DashboardHeader() {
                 className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 {session?.user?.image ? (
-                  <img
+                  <Image
                     src={session.user.image}
                     alt=""
+                    width={24}
+                    height={24}
                     className="w-6 h-6 rounded-full"
                   />
                 ) : (

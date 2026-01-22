@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Search, Loader2, X, Save, Check } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, Edit2, Trash2, Search, Loader2, X, Save } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 
 interface Supplier {
@@ -42,11 +42,7 @@ export function SuppliersTab() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    fetchSuppliers()
-  }, [showInactive])
-
-  const fetchSuppliers = async () => {
+  const fetchSuppliers = useCallback(async () => {
     try {
       setLoading(true)
       const url = `/api/suppliers${showInactive ? '?includeInactive=true' : ''}`
@@ -60,7 +56,11 @@ export function SuppliersTab() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [showInactive])
+
+  useEffect(() => {
+    fetchSuppliers()
+  }, [fetchSuppliers])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}

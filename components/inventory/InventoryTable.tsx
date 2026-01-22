@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit2, Trash2, Plus, Minus, History, ChevronUp, ChevronDown, Eye } from 'lucide-react'
+import { Edit2, Trash2, Plus, History, ChevronUp, ChevronDown, Eye } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StockStatusBadge, StockStatus } from './StockStatusBadge'
 import { getCategoryLabel } from './CategoryFilter'

@@ -61,10 +61,8 @@ export default function StockMovementHistory({
   // Paginate
   const totalPages = Math.ceil(filteredMovements.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedMovements = filteredMovements.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  )
+  // Note: Pagination is calculated but display uses movementsWithBalance
+  // const paginatedMovements = filteredMovements.slice(startIndex, startIndex + itemsPerPage)
 
   // Calculate running balance (from oldest to newest, then reverse for display)
   const reversedMovements = [...filteredMovements].reverse()

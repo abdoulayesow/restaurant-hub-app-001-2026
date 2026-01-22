@@ -11,18 +11,15 @@ import {
   DollarSign,
   Users,
   Search,
-  Filter,
   RefreshCw,
   Plus,
-  FileText,
-  ArrowUpRight,
-  ArrowDownRight
+  FileText
 } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { QuickActionsMenu } from '@/components/layout/QuickActionsMenu'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
+import { getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
 
 // Dynamic imports for heavy components to reduce initial bundle size
 const DebtsTable = dynamic(
@@ -90,17 +87,17 @@ interface DebtsSummary {
 export default function DebtsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { t, locale } = useLocale()
+  const { locale } = useLocale()
   const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
 
   const [loading, setLoading] = useState(true)
   const [debts, setDebts] = useState<Debt[]>([])
   const [summary, setSummary] = useState<DebtsSummary | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('active') // 'all', 'active', 'Outstanding', 'PartiallyPaid', etc.
-  const [customerFilter, setCustomerFilter] = useState<string>('')
+  const [customerFilter] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
   const [showOverdueOnly, setShowOverdueOnly] = useState(false)
-  const [dateRange, setDateRange] = useState<DateRangeValue>('all')
+  const [dateRange] = useState<DateRangeValue>('all')
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null)
   const [paymentDebt, setPaymentDebt] = useState<Debt | null>(null)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
@@ -117,13 +114,7 @@ export default function DebtsPage() {
     }
   }, [session, status, router])
 
-  // Fetch debts when restaurant or filters change
-  useEffect(() => {
-    if (currentRestaurant && !restaurantLoading) {
-      fetchDebts()
-    }
-  }, [currentRestaurant, restaurantLoading, statusFilter, customerFilter, showOverdueOnly, dateRange])
-
+  // Fetch debts callback
   const fetchDebts = useCallback(async () => {
     if (!currentRestaurant) return
 
@@ -183,6 +174,13 @@ export default function DebtsPage() {
       setLoading(false)
     }
   }, [currentRestaurant, statusFilter, customerFilter, showOverdueOnly, dateRange])
+
+  // Fetch debts when restaurant or filters change
+  useEffect(() => {
+    if (currentRestaurant && !restaurantLoading) {
+      fetchDebts()
+    }
+  }, [currentRestaurant, restaurantLoading, fetchDebts])
 
   const calculateSummary = (debts: Debt[]) => {
     const activeDebts = debts.filter(d =>

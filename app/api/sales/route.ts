@@ -313,7 +313,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate credit total
-    const creditTotal = debts.reduce((sum: number, debt: any) => sum + debt.amountGNF, 0)
+    const creditTotal = debts.reduce((sum: number, debt: { amountGNF: number }) => sum + debt.amountGNF, 0)
 
     // Calculate total including immediate payments and credit sales
     const totalGNF = cashGNF + orangeMoneyGNF + cardGNF + creditTotal
@@ -344,7 +344,7 @@ export async function POST(request: NextRequest) {
       // Create debts if any
       if (debts.length > 0) {
         await tx.debt.createMany({
-          data: debts.map((debt: any) => ({
+          data: debts.map((debt: { customerId: string; amountGNF: number; dueDate?: string; description?: string; notes?: string }) => ({
             restaurantId,
             saleId: sale.id,
             customerId: debt.customerId,

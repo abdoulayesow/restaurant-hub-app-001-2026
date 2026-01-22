@@ -24,7 +24,7 @@ export default function CreateDebtModal({
   onClose,
   onSuccess
 }: CreateDebtModalProps) {
-  const { t, locale } = useLocale()
+  const { t } = useLocale()
   const { currentRestaurant } = useRestaurant()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loadingCustomers, setLoadingCustomers] = useState(true)
@@ -41,30 +41,30 @@ export default function CreateDebtModal({
 
   // Fetch customers on mount
   useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!currentRestaurant) return
+
+      try {
+        setLoadingCustomers(true)
+        const response = await fetch(`/api/customers?restaurantId=${currentRestaurant.id}`)
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch customers')
+        }
+
+        const data = await response.json()
+        setCustomers(data.customers || [])
+      } catch (error) {
+        console.error('Error fetching customers:', error)
+      } finally {
+        setLoadingCustomers(false)
+      }
+    }
+
     if (isOpen && currentRestaurant) {
       fetchCustomers()
     }
   }, [isOpen, currentRestaurant])
-
-  const fetchCustomers = async () => {
-    if (!currentRestaurant) return
-
-    try {
-      setLoadingCustomers(true)
-      const response = await fetch(`/api/customers?restaurantId=${currentRestaurant.id}`)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch customers')
-      }
-
-      const data = await response.json()
-      setCustomers(data.customers || [])
-    } catch (error) {
-      console.error('Error fetching customers:', error)
-    } finally {
-      setLoadingCustomers(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,8 +115,8 @@ export default function CreateDebtModal({
       })
       onSuccess()
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'An error occurred')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsSubmitting(false)
     }

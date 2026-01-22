@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Edit2, Trash2, Search, Loader2, X, Save } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ColorPicker } from '@/components/ui/ColorPicker'
@@ -53,11 +53,7 @@ export function CategoriesTab() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    fetchCategories()
-  }, [showInactive])
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setLoading(true)
       const url = `/api/categories${showInactive ? '?includeInactive=true' : ''}`
@@ -72,7 +68,11 @@ export function CategoriesTab() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [showInactive])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}

@@ -16,7 +16,7 @@ interface QuickAction {
 }
 
 export function QuickActionsMenu() {
-  const { t, locale } = useLocale()
+  const { locale } = useLocale()
   const { currentPalette } = useRestaurant()
   const [isOpen, setIsOpen] = useState(false)
   const [customerModalOpen, setCustomerModalOpen] = useState(false)
@@ -149,7 +149,6 @@ export function QuickActionsMenu() {
           style={{
             backgroundColor: accentColor,
             boxShadow: `0 8px 32px ${accentColor}40, 0 0 0 0 ${accentColor}30`,
-            animation: isOpen ? 'none' : 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           }}
           aria-label={locale === 'fr' ? 'Actions rapides' : 'Quick actions'}
         >
@@ -188,47 +187,6 @@ export function QuickActionsMenu() {
         isOpen={customerModalOpen}
         onClose={() => setCustomerModalOpen(false)}
       />
-
-      {/* Global Styles for Animations */}
-      <style jsx global>{`
-        @keyframes slideInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        @keyframes fadeSlideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes pulse {
-          0%, 100% {
-            box-shadow: 0 8px 32px ${accentColor}40, 0 0 0 0 ${accentColor}30;
-          }
-          50% {
-            box-shadow: 0 8px 32px ${accentColor}60, 0 0 0 10px ${accentColor}00;
-          }
-        }
-
-        @keyframes ping {
-          75%, 100% {
-            transform: scale(1.5);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </>
   )
 }

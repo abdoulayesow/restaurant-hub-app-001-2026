@@ -54,8 +54,8 @@ interface DebtsTableProps {
 type SortField = 'customer' | 'principalAmount' | 'remainingAmount' | 'dueDate' | 'status'
 type SortDirection = 'asc' | 'desc'
 
-export default function DebtsTable({ debts, onViewDetails, onRecordPayment, isManager, loading }: DebtsTableProps) {
-  const { t, locale } = useLocale()
+export default function DebtsTable({ debts, onViewDetails, onRecordPayment, isManager: _isManager, loading: _loading }: DebtsTableProps) {
+  const { t } = useLocale()
   const [sortField, setSortField] = useState<SortField>('dueDate')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 

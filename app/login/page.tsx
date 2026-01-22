@@ -3,7 +3,7 @@
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Loader2, LogIn } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { Logo } from '@/components/brand/Logo'
 
@@ -33,7 +33,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError(t('auth.unauthorized'))
       }
-    } catch (err) {
+    } catch {
       setError(t('errors.generic'))
     } finally {
       setIsLoading(false)

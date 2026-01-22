@@ -10,6 +10,7 @@ interface Sale {
   date: string
   totalGNF: number
   cashGNF: number
+  cashDeposit?: unknown
 }
 
 interface DepositFormModalProps {
@@ -46,6 +47,28 @@ export function DepositFormModal({
 
   // Fetch available sales (approved sales without deposits)
   useEffect(() => {
+    const fetchAvailableSales = async () => {
+      if (!currentRestaurant) return
+
+      setLoadingSales(true)
+      try {
+        const response = await fetch(
+          `/api/sales?restaurantId=${currentRestaurant.id}&status=Approved`
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          // Filter out sales that already have deposits
+          const salesWithoutDeposits = data.sales.filter((sale: Sale) => !sale.cashDeposit)
+          setAvailableSales(salesWithoutDeposits)
+        }
+      } catch (error) {
+        console.error('Error fetching sales:', error)
+      } finally {
+        setLoadingSales(false)
+      }
+    }
+
     if (isOpen && currentRestaurant) {
       fetchAvailableSales()
     }
@@ -63,28 +86,6 @@ export function DepositFormModal({
       setErrors({})
     }
   }, [isOpen])
-
-  const fetchAvailableSales = async () => {
-    if (!currentRestaurant) return
-
-    setLoadingSales(true)
-    try {
-      const response = await fetch(
-        `/api/sales?restaurantId=${currentRestaurant.id}&status=Approved`
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        // Filter out sales that already have deposits
-        const salesWithoutDeposits = data.sales.filter((sale: any) => !sale.cashDeposit)
-        setAvailableSales(salesWithoutDeposits)
-      }
-    } catch (error) {
-      console.error('Error fetching sales:', error)
-    } finally {
-      setLoadingSales(false)
-    }
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN', {
