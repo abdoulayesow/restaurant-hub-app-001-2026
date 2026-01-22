@@ -28,7 +28,8 @@ import {
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { Logo, colorPalettes } from '@/components/brand/Logo'
+import { BlissLogoNav, blissPalettes } from '@/components/brand/BlissLogo'
+import { colorPalettes } from '@/components/brand/Logo'
 import { FloatingActionPicker, type FloatingActionItem } from '@/components/ui/FloatingActionPicker'
 import { useFilteredNavigation } from '@/hooks/useFilteredNavigation'
 import { getRestaurantTypeIcon } from '@/config/restaurantTypes'
@@ -116,7 +117,15 @@ export function NavigationHeader() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const accentColor = colorPalettes[currentPalette].primary
+  // Use Bliss Patisserie colors - map old palette names to new
+  const blissPaletteMap: Record<string, keyof typeof blissPalettes> = {
+    terracotta: 'royalPlum',
+    warmBrown: 'cafeCreme',
+    burntSienna: 'rosePetal',
+    gold: 'pistache',
+  }
+  const currentBlissPalette = blissPaletteMap[currentPalette] || 'royalPlum'
+  const accentColor = blissPalettes[currentBlissPalette].primary
   const isManager = session?.user?.role === 'Manager'
 
   // Filter navigation based on restaurant's enabled features
@@ -170,9 +179,9 @@ export function NavigationHeader() {
     <>
       <header className="
         sticky top-0 z-40
-        bg-cream-100/95 dark:bg-dark-900/95 backdrop-blur-md
-        border-b border-terracotta-200/60 dark:border-terracotta-400/20
-        grain-overlay
+        bg-cream-50/95 dark:bg-plum-900/95 backdrop-blur-md
+        border-b border-plum-200/40 dark:border-plum-700/30
+        diagonal-stripes-bliss
       ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -183,59 +192,27 @@ export function NavigationHeader() {
               className="
                 flex items-center gap-3
                 p-2 -ml-2 rounded-2xl
-                hover:bg-cream-100 dark:hover:bg-dark-800
+                hover:bg-plum-50 dark:hover:bg-plum-800/50
                 transition-all duration-300
                 group
               "
               aria-label={t('restaurant.switchRestaurant') || 'Switch restaurant'}
             >
-              <div className="relative">
-                <Logo size="lg" variant="icon" palette={currentPalette} />
-                {/* Steam animation on hover */}
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex gap-1">
-                    <div
-                      className="w-0.5 h-3 rounded-full"
-                      style={{
-                        backgroundColor: accentColor,
-                        animation: 'breadSteam 1.5s ease-in-out infinite'
-                      }}
-                    />
-                    <div
-                      className="w-0.5 h-4 rounded-full"
-                      style={{
-                        backgroundColor: accentColor,
-                        animation: 'breadSteam 1.5s ease-in-out infinite 0.2s'
-                      }}
-                    />
-                    <div
-                      className="w-0.5 h-3 rounded-full"
-                      style={{
-                        backgroundColor: accentColor,
-                        animation: 'breadSteam 1.5s ease-in-out infinite 0.4s'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Bliss Patisserie Logo */}
+              <BlissLogoNav palette={currentBlissPalette} />
 
-              <div className="hidden sm:block">
-                <h1
-                  className="text-xl font-bold text-terracotta-900 dark:text-cream-100 leading-tight tracking-tight"
-                  style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-                >
-                  Bakery<span style={{ color: accentColor }}>Hub</span>
-                </h1>
-                {currentRestaurant && (
-                  <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 flex items-center gap-1">
-                    <span
-                      className="w-2 h-2 rounded-full inline-block"
-                      style={{ backgroundColor: accentColor }}
-                    />
+              {/* Restaurant name indicator */}
+              {currentRestaurant && (
+                <div className="hidden sm:flex items-center gap-1.5 ml-2 pl-3 border-l border-plum-200/30 dark:border-plum-700/30">
+                  <span
+                    className="w-2 h-2 rounded-full inline-block animate-pulse"
+                    style={{ backgroundColor: accentColor }}
+                  />
+                  <span className="text-xs bliss-body text-plum-600 dark:text-plum-300">
                     {currentRestaurant.name}
-                  </p>
-                )}
-              </div>
+                  </span>
+                </div>
+              )}
             </button>
 
             {/* CENTER: Navigation pills (Desktop) */}
@@ -253,11 +230,12 @@ export function NavigationHeader() {
                     className={`
                       flex items-center justify-center gap-2
                       min-w-[130px] px-4 py-2.5 rounded-full
-                      font-medium text-sm tracking-wide
+                      bliss-body font-medium text-sm tracking-wide
                       transition-all duration-300 ease-out
+                      btn-lift
                       ${hasActiveSubItem
-                        ? 'text-white shadow-md'
-                        : 'bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 hover:bg-cream-200 dark:hover:bg-dark-700'
+                        ? 'text-cream-50 shadow-plum'
+                        : 'bg-plum-50 dark:bg-plum-800/50 text-plum-700 dark:text-cream-100 hover:bg-plum-100 dark:hover:bg-plum-700/50'
                       }
                     `}
                     style={hasActiveSubItem ? { backgroundColor: accentColor } : undefined}
@@ -278,11 +256,11 @@ export function NavigationHeader() {
                 className="
                   hidden sm:flex items-center justify-center
                   w-10 h-10 rounded-full
-                  text-xs font-bold tracking-wider
-                  bg-cream-100 dark:bg-dark-800
-                  text-terracotta-900 dark:text-cream-100
-                  hover:bg-cream-200 dark:hover:bg-dark-700
-                  transition-colors
+                  bliss-body text-xs font-bold tracking-wider
+                  bg-plum-50 dark:bg-plum-800/50
+                  text-plum-700 dark:text-cream-100
+                  hover:bg-plum-100 dark:hover:bg-plum-700/50
+                  transition-all duration-300
                 "
                 aria-label={locale === 'fr' ? 'Switch to English' : 'Passer en français'}
               >
@@ -294,8 +272,8 @@ export function NavigationHeader() {
                 onClick={toggleTheme}
                 className="
                   w-10 h-10 flex items-center justify-center rounded-full
-                  bg-cream-100 dark:bg-dark-800
-                  hover:bg-cream-200 dark:hover:bg-dark-700
+                  bg-plum-50 dark:bg-plum-800/50
+                  hover:bg-plum-100 dark:hover:bg-plum-700/50
                   transition-all duration-300
                 "
                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -303,7 +281,7 @@ export function NavigationHeader() {
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5 text-amber-400" />
                 ) : (
-                  <Moon className="w-5 h-5 text-terracotta-600" />
+                  <Moon className="w-5 h-5 text-plum-600" />
                 )}
               </button>
 
@@ -313,9 +291,9 @@ export function NavigationHeader() {
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className="
                     flex items-center gap-2 px-3 py-2 rounded-full
-                    bg-cream-100 dark:bg-dark-800
-                    hover:bg-cream-200 dark:hover:bg-dark-700
-                    transition-colors
+                    bg-plum-50 dark:bg-plum-800/50
+                    hover:bg-plum-100 dark:hover:bg-plum-700/50
+                    transition-all duration-300
                   "
                   aria-expanded={userDropdownOpen}
                   aria-haspopup="true"
@@ -326,38 +304,38 @@ export function NavigationHeader() {
                       alt=""
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full"
+                      className="w-8 h-8 rounded-full ring-2 ring-plum-200 dark:ring-plum-600"
                     />
                   ) : (
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center"
                       style={{ backgroundColor: accentColor }}
                     >
-                      <User className="w-4 h-4 text-white" />
+                      <User className="w-4 h-4 text-cream-50" />
                     </div>
                   )}
-                  <span className="hidden sm:block text-sm font-medium text-terracotta-900 dark:text-cream-100 max-w-[100px] truncate">
+                  <span className="hidden sm:block bliss-body text-sm font-medium text-plum-800 dark:text-cream-100 max-w-[100px] truncate">
                     {session?.user?.name?.split(' ')[0] || 'User'}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-terracotta-600/60 dark:text-cream-300/60" />
+                  <ChevronDown className="w-4 h-4 text-plum-500/60 dark:text-plum-300/60" />
                 </button>
 
                 {/* User Dropdown Menu */}
                 {userDropdownOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-60 bg-cream-50 dark:bg-dark-900 rounded-xl shadow-lg border border-terracotta-200/40 dark:border-terracotta-400/20 overflow-hidden z-50"
+                    className="absolute right-0 mt-2 w-60 bg-cream-50 dark:bg-plum-900 rounded-2xl shadow-plum-lg border border-plum-200/40 dark:border-plum-700/30 overflow-hidden z-50 animate-fade-in-up"
                     role="menu"
                   >
                     {/* User info header */}
-                    <div className="px-4 py-3 border-b border-terracotta-200/30 dark:border-terracotta-400/15 bg-cream-100/50 dark:bg-dark-800/50">
-                      <p className="text-sm font-semibold text-terracotta-900 dark:text-cream-100 truncate">
+                    <div className="px-4 py-3 border-b border-plum-200/30 dark:border-plum-700/20 bg-plum-50/50 dark:bg-plum-800/50 diagonal-stripes-bliss">
+                      <p className="bliss-elegant text-sm font-semibold text-plum-800 dark:text-cream-100 truncate">
                         {session?.user?.name}
                       </p>
-                      <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 truncate mt-0.5">
+                      <p className="bliss-body text-xs text-plum-600/70 dark:text-plum-300/70 truncate mt-0.5">
                         {session?.user?.email}
                       </p>
                       <span
-                        className="inline-block mt-2 px-2 py-0.5 text-xs font-medium rounded-full text-white"
+                        className="inline-block mt-2 px-2.5 py-0.5 bliss-label text-[10px] rounded-full text-cream-50"
                         style={{ backgroundColor: accentColor }}
                       >
                         {session?.user?.role}
@@ -369,30 +347,30 @@ export function NavigationHeader() {
                       <Link
                         href="/profile"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-terracotta-800 dark:text-cream-200 hover:bg-terracotta-50 dark:hover:bg-dark-800 transition-colors"
+                        className="flex items-center space-x-3 px-4 py-2.5 bliss-body text-sm text-plum-700 dark:text-cream-200 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors"
                         role="menuitem"
                       >
-                        <User className="w-4 h-4 text-terracotta-600 dark:text-cream-400" />
+                        <User className="w-4 h-4 text-plum-500 dark:text-plum-400" />
                         <span>{t('common.profile')}</span>
                       </Link>
                       {isManager && (
                         <Link
                           href="/settings"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center space-x-3 px-4 py-2.5 text-sm text-terracotta-800 dark:text-cream-200 hover:bg-terracotta-50 dark:hover:bg-dark-800 transition-colors"
+                          className="flex items-center space-x-3 px-4 py-2.5 bliss-body text-sm text-plum-700 dark:text-cream-200 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors"
                           role="menuitem"
                         >
-                          <Settings className="w-4 h-4 text-terracotta-600 dark:text-cream-400" />
+                          <Settings className="w-4 h-4 text-plum-500 dark:text-plum-400" />
                           <span>{t('common.settings')}</span>
                         </Link>
                       )}
                     </div>
 
                     {/* Logout */}
-                    <div className="border-t border-terracotta-200/30 dark:border-terracotta-400/15 py-1">
+                    <div className="border-t border-plum-200/30 dark:border-plum-700/20 py-1">
                       <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
-                        className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                        className="w-full flex items-center space-x-3 px-4 py-2.5 bliss-body text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
                         role="menuitem"
                       >
                         <LogOut className="w-4 h-4" />
@@ -409,17 +387,17 @@ export function NavigationHeader() {
                 className="
                   lg:hidden
                   w-10 h-10 flex items-center justify-center rounded-full
-                  bg-cream-100 dark:bg-dark-800
-                  hover:bg-cream-200 dark:hover:bg-dark-700
-                  transition-colors
+                  bg-plum-50 dark:bg-plum-800/50
+                  hover:bg-plum-100 dark:hover:bg-plum-700/50
+                  transition-all duration-300
                 "
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? (
-                  <X className="w-5 h-5 text-terracotta-900 dark:text-cream-100" />
+                  <X className="w-5 h-5 text-plum-800 dark:text-cream-100" />
                 ) : (
-                  <Menu className="w-5 h-5 text-terracotta-900 dark:text-cream-100" />
+                  <Menu className="w-5 h-5 text-plum-800 dark:text-cream-100" />
                 )}
               </button>
             </div>
@@ -427,7 +405,7 @@ export function NavigationHeader() {
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <nav className="lg:hidden py-4 border-t border-terracotta-500/15 dark:border-terracotta-400/20" aria-label="Mobile navigation">
+            <nav className="lg:hidden py-4 border-t border-plum-200/30 dark:border-plum-700/20 animate-fade-in-up" aria-label="Mobile navigation">
               {filteredNavigationItems.map(item => {
                 const Icon = item.icon
                 const hasActiveSubItem = item.subItems.some(sub => sub.id === activeSubItemId)
@@ -437,10 +415,10 @@ export function NavigationHeader() {
                     <div
                       className={`
                         flex items-center gap-3 px-4 py-2 rounded-xl
-                        text-sm font-semibold uppercase tracking-wider
+                        bliss-label text-sm
                         ${hasActiveSubItem
-                          ? 'text-white'
-                          : 'text-terracotta-600/70 dark:text-cream-300/70'
+                          ? 'text-cream-50'
+                          : 'text-plum-500 dark:text-plum-400'
                         }
                       `}
                       style={hasActiveSubItem ? { backgroundColor: accentColor } : undefined}
@@ -459,10 +437,10 @@ export function NavigationHeader() {
                             href={subItem.href}
                             className={`
                               flex items-center gap-3 px-4 py-3 rounded-xl
-                              text-sm font-medium
+                              bliss-body text-sm font-medium
                               ${isSubActive
-                                ? 'bg-cream-200 dark:bg-dark-700 text-terracotta-900 dark:text-cream-100'
-                                : 'text-terracotta-700 dark:text-cream-200 hover:bg-cream-100 dark:hover:bg-dark-800'
+                                ? 'bg-plum-100 dark:bg-plum-800 text-plum-800 dark:text-cream-100'
+                                : 'text-plum-700 dark:text-cream-200 hover:bg-plum-50 dark:hover:bg-plum-800/50'
                               }
                             `}
                           >
@@ -477,10 +455,10 @@ export function NavigationHeader() {
               })}
 
               {/* Mobile language toggle */}
-              <div className="mt-4 pt-4 border-t border-terracotta-500/15 dark:border-terracotta-400/20">
+              <div className="mt-4 pt-4 border-t border-plum-200/30 dark:border-plum-700/20">
                 <button
                   onClick={() => setLocale(locale === 'fr' ? 'en' : 'fr')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-plum-50 dark:bg-plum-800/50 text-plum-800 dark:text-cream-100 bliss-body font-medium"
                 >
                   {locale === 'fr' ? 'Switch to English' : 'Passer en fran\u00e7ais'}
                 </button>

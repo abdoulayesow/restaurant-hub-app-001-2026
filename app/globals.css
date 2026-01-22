@@ -2,73 +2,166 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import artisan bakery fonts */
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+/* ═══════════════════════════════════════════════════════════════════════════
+   BLISS PATISSERIE - Luxury French Patisserie Design System
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
   :root {
-    /* Light mode - warm cream backgrounds */
-    --bg-primary: theme('colors.cream.50');
-    --bg-secondary: theme('colors.cream.100');
-    --bg-tertiary: theme('colors.cream.200');
-    --text-primary: theme('colors.terracotta.900');
-    --text-secondary: theme('colors.terracotta.700');
-    --text-muted: #A08060;
-    --accent: theme('colors.terracotta.500');
-    --accent-hover: theme('colors.terracotta.600');
-    --border: rgba(196, 92, 38, 0.15);
-    --shadow: rgba(92, 46, 19, 0.1);
+    /* ─────────────────────────────────────────────────────────────────────
+       Light Mode - Cream & Plum Luxury Theme
+       ───────────────────────────────────────────────────────────────────── */
+    --bg-primary: #FFFEFE;      /* cream-50 - Pure cream */
+    --bg-secondary: #FFF8F0;    /* cream-100 - Warm cream */
+    --bg-tertiary: #F8F5FA;     /* plum-50 - Lavender tint */
+
+    --text-primary: #2C1810;    /* espresso-700 - Deep brown */
+    --text-secondary: #3D1B4D;  /* plum-700 - Royal plum */
+    --text-muted: #6B5744;      /* espresso-500 - Warm brown */
+
+    --accent: #3D1B4D;          /* plum-700 - Primary accent */
+    --accent-hover: #5A2D6E;    /* plum-500 - Hover state */
+    --accent-light: #9B4D9F;    /* mauve-500 - Decorative */
+
+    --border: rgba(61, 27, 77, 0.12);     /* plum with transparency */
+    --border-strong: rgba(61, 27, 77, 0.25);
+    --shadow: rgba(61, 27, 77, 0.08);
+    --shadow-strong: rgba(61, 27, 77, 0.15);
+
+    /* Status colors */
+    --success: #059669;
+    --warning: #D97706;
+    --error: #DC2626;
   }
 
   .dark {
-    /* Dark mode - warm dark backgrounds */
-    --bg-primary: theme('colors.dark.900');
-    --bg-secondary: theme('colors.dark.800');
-    --bg-tertiary: theme('colors.dark.700');
-    --text-primary: theme('colors.cream.100');
-    --text-secondary: theme('colors.cream.200');
-    --text-muted: #A08060;
-    --accent: theme('colors.terracotta.400');
-    --accent-hover: theme('colors.terracotta.300');
-    --border: rgba(232, 154, 113, 0.2);
-    --shadow: rgba(0, 0, 0, 0.3);
+    /* ─────────────────────────────────────────────────────────────────────
+       Dark Mode - Deep Plum Luxury Theme
+       ───────────────────────────────────────────────────────────────────── */
+    --bg-primary: #1F0D26;      /* plum-900 */
+    --bg-secondary: #2E1439;    /* plum-800 */
+    --bg-tertiary: #3D1B4D;     /* plum-700 */
+
+    --text-primary: #FFFEFE;    /* cream-50 */
+    --text-secondary: #F0E9F5;  /* plum-100 */
+    --text-muted: #C4A8D6;      /* plum-300 */
+
+    --accent: #9B4D9F;          /* mauve-500 */
+    --accent-hover: #C48FA5;    /* mauve-400 */
+    --accent-light: #5A2D6E;    /* plum-500 */
+
+    --border: rgba(196, 168, 214, 0.15);  /* plum-300 with transparency */
+    --border-strong: rgba(196, 168, 214, 0.3);
+    --shadow: rgba(31, 13, 38, 0.4);
+    --shadow-strong: rgba(31, 13, 38, 0.6);
   }
 
   body {
-    @apply bg-cream-50 dark:bg-dark-900 text-terracotta-900 dark:text-cream-100;
-    font-family: 'DM Sans', system-ui, sans-serif;
+    @apply bg-cream-50 dark:bg-plum-900 text-espresso-700 dark:text-cream-50;
+    font-family: var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Custom scrollbar with brand colors */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* Display font - Playfair Display (headings, hero text) */
+  .bliss-display {
+    font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* Elegant font - Cormorant Garamond (subheadings, cards) */
+  .bliss-elegant {
+    font-family: var(--font-cormorant), 'Cormorant Garamond', Garamond, serif;
+    letter-spacing: 0.02em;
+  }
+
+  /* Body font - Montserrat (UI text) */
+  .bliss-body {
+    font-family: var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+    letter-spacing: 0.01em;
+  }
+
+  /* Script font - for brand moments */
+  .bliss-script {
+    font-family: 'Brush Script MT', cursive;
+    font-style: italic;
+  }
+
+  /* Uppercase tracking for labels */
+  .bliss-label {
+    @apply uppercase tracking-wider text-xs font-medium;
+    font-family: var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+  }
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-cream-100 dark:bg-dark-800;
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISUAL PATTERNS - Signature Bliss Elements
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Diagonal Stripes Pattern (from logo zebra stripes) */
+.diagonal-stripes-bliss {
+  position: relative;
+}
+.diagonal-stripes-bliss::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 15px,
+    rgba(61, 27, 77, 0.025) 15px,
+    rgba(61, 27, 77, 0.025) 30px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+.dark .diagonal-stripes-bliss::before {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 15px,
+    rgba(155, 77, 159, 0.06) 15px,
+    rgba(155, 77, 159, 0.06) 30px
+  );
 }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-terracotta-400 dark:bg-terracotta-600 rounded-full;
+/* Ornate Corner Decorations (from logo corner elements) */
+.ornate-corners {
+  position: relative;
+}
+.ornate-corners::before,
+.ornate-corners::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid currentColor;
+  opacity: 0.2;
+  pointer-events: none;
+}
+.ornate-corners::before {
+  top: 12px;
+  left: 12px;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 2px 0 0 0;
+}
+.ornate-corners::after {
+  bottom: 12px;
+  right: 12px;
+  border-left: none;
+  border-top: none;
+  border-radius: 0 0 2px 0;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-terracotta-500;
-}
-
-/* Smooth transitions */
-* {
-  @apply transition-colors duration-200;
-}
-
-/* Focus ring for accessibility */
-:focus-visible {
-  @apply outline-none ring-2 ring-terracotta-500 ring-offset-2 ring-offset-cream-50 dark:ring-offset-dark-900;
-}
-
-/* Flour grain texture overlay utility */
+/* Legacy grain overlay (kept for backwards compatibility) */
 .grain-overlay {
   position: relative;
 }
@@ -77,15 +170,15 @@
   position: absolute;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.03;
+  opacity: 0.02;
   pointer-events: none;
   border-radius: inherit;
 }
-.dark .grain-overlay::before {
-  opacity: 0.05;
-}
 
-/* Warm shadow utility */
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHADOW UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .warm-shadow {
   box-shadow:
     0 4px 6px -1px var(--shadow),
@@ -95,18 +188,161 @@
 
 .warm-shadow-lg {
   box-shadow:
-    0 10px 25px -5px var(--shadow),
+    0 10px 25px -5px var(--shadow-strong),
     0 8px 10px -6px var(--shadow),
     0 0 0 1px var(--border);
 }
 
-/* Rising dough animation */
-@keyframes rise {
-  0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-2px) scale(1.02); }
-  100% { transform: translateY(0) scale(1); }
+.warm-shadow-xl {
+  box-shadow:
+    0 20px 40px -8px var(--shadow-strong),
+    0 12px 16px -8px var(--shadow),
+    0 0 0 1px var(--border-strong);
 }
 
+/* Glow effect for hover states */
+.glow-plum {
+  box-shadow:
+    0 0 20px rgba(61, 27, 77, 0.15),
+    0 0 40px rgba(155, 77, 159, 0.1);
+}
+
+.dark .glow-plum {
+  box-shadow:
+    0 0 20px rgba(155, 77, 159, 0.2),
+    0 0 40px rgba(196, 143, 165, 0.15);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCROLLBAR - Luxury Styling
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-cream-100 dark:bg-plum-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-plum-300 dark:bg-plum-600 rounded-full;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-plum-400 dark:bg-plum-500;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOCUS STATES - Accessibility
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:focus-visible {
+  @apply outline-none ring-2 ring-plum-500 ring-offset-2 ring-offset-cream-50 dark:ring-offset-plum-900;
+}
+
+/* Smooth global transitions */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATIONS - Luxury Motion System
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Float animation (for logo) */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Shimmer effect (luxury loading/hover) */
+@keyframes shimmer-luxury {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-luxury {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(155, 77, 159, 0.12) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-luxury 2.5s infinite;
+}
+
+.dark .shimmer-luxury {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(196, 143, 165, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Card entrance animation */
+@keyframes bliss-card-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bliss-card-stagger-1 { animation: bliss-card-entrance 0.5s ease-out 0.1s both; }
+.bliss-card-stagger-2 { animation: bliss-card-entrance 0.5s ease-out 0.2s both; }
+.bliss-card-stagger-3 { animation: bliss-card-entrance 0.5s ease-out 0.3s both; }
+.bliss-card-stagger-4 { animation: bliss-card-entrance 0.5s ease-out 0.4s both; }
+
+/* Sparkle animation (decorative) */
+@keyframes sparkle {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* Modal animations */
+@keyframes modal-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backdrop-fade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-modal-entrance {
+  animation: modal-entrance 0.3s ease-out forwards;
+}
+
+.animate-backdrop-fade {
+  animation: backdrop-fade 0.2s ease-out forwards;
+}
+
+/* Fade animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -118,6 +354,20 @@
   }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.25s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Slide animations */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -127,16 +377,6 @@
     opacity: 1;
     transform: translateX(0);
   }
-}
-
-@keyframes breadSteam {
-  0%, 100% { opacity: 0.4; transform: translateY(0) scaleY(1); }
-  50% { opacity: 0.7; transform: translateY(-3px) scaleY(1.1); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 @keyframes slideUp {
@@ -150,23 +390,6 @@
   }
 }
 
-/* Animation utilities */
-.animate-rise:hover {
-  animation: rise 0.4s ease-out;
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.25s ease-out forwards;
-}
-
-.animate-slide-in {
-  animation: slideIn 0.3s ease-out forwards;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out forwards;
-}
-
 @keyframes slideDown {
   from {
     transform: translateY(-100%);
@@ -178,11 +401,22 @@
   }
 }
 
-.animate-slide-down {
-  animation: slideDown 0.3s ease-out forwards;
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-/* Staggered fade-in for list items */
+.animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+.animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+.animate-slide-down { animation: slideDown 0.3s ease-out forwards; }
+
+/* Staggered list fade-in */
 @keyframes fadeInStagger {
   from {
     opacity: 0;
@@ -198,7 +432,44 @@
   animation: fadeInStagger 0.3s ease-out forwards;
 }
 
-/* Pulse highlight for cost changes */
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUTTON HOVER EFFECTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.btn-lift {
+  @apply transition-all duration-300 ease-out;
+}
+
+.btn-lift:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 25px -5px var(--shadow-strong),
+    0 8px 10px -6px var(--shadow);
+}
+
+.btn-lift:active {
+  transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEGACY ANIMATIONS (kept for backwards compatibility)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.animate-rise:hover {
+  animation: rise 0.4s ease-out;
+}
+
+@keyframes breadSteam {
+  0%, 100% { opacity: 0.4; transform: translateY(0) scaleY(1); }
+  50% { opacity: 0.7; transform: translateY(-3px) scaleY(1.1); }
+}
+
 @keyframes costPulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -209,7 +480,6 @@
   animation: costPulse 0.3s ease-out;
 }
 
-/* Shimmer effect for loading states */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -219,23 +489,11 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(196, 92, 38, 0.1) 50%,
+    rgba(61, 27, 77, 0.08) 50%,
     transparent 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-}
-
-/* QuickActionsMenu animations */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 @keyframes fadeSlideIn {
@@ -256,16 +514,6 @@
   }
 }
 
-/* CustomerQuickCreate animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 @keyframes modalSlideIn {
   from {
     opacity: 0;
@@ -278,13 +526,7 @@
 }
 
 @keyframes shake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-5px);
-  }
-  75% {
-    transform: translateX(5px);
-  }
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }

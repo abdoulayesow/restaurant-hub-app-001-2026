@@ -1,18 +1,35 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Poppins } from 'next/font/google'
+import { Playfair_Display, Cormorant_Garamond, Montserrat } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
 
-const inter = Inter({ subsets: ['latin'] })
-const poppins = Poppins({
+// Luxury French Patisserie Typography
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-poppins',
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display: 'swap',
+})
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-montserrat',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'Bakery Hub',
-  description: 'Bakery inventory and management system',
+  title: 'Bliss Patisserie',
+  description: 'Luxury patisserie management - PATISSERIE • BOULANGERIE • CREAMERIE',
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/icon.svg',
@@ -21,12 +38,12 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Bakery Hub',
+    title: 'Bliss Patisserie',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#C45C26',
+  themeColor: '#3D1B4D', // Royal Plum
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -38,8 +55,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning className={poppins.variable}>
-      <body className={inter.className}>
+    <html
+      lang="fr"
+      suppressHydrationWarning
+      className={`${playfair.variable} ${cormorant.variable} ${montserrat.variable}`}
+    >
+      <body className="font-body antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
