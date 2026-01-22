@@ -129,11 +129,11 @@ export default async function ProductionDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-cream-50 dark:bg-plum-900 min-h-screen">
       {/* Back Link */}
       <Link
         href="/baking/production"
-        className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+        className="bliss-body inline-flex items-center gap-2 text-sm text-plum-600 dark:text-cream-300 hover:text-plum-800 dark:hover:text-cream-100 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Production

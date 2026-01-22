@@ -311,12 +311,12 @@ export default function ExpensesPage() {
 
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+      <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-cream-200 dark:bg-dark-800 rounded w-1/4"></div>
-            <div className="h-64 bg-cream-200 dark:bg-dark-800 rounded-2xl"></div>
+            <div className="h-8 bg-plum-200 dark:bg-plum-800 rounded w-1/4"></div>
+            <div className="h-64 bg-plum-200 dark:bg-plum-800 rounded-2xl"></div>
           </div>
         </main>
       </div>
@@ -324,27 +324,24 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1
-              className="text-3xl font-bold text-terracotta-900 dark:text-cream-100"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+            <h1 className="bliss-display text-3xl font-bold text-plum-800 dark:text-cream-100">
               {t('expenses.title') || 'Expenses'}
             </h1>
-            <p className="text-terracotta-600/70 dark:text-cream-300/70 mt-1">
+            <p className="bliss-body text-plum-600/70 dark:text-plum-300/70 mt-1">
               {currentRestaurant?.name || 'Loading...'}
             </p>
           </div>
 
           <button
             onClick={handleAddNew}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 transition-colors"
+            className="btn-lift inline-flex items-center gap-2 px-5 py-2.5 bg-plum-700 text-cream-50 rounded-xl hover:bg-plum-800 shadow-lg shadow-plum-900/20 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('expenses.addExpense') || 'Add Expense'}
@@ -359,38 +356,38 @@ export default function ExpensesPage() {
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           {/* Today's Expenses */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-1">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2.5 rounded-xl bg-red-500/10 dark:bg-red-400/10">
                 <Receipt className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
-              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
+              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
                 {t('expenses.todaysExpenses') || "Today's Expenses"}
               </h3>
             </div>
-            <p className="text-xl lg:text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="bliss-body text-xl lg:text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
               {formatCurrency(summary?.todayTotal || 0)}
             </p>
-            <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60">
               {summary?.todayTotal ? '' : (t('expenses.noExpensesYet') || 'No expenses recorded yet')}
             </p>
           </div>
 
           {/* This Month */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-2">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
-                <Calendar className="w-5 h-5 text-terracotta-500 dark:text-terracotta-400" />
+              <div className="p-2.5 rounded-xl bg-plum-500/10 dark:bg-plum-400/10">
+                <Calendar className="w-5 h-5 text-plum-600 dark:text-plum-400" />
               </div>
-              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
+              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
                 {t('expenses.thisMonth') || 'This Month'}
               </h3>
             </div>
-            <p className="text-xl lg:text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="bliss-body text-xl lg:text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
               {formatCurrency(summary?.monthTotal || 0)}
             </p>
             {summary && dateRange !== 'all' && summary.expenseChangePercent !== 0 ? (
-              <p className={`text-xs flex items-center gap-1 ${
+              <p className={`bliss-body text-xs flex items-center gap-1 ${
                 summary.expenseChangePercent > 0
                   ? 'text-red-600 dark:text-red-400'
                   : 'text-green-600 dark:text-green-400'
@@ -403,44 +400,44 @@ export default function ExpensesPage() {
                 {Math.abs(summary.expenseChangePercent)}% {t('sales.vsLastPeriod') || 'vs last period'}
               </p>
             ) : (
-              <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+              <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60">
                 {summary?.totalExpenses || 0} {t('expenses.expensesRecorded') || 'expenses'}
               </p>
             )}
           </div>
 
           {/* Pending Approvals */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-3">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2.5 rounded-xl bg-amber-500/10 dark:bg-amber-400/10">
                 <Filter className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
+              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
                 {t('expenses.pendingApprovals') || 'Pending Approvals'}
               </h3>
             </div>
-            <p className="text-xl lg:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+            <p className="bliss-body text-xl lg:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
               {summary?.pendingCount || 0}
             </p>
-            <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60">
               {t('expenses.awaitingReview') || 'awaiting review'}
             </p>
           </div>
 
           {/* Period Total */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 rounded-xl bg-blue-500/10 dark:bg-blue-400/10">
-                <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-2.5 rounded-xl bg-plum-500/10 dark:bg-mauve-400/10">
+                <TrendingUp className="w-5 h-5 text-plum-600 dark:text-mauve-400" />
               </div>
-              <h3 className="font-semibold text-sm text-terracotta-900 dark:text-cream-100">
+              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
                 {t('expenses.periodTotal') || 'Period Total'}
               </h3>
             </div>
-            <p className="text-xl lg:text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="bliss-body text-xl lg:text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
               {formatCurrency(summary?.totalAmount || 0)}
             </p>
-            <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60">
               {summary?.totalExpenses || 0} {t('expenses.expensesRecorded') || 'expenses'}
             </p>
           </div>
@@ -449,22 +446,16 @@ export default function ExpensesPage() {
         {/* Charts Section */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
           {/* Expense Trend Chart */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <h3
-              className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 mb-4"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 border border-plum-200/30 dark:border-plum-700/30">
+            <h3 className="bliss-elegant text-lg font-semibold text-plum-800 dark:text-cream-100 mb-4">
               {t('expenses.expenseTrend') || 'Expense Trend'}
             </h3>
             <ExpenseTrendChart data={expensesByDay} />
           </div>
 
           {/* Category Distribution */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <h3
-              className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 mb-4"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 border border-plum-200/30 dark:border-plum-700/30">
+            <h3 className="bliss-elegant text-lg font-semibold text-plum-800 dark:text-cream-100 mb-4">
               {t('expenses.categoryDistribution') || 'By Category'}
             </h3>
             <ExpenseCategoryChart data={expensesByCategory} />
@@ -474,20 +465,20 @@ export default function ExpensesPage() {
         {/* Filters Row */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-terracotta-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-plum-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('expenses.searchPlaceholder') || 'Search expenses...'}
-              className="w-full pl-10 pr-4 py-2 border border-terracotta-200 dark:border-dark-600 rounded-xl focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500 bg-cream-50 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100"
+              className="bliss-body w-full pl-10 pr-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-terracotta-200 dark:border-dark-600 rounded-xl bg-cream-50 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100"
+            className="bliss-body px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
           >
             <option value="">{t('expenses.allStatuses') || 'All Statuses'}</option>
             <option value="Pending">{t('common.pending') || 'Pending'}</option>
@@ -498,7 +489,7 @@ export default function ExpensesPage() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 border border-terracotta-200 dark:border-dark-600 rounded-xl bg-cream-50 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100"
+            className="bliss-body px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
           >
             <option value="">{t('expenses.allCategories') || 'All Categories'}</option>
             {categories.map(cat => (
@@ -511,7 +502,7 @@ export default function ExpensesPage() {
           <button
             onClick={() => fetchExpenses()}
             disabled={loading}
-            className="p-2 rounded-xl border border-terracotta-200 dark:border-dark-600 text-terracotta-700 dark:text-cream-300 hover:bg-cream-100 dark:hover:bg-dark-700 disabled:opacity-50"
+            className="p-2.5 rounded-xl border border-plum-200 dark:border-plum-700 text-plum-700 dark:text-cream-300 hover:bg-plum-50 dark:hover:bg-plum-800 disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -529,20 +520,17 @@ export default function ExpensesPage() {
             loading={loading}
           />
         ) : (
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-12 text-center grain-overlay">
-            <Receipt className="w-16 h-16 mx-auto mb-4 text-terracotta-300 dark:text-dark-600" />
-            <h3
-              className="text-lg font-medium text-terracotta-900 dark:text-cream-100 mb-2"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-12 text-center border border-plum-200/30 dark:border-plum-700/30 ornate-corners">
+            <Receipt className="w-16 h-16 mx-auto mb-4 text-plum-300 dark:text-plum-600" />
+            <h3 className="bliss-elegant text-lg font-medium text-plum-800 dark:text-cream-100 mb-2">
               {t('expenses.noExpenses') || 'No Expenses Recorded'}
             </h3>
-            <p className="text-terracotta-600/60 dark:text-cream-300/60 mb-6 max-w-md mx-auto">
+            <p className="bliss-body text-plum-600/60 dark:text-plum-300/60 mb-6 max-w-md mx-auto">
               {t('expenses.noExpensesDescription') || 'Record your first expense to start tracking costs and managing your bakery finances.'}
             </p>
             <button
               onClick={handleAddNew}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 transition-colors"
+              className="btn-lift inline-flex items-center gap-2 px-5 py-2.5 bg-plum-700 text-cream-50 rounded-xl hover:bg-plum-800 shadow-lg shadow-plum-900/20 transition-colors"
             >
               <Plus className="w-5 h-5" />
               {t('expenses.addFirstExpense') || 'Add First Expense'}

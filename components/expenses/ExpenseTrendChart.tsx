@@ -48,11 +48,11 @@ export function ExpenseTrendChart({ data }: ExpenseTrendChartProps) {
   }) => {
     if (active && payload && payload.length && label) {
       return (
-        <div className="bg-cream-100 dark:bg-dark-700 border border-terracotta-200 dark:border-dark-600 rounded-lg shadow-lg p-3">
-          <p className="text-sm text-terracotta-600 dark:text-cream-300 mb-1">
+        <div className="bg-cream-50 dark:bg-plum-800 border-2 border-plum-200 dark:border-plum-600 rounded-xl shadow-lg p-3">
+          <p className="bliss-body text-sm text-plum-600 dark:text-plum-300 mb-1">
             {formatDate(label)}
           </p>
-          <p className="text-lg font-bold text-terracotta-900 dark:text-cream-100">
+          <p className="bliss-body text-lg font-bold text-plum-800 dark:text-cream-100">
             {new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-US').format(payload[0].value)} GNF
           </p>
         </div>
@@ -63,8 +63,8 @@ export function ExpenseTrendChart({ data }: ExpenseTrendChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-terracotta-600/60 dark:text-cream-300/60">
-        <p>{t('common.noData') || 'No data available'}</p>
+      <div className="h-64 flex items-center justify-center text-plum-600/60 dark:text-plum-300/60">
+        <p className="bliss-body">{t('common.noData') || 'No data available'}</p>
       </div>
     )
   }
@@ -77,15 +77,15 @@ export function ExpenseTrendChart({ data }: ExpenseTrendChartProps) {
       >
         <defs>
           <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#C45C26" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#C45C26" stopOpacity={0} />
+            <stop offset="5%" stopColor="#3D1B4D" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#3D1B4D" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-gray-700" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#E1D4EB" className="dark:stroke-plum-700" />
         <XAxis
           dataKey="date"
           tickFormatter={formatDate}
-          stroke="#9CA3AF"
+          stroke="#6B5744"
           fontSize={12}
           tickLine={false}
           axisLine={false}
@@ -93,7 +93,7 @@ export function ExpenseTrendChart({ data }: ExpenseTrendChartProps) {
         />
         <YAxis
           tickFormatter={formatAmount}
-          stroke="#9CA3AF"
+          stroke="#6B5744"
           fontSize={12}
           tickLine={false}
           axisLine={false}
@@ -103,11 +103,11 @@ export function ExpenseTrendChart({ data }: ExpenseTrendChartProps) {
         <Area
           type="monotone"
           dataKey="amount"
-          stroke="#C45C26"
+          stroke="#3D1B4D"
           strokeWidth={2}
           fill="url(#expensesGradient)"
           dot={false}
-          activeDot={{ r: 6, fill: '#C45C26', stroke: '#fff', strokeWidth: 2 }}
+          activeDot={{ r: 6, fill: '#3D1B4D', stroke: '#FFFEFE', strokeWidth: 2 }}
         />
       </AreaChart>
     </ResponsiveContainer>

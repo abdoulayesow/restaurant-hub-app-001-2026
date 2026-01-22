@@ -110,176 +110,185 @@ export default function RecordPaymentModal({
   const paymentMethods = ['Cash', 'Bank Transfer', 'Mobile Money', 'Check', 'Card']
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
-        {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-terracotta-50 to-terracotta-100 dark:from-gray-900 dark:to-gray-800 px-6 py-5 border-b border-terracotta-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-backdrop-fade"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="animate-modal-entrance w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-cream-50 dark:bg-plum-900 rounded-2xl warm-shadow-lg">
+          {/* Header */}
+          <div className="sticky top-0 bg-cream-50 dark:bg-plum-900 px-6 py-5 border-b border-plum-200/30 dark:border-plum-700/30 z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="bliss-display text-2xl font-bold text-plum-800 dark:text-cream-100">
+                  {t('debts.recordPayment') || 'Record Payment'}
+                </h2>
+                <p className="bliss-body text-sm text-plum-600 dark:text-plum-300 mt-1">
+                  {debt.customer.name}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="p-2 hover:bg-plum-100 dark:hover:bg-plum-800 rounded-xl transition-colors disabled:opacity-50"
+              >
+                <X className="w-5 h-5 text-plum-600 dark:text-cream-300" />
+              </button>
+            </div>
+          </div>
+
+          {/* Debt Summary */}
+          <div className="px-6 py-4 bg-gradient-to-br from-cream-100 to-cream-50 dark:from-plum-800 dark:to-plum-900 border-b border-plum-200/30 dark:border-plum-700/30">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="bliss-label text-plum-600 dark:text-plum-300 mb-1">
+                  {t('debts.principalAmount') || 'Principal'}
+                </p>
+                <p className="bliss-body text-lg font-semibold text-plum-800 dark:text-cream-100">
+                  {debt.principalAmount.toLocaleString()} GNF
+                </p>
+              </div>
+              <div>
+                <p className="bliss-label text-emerald-600 dark:text-emerald-400 mb-1">
+                  {t('debts.paidAmount') || 'Paid'}
+                </p>
+                <p className="bliss-body text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                  {debt.paidAmount.toLocaleString()} GNF
+                </p>
+              </div>
+              <div>
+                <p className="bliss-label text-plum-600 dark:text-plum-400 mb-1">
+                  {t('debts.remainingAmount') || 'Remaining'}
+                </p>
+                <p className="bliss-body text-lg font-semibold text-plum-700 dark:text-mauve-400">
+                  {debt.remainingAmount.toLocaleString()} GNF
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-xl p-4">
+                <p className="bliss-body text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            {/* Payment Amount */}
             <div>
-              <h2 className="text-2xl font-bold text-terracotta-900 dark:text-white" style={{ fontFamily: 'Playfair Display, serif' }}>
-                {t('debts.recordPayment') || 'Record Payment'}
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {debt.customer.name}
+              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+                <DollarSign className="w-4 h-4" />
+                {t('debts.paymentAmount') || 'Payment Amount'} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                className="bliss-body w-full px-4 py-2.5 text-lg border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
+                placeholder="0.00"
+                disabled={isSubmitting}
+              />
+              <p className="bliss-body text-xs text-plum-500 dark:text-plum-400 mt-1">
+                Max: {debt.remainingAmount.toLocaleString()} GNF
               </p>
             </div>
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="p-2 hover:bg-terracotta-200 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            </button>
-          </div>
+
+            {/* Payment Method */}
+            <div>
+              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+                <CreditCard className="w-4 h-4" />
+                {t('debts.paymentMethod') || 'Payment Method'} <span className="text-red-500">*</span>
+              </label>
+              <select
+                required
+                value={formData.paymentMethod}
+                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
+                disabled={isSubmitting}
+              >
+                {paymentMethods.map(method => (
+                  <option key={method} value={method}>{method}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Payment Date */}
+            <div>
+              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+                <Calendar className="w-4 h-4" />
+                {t('debts.paymentDate') || 'Payment Date'} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.paymentDate}
+                onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
+                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Receipt Number */}
+            <div>
+              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+                <Receipt className="w-4 h-4" />
+                {t('debts.receiptNumber') || 'Receipt Number'}
+              </label>
+              <input
+                type="text"
+                value={formData.receiptNumber}
+                onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
+                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
+                placeholder="Optional"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+                <FileText className="w-4 h-4" />
+                {t('debts.notes') || 'Notes'}
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600 resize-none"
+                placeholder="Optional payment notes..."
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4 border-t border-plum-200/30 dark:border-plum-700/30">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="flex-1 px-6 py-2.5 rounded-xl border border-plum-200 dark:border-plum-700 text-plum-700 dark:text-cream-300 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors disabled:opacity-50"
+              >
+                {t('common.cancel') || 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="btn-lift flex-1 px-6 py-2.5 rounded-xl bg-plum-700 text-cream-50 font-medium hover:bg-plum-800 shadow-lg shadow-plum-900/20 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? (t('common.saving') || 'Saving...') : (t('debts.recordPayment') || 'Record Payment')}
+              </button>
+            </div>
+          </form>
         </div>
-
-        {/* Debt Summary */}
-        <div className="px-6 py-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                {t('debts.principalAmount') || 'Principal'}
-              </p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                {debt.principalAmount.toLocaleString()} GNF
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                {t('debts.paidAmount') || 'Paid'}
-              </p>
-              <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                {debt.paidAmount.toLocaleString()} GNF
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                {t('debts.remainingAmount') || 'Remaining'}
-              </p>
-              <p className="text-lg font-semibold text-terracotta-600 dark:text-terracotta-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                {debt.remainingAmount.toLocaleString()} GNF
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
-          {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-            </div>
-          )}
-
-          {/* Payment Amount */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <DollarSign className="w-4 h-4 inline mr-1" />
-              {t('debts.paymentAmount') || 'Payment Amount'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              required
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-gray-700 dark:text-white text-lg"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
-              placeholder="0.00"
-              disabled={isSubmitting}
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Max: {debt.remainingAmount.toLocaleString()} GNF
-            </p>
-          </div>
-
-          {/* Payment Method */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <CreditCard className="w-4 h-4 inline mr-1" />
-              {t('debts.paymentMethod') || 'Payment Method'} <span className="text-red-500">*</span>
-            </label>
-            <select
-              required
-              value={formData.paymentMethod}
-              onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-gray-700 dark:text-white"
-              disabled={isSubmitting}
-            >
-              {paymentMethods.map(method => (
-                <option key={method} value={method}>{method}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Payment Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              {t('debts.paymentDate') || 'Payment Date'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.paymentDate}
-              onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-gray-700 dark:text-white"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* Receipt Number */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <Receipt className="w-4 h-4 inline mr-1" />
-              {t('debts.receiptNumber') || 'Receipt Number'}
-            </label>
-            <input
-              type="text"
-              value={formData.receiptNumber}
-              onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Optional"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <FileText className="w-4 h-4 inline mr-1" />
-              {t('debts.notes') || 'Notes'}
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-gray-700 dark:text-white resize-none"
-              placeholder="Optional payment notes..."
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-            >
-              {t('common.cancel') || 'Cancel'}
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-terracotta-600 text-white rounded-lg hover:bg-terracotta-700 transition-colors disabled:opacity-50 font-medium"
-            >
-              {isSubmitting ? (t('common.saving') || 'Saving...') : (t('debts.recordPayment') || 'Record Payment')}
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+    </>
   )
 }

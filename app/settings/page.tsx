@@ -71,22 +71,22 @@ export default function SettingsPage() {
 
   if (status === 'loading' || !session || !isManager) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+      <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Loading skeleton */}
           <div className="animate-pulse space-y-6">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 bg-cream-200 dark:bg-dark-800 rounded-lg" />
-              <div className="h-8 bg-cream-200 dark:bg-dark-800 rounded-lg w-48" />
+              <div className="h-8 w-8 bg-plum-200 dark:bg-plum-800 rounded-lg" />
+              <div className="h-8 bg-plum-200 dark:bg-plum-800 rounded-lg w-48" />
             </div>
-            <div className="h-5 bg-cream-200 dark:bg-dark-800 rounded w-72" />
+            <div className="h-5 bg-plum-200 dark:bg-plum-800 rounded w-72" />
             <div className="flex gap-2 mt-6">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-12 w-36 bg-cream-200 dark:bg-dark-800 rounded-xl" />
+                <div key={i} className="h-12 w-36 bg-plum-200 dark:bg-plum-800 rounded-xl" />
               ))}
             </div>
-            <div className="h-96 bg-cream-200 dark:bg-dark-800 rounded-2xl mt-6" />
+            <div className="h-96 bg-plum-200 dark:bg-plum-800 rounded-2xl mt-6" />
           </div>
         </main>
       </div>
@@ -100,7 +100,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -109,20 +109,17 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3 mb-2">
             <div className="
               w-10 h-10 rounded-xl
-              bg-gradient-to-br from-terracotta-400 to-terracotta-600
+              bg-gradient-to-br from-plum-500 to-plum-700
               flex items-center justify-center
-              shadow-md shadow-terracotta-500/20
+              shadow-md shadow-plum-500/20
             ">
-              <Settings className="w-5 h-5 text-white" />
+              <Settings className="w-5 h-5 text-cream-50" />
             </div>
-            <h1
-              className="text-3xl font-bold text-terracotta-900 dark:text-cream-100"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+            <h1 className="bliss-display text-3xl font-bold text-plum-800 dark:text-cream-100">
               {t('settings.title') || (locale === 'fr' ? 'Paramètres' : 'Settings')}
             </h1>
           </div>
-          <p className="text-terracotta-600 dark:text-cream-300 ml-[52px]">
+          <p className="bliss-body text-plum-600 dark:text-cream-300 ml-[52px]">
             {t('settings.subtitle') || (locale === 'fr'
               ? 'Configurez les paramètres opérationnels de votre boulangerie'
               : 'Configure your bakery operational settings'
@@ -134,9 +131,10 @@ export default function SettingsPage() {
         <div className="mb-8">
           <div className="
             inline-flex p-1.5 gap-1
-            bg-cream-100 dark:bg-dark-800
+            bg-plum-100 dark:bg-plum-800
             rounded-2xl
-            shadow-inner shadow-terracotta-900/5 dark:shadow-black/20
+            shadow-inner shadow-plum-900/5 dark:shadow-black/20
+            border border-plum-200/30 dark:border-plum-700/30
           ">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -147,12 +145,12 @@ export default function SettingsPage() {
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
                   className={`
-                    relative flex items-center gap-2.5 px-5 py-3
+                    bliss-body relative flex items-center gap-2.5 px-5 py-3
                     rounded-xl font-medium text-sm
                     transition-all duration-300 ease-out
                     ${isActive
-                      ? 'bg-terracotta-500 text-white shadow-lg shadow-terracotta-500/30'
-                      : 'text-terracotta-700 dark:text-cream-200 hover:bg-cream-200/70 dark:hover:bg-dark-700/70'
+                      ? 'bg-plum-700 text-cream-50 shadow-lg shadow-plum-700/30'
+                      : 'text-plum-700 dark:text-cream-200 hover:bg-plum-200/70 dark:hover:bg-plum-700/70'
                     }
                   `}
                   aria-selected={isActive}
@@ -162,7 +160,7 @@ export default function SettingsPage() {
                   {isActive && (
                     <div className="
                       absolute inset-0 rounded-xl
-                      bg-gradient-to-t from-terracotta-600/20 to-transparent
+                      bg-gradient-to-t from-plum-800/20 to-transparent
                       pointer-events-none
                     " />
                   )}

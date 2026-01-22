@@ -67,8 +67,8 @@ export function InventoryCardGrid({
   // If no items at all
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="text-center py-12 bg-cream-50 dark:bg-plum-800/50 rounded-2xl border border-plum-200/30 dark:border-plum-700/30">
+        <p className="bliss-body text-plum-500 dark:text-plum-400">
           {t('inventory.noItems') || 'No inventory items found'}
         </p>
       </div>
@@ -89,7 +89,7 @@ export function InventoryCardGrid({
               setExpandedCategories(new Set(INVENTORY_CATEGORIES.map((c) => c.key)))
             }
           }}
-          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          className="bliss-body text-sm text-plum-500 dark:text-plum-400 hover:text-plum-700 dark:hover:text-cream-200 transition-colors"
         >
           {expandedCategories.size === categoriesWithItems.length
             ? t('inventory.collapseAll') || 'Collapse All'
