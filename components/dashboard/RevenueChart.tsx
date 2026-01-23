@@ -48,11 +48,11 @@ export function RevenueChart({ data }: RevenueChartProps) {
   }) => {
     if (active && payload && payload.length && label) {
       return (
-        <div className="bg-cream-100 dark:bg-dark-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3">
-          <p className="text-sm text-terracotta-600 dark:text-cream-300 mb-1">
+        <div className="bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-lg shadow-lg p-3">
+          <p className="text-sm text-gray-600 dark:text-stone-300 mb-1">
             {formatDate(label)}
           </p>
-          <p className="text-lg font-bold text-terracotta-900 dark:text-cream-100">
+          <p className="text-lg font-bold text-gray-900 dark:text-stone-100">
             {new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-US').format(payload[0].value)} GNF
           </p>
         </div>
@@ -63,7 +63,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-terracotta-600/60 dark:text-cream-300/60">
+      <div className="h-64 flex items-center justify-center text-gray-500 dark:text-stone-400">
         <p>No revenue data available</p>
       </div>
     )
@@ -77,15 +77,15 @@ export function RevenueChart({ data }: RevenueChartProps) {
       >
         <defs>
           <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#C45C26" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#C45C26" stopOpacity={0} />
+            <stop offset="5%" stopColor="#374151" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#374151" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-gray-700" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis
           dataKey="date"
           tickFormatter={formatDate}
-          stroke="#9CA3AF"
+          stroke="#6b7280"
           fontSize={12}
           tickLine={false}
           axisLine={false}
@@ -93,7 +93,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
         />
         <YAxis
           tickFormatter={formatAmount}
-          stroke="#9CA3AF"
+          stroke="#6b7280"
           fontSize={12}
           tickLine={false}
           axisLine={false}
@@ -103,11 +103,11 @@ export function RevenueChart({ data }: RevenueChartProps) {
         <Area
           type="monotone"
           dataKey="amount"
-          stroke="#C45C26"
+          stroke="#374151"
           strokeWidth={2}
           fill="url(#revenueGradient)"
           dot={false}
-          activeDot={{ r: 6, fill: '#C45C26', stroke: '#fff', strokeWidth: 2 }}
+          activeDot={{ r: 6, fill: '#4b5563', stroke: '#fff', strokeWidth: 2 }}
         />
       </AreaChart>
     </ResponsiveContainer>
