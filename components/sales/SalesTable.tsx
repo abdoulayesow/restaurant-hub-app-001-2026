@@ -107,9 +107,9 @@ export function SalesTable({
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-12 bg-plum-100 dark:bg-plum-800 rounded-t-xl"></div>
+        <div className="h-12 bg-gray-100 dark:bg-stone-700 rounded-t-xl"></div>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-16 bg-cream-50 dark:bg-plum-900 border-t border-plum-200/20"></div>
+          <div key={i} className="h-16 bg-white dark:bg-stone-800 border-t border-gray-200 dark:border-stone-700"></div>
         ))}
       </div>
     )
@@ -120,12 +120,12 @@ export function SalesTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30">
+    <div className="overflow-x-auto rounded-2xl shadow-sm border border-gray-200 dark:border-stone-700">
       <table className="w-full">
         <thead>
-          <tr className="bg-plum-100 dark:bg-plum-800">
+          <tr className="bg-gray-100 dark:bg-stone-700">
             <th
-              className="bliss-elegant px-6 py-4 text-left text-sm font-semibold text-plum-800 dark:text-cream-100 cursor-pointer hover:bg-plum-200 dark:hover:bg-plum-700 transition-colors"
+              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
               onClick={() => handleSort('date')}
             >
               <div className="flex items-center gap-1">
@@ -134,7 +134,7 @@ export function SalesTable({
               </div>
             </th>
             <th
-              className="bliss-elegant px-6 py-4 text-right text-sm font-semibold text-plum-800 dark:text-cream-100 cursor-pointer hover:bg-plum-200 dark:hover:bg-plum-700 transition-colors"
+              className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
               onClick={() => handleSort('totalGNF')}
             >
               <div className="flex items-center justify-end gap-1">
@@ -142,29 +142,29 @@ export function SalesTable({
                 <SortIcon field="totalGNF" />
               </div>
             </th>
-            <th className="bliss-elegant px-6 py-4 text-right text-sm font-semibold text-plum-800 dark:text-cream-100 hidden md:table-cell">
+            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-stone-100 hidden md:table-cell">
               <div className="flex items-center justify-end gap-1.5">
                 <Banknote className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 {t('sales.cash') || 'Cash'}
               </div>
             </th>
-            <th className="bliss-elegant px-6 py-4 text-right text-sm font-semibold text-plum-800 dark:text-cream-100 hidden md:table-cell">
+            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-stone-100 hidden md:table-cell">
               <div className="flex items-center justify-end gap-1.5">
                 <Smartphone className="w-4 h-4 text-orange-500" />
                 {t('sales.orangeMoney') || 'Orange Money'}
               </div>
             </th>
-            <th className="bliss-elegant px-6 py-4 text-right text-sm font-semibold text-plum-800 dark:text-cream-100 hidden lg:table-cell">
+            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-stone-100 hidden lg:table-cell">
               <div className="flex items-center justify-end gap-1.5">
-                <CreditCard className="w-4 h-4 text-plum-600 dark:text-plum-400" />
+                <CreditCard className="w-4 h-4 text-gray-600 dark:text-stone-400" />
                 {t('sales.card') || 'Card'}
               </div>
             </th>
-            <th className="bliss-elegant px-6 py-4 text-center text-sm font-semibold text-plum-800 dark:text-cream-100">
+            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100">
               {t('sales.paymentStatus') || 'Payment Status'}
             </th>
             <th
-              className="bliss-elegant px-6 py-4 text-center text-sm font-semibold text-plum-800 dark:text-cream-100 cursor-pointer hover:bg-plum-200 dark:hover:bg-plum-700 transition-colors"
+              className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
               onClick={() => handleSort('status')}
             >
               <div className="flex items-center justify-center gap-1">
@@ -172,48 +172,48 @@ export function SalesTable({
                 <SortIcon field="status" />
               </div>
             </th>
-            <th className="bliss-elegant px-6 py-4 text-right text-sm font-semibold text-plum-800 dark:text-cream-100">
+            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-stone-100">
               {t('common.actions') || 'Actions'}
             </th>
           </tr>
         </thead>
-        <tbody className="bg-cream-50 dark:bg-plum-900">
+        <tbody className="bg-white dark:bg-stone-800">
           {sortedSales.map((sale, index) => (
             <tr
               key={sale.id}
               className={`
-                border-t border-plum-200/20 dark:border-plum-700/20
-                hover:bg-plum-50 dark:hover:bg-plum-800/50 transition-colors
+                border-t border-gray-200 dark:border-stone-700
+                hover:bg-gray-50 dark:hover:bg-stone-900/50 transition-colors
                 ${index === sortedSales.length - 1 ? 'rounded-b-2xl' : ''}
               `}
             >
               <td className="px-6 py-4">
                 <div>
-                  <p className="bliss-body font-medium text-plum-800 dark:text-cream-100">
+                  <p className="font-medium text-gray-900 dark:text-stone-100">
                     {formatDate(sale.date)}
                   </p>
                   {sale.submittedByName && (
-                    <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60 mt-0.5">
+                    <p className="text-xs text-gray-500 dark:text-stone-400 mt-0.5">
                       {t('sales.by') || 'by'} {sale.submittedByName}
                     </p>
                   )}
                 </div>
               </td>
-              <td className="bliss-elegant px-6 py-4 text-right font-semibold text-plum-800 dark:text-cream-100">
+              <td className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-stone-100">
                 {formatCurrency(sale.totalGNF)}
               </td>
               <td className="px-6 py-4 text-right hidden md:table-cell">
-                <span className={`bliss-body ${sale.cashGNF > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-plum-300 dark:text-plum-600'}`}>
+                <span className={sale.cashGNF > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-300 dark:text-stone-500'}>
                   {formatCurrency(sale.cashGNF)}
                 </span>
               </td>
               <td className="px-6 py-4 text-right hidden md:table-cell">
-                <span className={`bliss-body ${sale.orangeMoneyGNF > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-plum-300 dark:text-plum-600'}`}>
+                <span className={sale.orangeMoneyGNF > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-300 dark:text-stone-500'}>
                   {formatCurrency(sale.orangeMoneyGNF)}
                 </span>
               </td>
               <td className="px-6 py-4 text-right hidden lg:table-cell">
-                <span className={`bliss-body ${sale.cardGNF > 0 ? 'text-plum-700 dark:text-plum-400' : 'text-plum-300 dark:text-plum-600'}`}>
+                <span className={sale.cardGNF > 0 ? 'text-gray-700 dark:text-stone-400' : 'text-gray-300 dark:text-stone-500'}>
                   {formatCurrency(sale.cardGNF)}
                 </span>
               </td>
@@ -248,7 +248,7 @@ export function SalesTable({
                 <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => onView(sale)}
-                    className="p-2 rounded-lg text-plum-600 dark:text-plum-300 hover:bg-plum-100 dark:hover:bg-plum-700 transition-colors"
+                    className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                     title={t('common.view') || 'View'}
                   >
                     <Eye className="w-4 h-4" />
@@ -257,7 +257,7 @@ export function SalesTable({
                   {(isManager || sale.status === 'Pending') && (
                     <button
                       onClick={() => onEdit(sale)}
-                      className="p-2 rounded-lg text-plum-600 dark:text-plum-300 hover:bg-plum-100 dark:hover:bg-plum-700 transition-colors"
+                      className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                       title={t('common.edit') || 'Edit'}
                     >
                       <Edit2 className="w-4 h-4" />

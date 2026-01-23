@@ -48,11 +48,11 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
   }) => {
     if (active && payload && payload.length && label) {
       return (
-        <div className="bg-cream-50 dark:bg-plum-800 border-2 border-plum-200 dark:border-plum-600 rounded-xl shadow-lg p-3">
-          <p className="bliss-body text-sm text-plum-600 dark:text-plum-300 mb-1">
+        <div className="bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-xl shadow-lg p-3">
+          <p className="text-sm text-gray-600 dark:text-stone-300 mb-1">
             {formatDate(label)}
           </p>
-          <p className="bliss-elegant text-lg font-bold text-plum-800 dark:text-cream-100">
+          <p className="text-lg font-bold text-gray-900 dark:text-stone-100">
             {new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-US').format(payload[0].value)} GNF
           </p>
         </div>
@@ -63,8 +63,8 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-plum-500/60 dark:text-plum-400/60">
-        <p className="bliss-body">{t('common.noData') || 'No data available'}</p>
+      <div className="h-64 flex items-center justify-center text-gray-500 dark:text-stone-400">
+        <p>{t('common.noData') || 'No data available'}</p>
       </div>
     )
   }
@@ -77,39 +77,37 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
       >
         <defs>
           <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#3D1B4D" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#5A2D6E" stopOpacity={0.05} />
+            <stop offset="5%" stopColor="#374151" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#6b7280" stopOpacity={0.05} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E1D4EB" opacity={0.5} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
         <XAxis
           dataKey="date"
           tickFormatter={formatDate}
-          stroke="#6B5744"
+          stroke="#6b7280"
           fontSize={12}
           tickLine={false}
           axisLine={false}
           interval="preserveStartEnd"
-          fontFamily="Montserrat, sans-serif"
         />
         <YAxis
           tickFormatter={formatAmount}
-          stroke="#6B5744"
+          stroke="#6b7280"
           fontSize={12}
           tickLine={false}
           axisLine={false}
           width={60}
-          fontFamily="Montserrat, sans-serif"
         />
         <Tooltip content={<CustomTooltip />} />
         <Area
           type="monotone"
           dataKey="amount"
-          stroke="#3D1B4D"
+          stroke="#374151"
           strokeWidth={2}
           fill="url(#salesGradient)"
           dot={false}
-          activeDot={{ r: 6, fill: '#5A2D6E', stroke: '#FFFEFE', strokeWidth: 2 }}
+          activeDot={{ r: 6, fill: '#4b5563', stroke: '#ffffff', strokeWidth: 2 }}
         />
       </AreaChart>
     </ResponsiveContainer>

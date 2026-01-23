@@ -268,20 +268,19 @@ export function AddEditSaleModal({
           className="
             animate-fade-in-up
             w-full max-w-lg max-h-[90vh] overflow-y-auto
-            bg-cream-50 dark:bg-dark-900
-            rounded-2xl warm-shadow-lg grain-overlay
+            bg-white dark:bg-stone-800
+            rounded-2xl shadow-lg
           "
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
         >
           {/* Header */}
-          <div className="sticky top-0 bg-cream-50 dark:bg-dark-900 p-6 border-b border-terracotta-500/15 dark:border-terracotta-400/20 z-10">
+          <div className="sticky top-0 bg-white dark:bg-stone-800 p-6 border-b border-gray-200 dark:border-stone-700 z-10">
             <div className="flex items-center justify-between">
               <h2
                 id="modal-title"
-                className="text-xl font-bold text-terracotta-900 dark:text-cream-100"
-                style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
+                className="text-xl font-bold text-gray-900 dark:text-stone-100"
               >
                 {isEditMode
                   ? (t('sales.editSale') || 'Edit Sale')
@@ -290,10 +289,10 @@ export function AddEditSaleModal({
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 rounded-full hover:bg-cream-200 dark:hover:bg-dark-700 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                 aria-label={t('common.close') || 'Close'}
               >
-                <X className="w-5 h-5 text-terracotta-600 dark:text-cream-300" />
+                <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
               </button>
             </div>
           </div>
@@ -302,7 +301,7 @@ export function AddEditSaleModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Date */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <Calendar className="w-4 h-4" />
                 {t('sales.date') || 'Date'} *
               </label>
@@ -313,10 +312,10 @@ export function AddEditSaleModal({
                 disabled={isEditMode}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
-                  border ${errors.date ? 'border-red-500' : 'border-terracotta-200 dark:border-dark-600'}
-                  bg-cream-100 dark:bg-dark-800
-                  text-terracotta-900 dark:text-cream-100
-                  focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
+                  border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
+                  bg-white dark:bg-stone-900
+                  text-gray-900 dark:text-stone-100
+                  focus:ring-2 focus:ring-gray-500 focus:border-gray-500
                   disabled:opacity-60 disabled:cursor-not-allowed
                 `}
               />
@@ -327,13 +326,13 @@ export function AddEditSaleModal({
 
             {/* Payment Breakdown */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-terracotta-800 dark:text-cream-200 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
                 {t('sales.paymentBreakdown') || 'Payment Breakdown'}
               </h3>
 
               {/* Cash */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   <DollarSign className="w-4 h-4" />
                   {t('sales.cash') || 'Cash'} (GNF)
                 </label>
@@ -342,13 +341,13 @@ export function AddEditSaleModal({
                   value={formData.cashGNF}
                   onChange={(e) => handleNumberChange('cashGNF', e.target.value)}
                   min="0"
-                  className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                 />
               </div>
 
               {/* Orange Money */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   <Smartphone className="w-4 h-4" />
                   {t('sales.orangeMoney') || 'Orange Money'} (GNF)
                 </label>
@@ -357,13 +356,13 @@ export function AddEditSaleModal({
                   value={formData.orangeMoneyGNF}
                   onChange={(e) => handleNumberChange('orangeMoneyGNF', e.target.value)}
                   min="0"
-                  className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                 />
               </div>
 
               {/* Card */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   <CreditCard className="w-4 h-4" />
                   {t('sales.card') || 'Card'} (GNF)
                 </label>
@@ -372,17 +371,17 @@ export function AddEditSaleModal({
                   value={formData.cardGNF}
                   onChange={(e) => handleNumberChange('cardGNF', e.target.value)}
                   min="0"
-                  className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                 />
               </div>
 
               {/* Immediate Payment Summary */}
-              <div className="p-4 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10 border border-terracotta-500/20">
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-stone-700/50 border border-gray-200 dark:border-stone-600">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-terracotta-700 dark:text-cream-200">
+                  <span className="text-sm font-medium text-gray-700 dark:text-stone-200">
                     {t('sales.immediatePayment') || 'Immediate Payment'}
                   </span>
-                  <span className="text-lg font-semibold text-terracotta-900 dark:text-cream-100">
+                  <span className="text-lg font-semibold text-gray-900 dark:text-stone-100">
                     {formatCurrency(immediatePaymentGNF)}
                   </span>
                 </div>
@@ -392,14 +391,14 @@ export function AddEditSaleModal({
             {/* Credit Sales Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-terracotta-800 dark:text-cream-200 uppercase tracking-wider">
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
                   {t('sales.creditSales') || 'Credit Sales'} ({t('common.optional') || 'Optional'})
                 </h3>
                 {!showCreditSection && (
                   <button
                     type="button"
                     onClick={addDebtItem}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-terracotta-600 dark:text-cream-300 hover:bg-terracotta-500/10 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                     {t('sales.addCreditSale') || 'Add Credit Sale'}
@@ -418,10 +417,10 @@ export function AddEditSaleModal({
                     return (
                       <div
                         key={index}
-                        className="p-4 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-50 dark:bg-dark-800/50 space-y-3"
+                        className="p-4 rounded-xl border border-gray-200 dark:border-stone-600 bg-gray-50 dark:bg-stone-900/50 space-y-3"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-terracotta-700 dark:text-cream-200">
+                          <span className="text-sm font-medium text-gray-700 dark:text-stone-200">
                             Credit Item {index + 1}
                           </span>
                           <button
@@ -437,7 +436,7 @@ export function AddEditSaleModal({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {/* Customer Selection */}
                           <div>
-                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <UserCheck className="w-4 h-4" />
                               Customer *
                             </label>
@@ -447,8 +446,8 @@ export function AddEditSaleModal({
                               className={`w-full px-3 py-2 rounded-lg border ${
                                 errors[`debt_${index}_customer`]
                                   ? 'border-red-500'
-                                  : 'border-terracotta-200 dark:border-dark-600'
-                              } bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500`}
+                                  : 'border-gray-300 dark:border-stone-600'
+                              } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500`}
                             >
                               <option value="">Select customer</option>
                               {customers.map((c) => (
@@ -461,7 +460,7 @@ export function AddEditSaleModal({
                               <p className="mt-1 text-xs text-red-500">{errors[`debt_${index}_customer`]}</p>
                             )}
                             {customer?.creditLimit && (
-                              <p className="mt-1 text-xs text-terracotta-600/70 dark:text-cream-300/70">
+                              <p className="mt-1 text-xs text-gray-500 dark:text-stone-400">
                                 Available credit: {formatCurrency(availableCredit || 0)}
                               </p>
                             )}
@@ -469,7 +468,7 @@ export function AddEditSaleModal({
 
                           {/* Amount */}
                           <div>
-                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <DollarSign className="w-4 h-4" />
                               Amount (GNF) *
                             </label>
@@ -481,8 +480,8 @@ export function AddEditSaleModal({
                               className={`w-full px-3 py-2 rounded-lg border ${
                                 errors[`debt_${index}_amount`]
                                   ? 'border-red-500'
-                                  : 'border-terracotta-200 dark:border-dark-600'
-                              } bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500`}
+                                  : 'border-gray-300 dark:border-stone-600'
+                              } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500`}
                             />
                             {errors[`debt_${index}_amount`] && (
                               <p className="mt-1 text-xs text-red-500">{errors[`debt_${index}_amount`]}</p>
@@ -493,7 +492,7 @@ export function AddEditSaleModal({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {/* Due Date */}
                           <div>
-                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <Calendar className="w-4 h-4" />
                               Due Date
                             </label>
@@ -501,13 +500,13 @@ export function AddEditSaleModal({
                               type="date"
                               value={item.dueDate}
                               onChange={(e) => updateDebtItem(index, 'dueDate', e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                             />
                           </div>
 
                           {/* Description */}
                           <div>
-                            <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <FileText className="w-4 h-4" />
                               Description
                             </label>
@@ -516,7 +515,7 @@ export function AddEditSaleModal({
                               value={item.description}
                               onChange={(e) => updateDebtItem(index, 'description', e.target.value)}
                               placeholder="Optional note"
-                              className="w-full px-3 py-2 rounded-lg border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                             />
                           </div>
                         </div>
@@ -527,7 +526,7 @@ export function AddEditSaleModal({
                   <button
                     type="button"
                     onClick={addDebtItem}
-                    className="w-full px-4 py-2 border-2 border-dashed border-terracotta-300 dark:border-dark-600 rounded-xl text-terracotta-600 dark:text-cream-300 hover:bg-terracotta-500/5 transition-colors flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-stone-600 rounded-xl text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700/50 transition-colors flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     {t('sales.addAnotherCreditSale') || 'Add Another Credit Sale'}
@@ -551,14 +550,14 @@ export function AddEditSaleModal({
             </div>
 
             {/* Grand Total */}
-            <div className="p-5 rounded-xl bg-gradient-to-br from-terracotta-500/20 to-terracotta-600/20 dark:from-terracotta-400/20 dark:to-terracotta-500/20 border-2 border-terracotta-500/30">
+            <div className="p-5 rounded-xl bg-gray-100 dark:bg-stone-700/50 border-2 border-gray-200 dark:border-stone-600">
               <div className="space-y-2">
                 {creditTotalGNF > 0 && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-terracotta-700 dark:text-cream-200">
+                    <span className="text-gray-700 dark:text-stone-200">
                       Immediate Payment
                     </span>
-                    <span className="font-medium text-terracotta-800 dark:text-cream-100">
+                    <span className="font-medium text-gray-800 dark:text-stone-100">
                       {formatCurrency(immediatePaymentGNF)}
                     </span>
                   </div>
@@ -573,11 +572,11 @@ export function AddEditSaleModal({
                     </span>
                   </div>
                 )}
-                <div className="pt-2 border-t border-terracotta-500/30 flex items-center justify-between">
-                  <span className="text-base font-semibold text-terracotta-900 dark:text-cream-100">
+                <div className="pt-2 border-t border-gray-300 dark:border-stone-500 flex items-center justify-between">
+                  <span className="text-base font-semibold text-gray-900 dark:text-stone-100">
                     {t('sales.grandTotal') || 'Grand Total'}
                   </span>
-                  <span className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-stone-100">
                     {formatCurrency(totalGNF)}
                   </span>
                 </div>
@@ -589,14 +588,14 @@ export function AddEditSaleModal({
 
             {/* Optional Fields */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-terracotta-800 dark:text-cream-200 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
                 {t('sales.additionalInfo') || 'Additional Info'} ({t('common.optional') || 'Optional'})
               </h3>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Items Count */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                     <ShoppingBag className="w-4 h-4" />
                     {t('sales.itemsSold') || 'Items Sold'}
                   </label>
@@ -605,13 +604,13 @@ export function AddEditSaleModal({
                     value={formData.itemsCount}
                     onChange={(e) => handleChange('itemsCount', e.target.value)}
                     min="0"
-                    className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                   />
                 </div>
 
                 {/* Customers Count */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                     <Users className="w-4 h-4" />
                     {t('sales.customers') || 'Customers'}
                   </label>
@@ -620,13 +619,13 @@ export function AddEditSaleModal({
                     value={formData.customersCount}
                     onChange={(e) => handleChange('customersCount', e.target.value)}
                     min="0"
-                    className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                   />
                 </div>
 
                 {/* Opening Time */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                     <Clock className="w-4 h-4" />
                     {t('sales.openingTime') || 'Opening'}
                   </label>
@@ -634,13 +633,13 @@ export function AddEditSaleModal({
                     type="time"
                     value={formData.openingTime}
                     onChange={(e) => handleChange('openingTime', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                   />
                 </div>
 
                 {/* Closing Time */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                     <Clock className="w-4 h-4" />
                     {t('sales.closingTime') || 'Closing'}
                   </label>
@@ -648,14 +647,14 @@ export function AddEditSaleModal({
                     type="time"
                     value={formData.closingTime}
                     onChange={(e) => handleChange('closingTime', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                   />
                 </div>
               </div>
 
               {/* Comments */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   <FileText className="w-4 h-4" />
                   {t('sales.comments') || 'Comments'}
                 </label>
@@ -663,7 +662,7 @@ export function AddEditSaleModal({
                   value={formData.comments}
                   onChange={(e) => handleChange('comments', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500 resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 resize-none"
                   placeholder={t('sales.commentsPlaceholder') || 'Any notes about today\'s sales...'}
                 />
               </div>
@@ -674,14 +673,14 @@ export function AddEditSaleModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 text-terracotta-700 dark:text-cream-300 hover:bg-cream-100 dark:hover:bg-dark-800 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-terracotta-500 text-white font-medium hover:bg-terracotta-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading
                   ? (t('common.saving') || 'Saving...')
