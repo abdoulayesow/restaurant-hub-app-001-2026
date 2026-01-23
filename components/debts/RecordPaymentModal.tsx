@@ -120,52 +120,52 @@ export default function RecordPaymentModal({
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="animate-modal-entrance w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-cream-50 dark:bg-plum-900 rounded-2xl warm-shadow-lg">
+        <div className="animate-modal-entrance w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-800 rounded-2xl shadow-lg">
           {/* Header */}
-          <div className="sticky top-0 bg-cream-50 dark:bg-plum-900 px-6 py-5 border-b border-plum-200/30 dark:border-plum-700/30 z-10">
+          <div className="sticky top-0 bg-white dark:bg-stone-800 px-6 py-5 border-b border-gray-200 dark:border-stone-700 z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="bliss-display text-2xl font-bold text-plum-800 dark:text-cream-100">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
                   {t('debts.recordPayment') || 'Record Payment'}
                 </h2>
-                <p className="bliss-body text-sm text-plum-600 dark:text-plum-300 mt-1">
+                <p className="text-sm text-gray-600 dark:text-stone-300 mt-1">
                   {debt.customer.name}
                 </p>
               </div>
               <button
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="p-2 hover:bg-plum-100 dark:hover:bg-plum-800 rounded-xl transition-colors disabled:opacity-50"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-xl transition-colors disabled:opacity-50"
               >
-                <X className="w-5 h-5 text-plum-600 dark:text-cream-300" />
+                <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
               </button>
             </div>
           </div>
 
           {/* Debt Summary */}
-          <div className="px-6 py-4 bg-gradient-to-br from-cream-100 to-cream-50 dark:from-plum-800 dark:to-plum-900 border-b border-plum-200/30 dark:border-plum-700/30">
+          <div className="px-6 py-4 bg-gray-50 dark:bg-stone-700/50 border-b border-gray-200 dark:border-stone-700">
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <p className="bliss-label text-plum-600 dark:text-plum-300 mb-1">
+                <p className="text-sm text-gray-600 dark:text-stone-300 mb-1">
                   {t('debts.principalAmount') || 'Principal'}
                 </p>
-                <p className="bliss-body text-lg font-semibold text-plum-800 dark:text-cream-100">
+                <p className="text-lg font-semibold text-gray-900 dark:text-stone-100">
                   {debt.principalAmount.toLocaleString()} GNF
                 </p>
               </div>
               <div>
-                <p className="bliss-label text-emerald-600 dark:text-emerald-400 mb-1">
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-1">
                   {t('debts.paidAmount') || 'Paid'}
                 </p>
-                <p className="bliss-body text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
                   {debt.paidAmount.toLocaleString()} GNF
                 </p>
               </div>
               <div>
-                <p className="bliss-label text-plum-600 dark:text-plum-400 mb-1">
+                <p className="text-sm text-amber-600 dark:text-amber-400 mb-1">
                   {t('debts.remainingAmount') || 'Remaining'}
                 </p>
-                <p className="bliss-body text-lg font-semibold text-plum-700 dark:text-mauve-400">
+                <p className="text-lg font-semibold text-amber-700 dark:text-amber-400">
                   {debt.remainingAmount.toLocaleString()} GNF
                 </p>
               </div>
@@ -176,13 +176,13 @@ export default function RecordPaymentModal({
           <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-xl p-4">
-                <p className="bliss-body text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
             )}
 
             {/* Payment Amount */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <DollarSign className="w-4 h-4" />
                 {t('debts.paymentAmount') || 'Payment Amount'} <span className="text-red-500">*</span>
               </label>
@@ -192,18 +192,18 @@ export default function RecordPaymentModal({
                 required
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="bliss-body w-full px-4 py-2.5 text-lg border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
+                className="w-full px-4 py-2.5 text-lg border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
                 placeholder="0.00"
                 disabled={isSubmitting}
               />
-              <p className="bliss-body text-xs text-plum-500 dark:text-plum-400 mt-1">
+              <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
                 Max: {debt.remainingAmount.toLocaleString()} GNF
               </p>
             </div>
 
             {/* Payment Method */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <CreditCard className="w-4 h-4" />
                 {t('debts.paymentMethod') || 'Payment Method'} <span className="text-red-500">*</span>
               </label>
@@ -211,7 +211,7 @@ export default function RecordPaymentModal({
                 required
                 value={formData.paymentMethod}
                 onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100"
                 disabled={isSubmitting}
               >
                 {paymentMethods.map(method => (
@@ -222,7 +222,7 @@ export default function RecordPaymentModal({
 
             {/* Payment Date */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <Calendar className="w-4 h-4" />
                 {t('debts.paymentDate') || 'Payment Date'} <span className="text-red-500">*</span>
               </label>
@@ -231,14 +231,14 @@ export default function RecordPaymentModal({
                 required
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100"
                 disabled={isSubmitting}
               />
             </div>
 
             {/* Receipt Number */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <Receipt className="w-4 h-4" />
                 {t('debts.receiptNumber') || 'Receipt Number'}
               </label>
@@ -246,7 +246,7 @@ export default function RecordPaymentModal({
                 type="text"
                 value={formData.receiptNumber}
                 onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
                 placeholder="Optional"
                 disabled={isSubmitting}
               />
@@ -254,7 +254,7 @@ export default function RecordPaymentModal({
 
             {/* Notes */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <FileText className="w-4 h-4" />
                 {t('debts.notes') || 'Notes'}
               </label>
@@ -262,26 +262,26 @@ export default function RecordPaymentModal({
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600 resize-none"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 resize-none"
                 placeholder="Optional payment notes..."
                 disabled={isSubmitting}
               />
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-plum-200/30 dark:border-plum-700/30">
+            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-stone-700">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-2.5 rounded-xl border border-plum-200 dark:border-plum-700 text-plum-700 dark:text-cream-300 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors disabled:opacity-50"
+                className="flex-1 px-6 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors disabled:opacity-50"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-lift flex-1 px-6 py-2.5 rounded-xl bg-plum-700 text-cream-50 font-medium hover:bg-plum-800 shadow-lg shadow-plum-900/20 transition-colors disabled:opacity-50"
+                className="flex-1 px-6 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? (t('common.saving') || 'Saving...') : (t('debts.recordPayment') || 'Record Payment')}
               </button>

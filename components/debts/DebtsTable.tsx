@@ -129,14 +129,14 @@ export default function DebtsTable({ debts, onViewDetails, onRecordPayment, isMa
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
       onClick={() => handleSort(field)}
-      className="flex items-center gap-1 hover:text-terracotta-700 dark:hover:text-terracotta-300 transition-colors group"
+      className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-stone-200 transition-colors group"
     >
       {label}
       {sortField === field ? (
         sortDirection === 'asc' ? (
-          <ChevronUp className="w-4 h-4 text-terracotta-600 dark:text-terracotta-400" />
+          <ChevronUp className="w-4 h-4 text-gray-700 dark:text-stone-300" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-terracotta-600 dark:text-terracotta-400" />
+          <ChevronDown className="w-4 h-4 text-gray-700 dark:text-stone-300" />
         )
       ) : (
         <ChevronDown className="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" />
@@ -161,7 +161,7 @@ export default function DebtsTable({ debts, onViewDetails, onRecordPayment, isMa
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gradient-to-r from-terracotta-50 to-terracotta-100 dark:from-gray-900 dark:to-gray-800 border-b border-terracotta-200 dark:border-gray-700">
+            <tr className="bg-gray-100 dark:bg-stone-700 border-b border-gray-200 dark:border-stone-600">
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 <SortButton field="customer" label={t('customers.customer') || 'Customer'} />
               </th>
@@ -228,7 +228,7 @@ export default function DebtsTable({ debts, onViewDetails, onRecordPayment, isMa
                     </p>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm font-semibold text-terracotta-600 dark:text-terracotta-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    <p className="text-sm font-semibold text-amber-600 dark:text-amber-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
                       {debt.remainingAmount.toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">GNF</p>
@@ -253,7 +253,7 @@ export default function DebtsTable({ debts, onViewDetails, onRecordPayment, isMa
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => onViewDetails(debt)}
-                        className="p-2 text-gray-600 hover:text-terracotta-600 dark:text-gray-400 dark:hover:text-terracotta-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        className="p-2 text-gray-600 hover:text-gray-900 dark:text-stone-400 dark:hover:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
                         title={t('common.viewDetails') || 'View Details'}
                       >
                         <Eye className="w-4 h-4" />
@@ -261,7 +261,7 @@ export default function DebtsTable({ debts, onViewDetails, onRecordPayment, isMa
                       {debt.status !== 'FullyPaid' && debt.status !== 'WrittenOff' && (
                         <button
                           onClick={() => onRecordPayment(debt)}
-                          className="px-3 py-1.5 text-xs font-medium text-white bg-terracotta-600 hover:bg-terracotta-700 rounded-lg transition-colors flex items-center gap-1"
+                          className="px-3 py-1.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1"
                         >
                           <DollarSign className="w-3 h-3" />
                           {t('debts.recordPayment') || 'Pay'}

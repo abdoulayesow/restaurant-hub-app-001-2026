@@ -135,23 +135,23 @@ export default function CreateDebtModal({
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="animate-modal-entrance w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-cream-50 dark:bg-plum-900 rounded-2xl warm-shadow-lg">
+        <div className="animate-modal-entrance w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-800 rounded-2xl shadow-lg">
           {/* Header */}
-          <div className="sticky top-0 bg-cream-50 dark:bg-plum-900 px-6 py-5 border-b border-plum-200/30 dark:border-plum-700/30 z-10">
+          <div className="sticky top-0 bg-white dark:bg-stone-800 px-6 py-5 border-b border-gray-200 dark:border-stone-700 z-10">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="bliss-display text-2xl font-bold text-plum-800 dark:text-cream-100">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
                   {t('debts.createDebt') || 'Create Debt'}
                 </h2>
-                <p className="bliss-body text-sm text-plum-600 dark:text-plum-300 mt-1">
+                <p className="text-sm text-gray-600 dark:text-stone-300 mt-1">
                   {t('debts.createDebtDescription') || 'Manually record a debt for a customer'}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-plum-100 dark:hover:bg-plum-800 rounded-xl transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-xl transition-colors"
               >
-                <X className="w-5 h-5 text-plum-600 dark:text-cream-300" />
+                <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
               </button>
             </div>
           </div>
@@ -160,12 +160,12 @@ export default function CreateDebtModal({
           <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
             {/* Customer Selection */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <User className="w-4 h-4" />
                 {t('customers.customer') || 'Customer'} *
               </label>
               {loadingCustomers ? (
-                <div className="bliss-body text-sm text-plum-500 dark:text-plum-400">
+                <div className="text-sm text-gray-500 dark:text-stone-400">
                   {t('common.loading') || 'Loading...'}
                 </div>
               ) : (
@@ -173,7 +173,7 @@ export default function CreateDebtModal({
                   value={formData.customerId}
                   onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
                   required
-                  className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100"
                 >
                   <option value="">{t('debts.selectCustomer') || 'Select a customer'}</option>
                   {customers.map((customer) => (
@@ -187,7 +187,7 @@ export default function CreateDebtModal({
 
             {/* Principal Amount */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <DollarSign className="w-4 h-4" />
                 {t('debts.principalAmount') || 'Principal Amount'} (GNF) *
               </label>
@@ -199,13 +199,13 @@ export default function CreateDebtModal({
                 required
                 min="1"
                 step="1"
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
               />
             </div>
 
             {/* Due Date (Optional) */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <Calendar className="w-4 h-4" />
                 {t('debts.dueDate') || 'Due Date'} ({t('common.optional') || 'Optional'})
               </label>
@@ -213,13 +213,13 @@ export default function CreateDebtModal({
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <FileText className="w-4 h-4" />
                 {t('debts.description') || 'Description'} ({t('common.optional') || 'Optional'})
               </label>
@@ -228,13 +228,13 @@ export default function CreateDebtModal({
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder={t('debts.descriptionPlaceholder') || 'e.g., Legacy debt from previous system'}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
               />
             </div>
 
             {/* Notes */}
             <div>
-              <label className="flex items-center gap-2 bliss-body text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <FileText className="w-4 h-4" />
                 {t('debts.notes') || 'Notes'} ({t('common.optional') || 'Optional'})
               </label>
@@ -243,31 +243,31 @@ export default function CreateDebtModal({
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder={t('debts.notesPlaceholder') || 'Additional information about this debt...'}
                 rows={3}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600 resize-none"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 resize-none"
               />
             </div>
 
             {/* Error Message */}
             {error && (
               <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-xl">
-                <p className="bliss-body text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-plum-200/30 dark:border-plum-700/30">
+            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-stone-700">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-2.5 rounded-xl border border-plum-200 dark:border-plum-700 text-plum-700 dark:text-cream-300 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors disabled:opacity-50"
+                className="flex-1 px-6 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors disabled:opacity-50"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.customerId || !formData.principalAmount}
-                className="btn-lift flex-1 px-6 py-2.5 rounded-xl bg-plum-700 text-cream-50 font-medium hover:bg-plum-800 shadow-lg shadow-plum-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (t('common.processing') || 'Processing...') : (t('debts.createDebt') || 'Create Debt')}
               </button>
