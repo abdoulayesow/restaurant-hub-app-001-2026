@@ -172,12 +172,12 @@ export default function BankPage() {
 
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+      <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-plum-200 dark:bg-plum-800 rounded w-1/4"></div>
-            <div className="h-64 bg-plum-200 dark:bg-plum-800 rounded-2xl"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 dark:bg-stone-800 rounded-xl"></div>
           </div>
         </main>
       </div>
@@ -185,17 +185,17 @@ export default function BankPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="bliss-display text-3xl font-bold text-plum-800 dark:text-cream-100">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {t('bank.title') || 'Bank & Cash'}
             </h1>
-            <p className="bliss-body text-plum-600/70 dark:text-cream-300/70 mt-1">
+            <p className="text-gray-600 dark:text-stone-400 mt-1">
               {currentRestaurant?.name || 'Loading...'}
             </p>
           </div>
@@ -203,7 +203,7 @@ export default function BankPage() {
           {isManager && (
             <button
               onClick={() => setDepositModalOpen(true)}
-              className="btn-lift inline-flex items-center gap-2 px-5 py-2.5 bg-plum-700 text-cream-50 rounded-xl hover:bg-plum-800 shadow-lg shadow-plum-900/20 font-medium transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
             >
               <Plus className="w-5 h-5" />
               {t('bank.recordDeposit') || 'Record Deposit'}
@@ -214,69 +214,69 @@ export default function BankPage() {
         {/* Balance Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {/* Total Balance */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 grain-overlay border border-plum-200/30 dark:border-plum-700/30">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-plum-100 dark:bg-plum-900/40">
-                <Wallet className="w-6 h-6 text-plum-600 dark:text-plum-400" />
+              <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                <Wallet className="w-5 h-5 text-gray-700 dark:text-stone-300" />
               </div>
-              <h3 className="bliss-elegant font-semibold text-plum-800 dark:text-cream-100">
+              <h3 className="font-medium text-gray-500 dark:text-stone-400">
                 {t('bank.totalBalance') || 'Total Balance'}
               </h3>
             </div>
-            <p className="bliss-body text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(balances.total)}
             </p>
-            <p className="bliss-body text-sm text-plum-600/60 dark:text-cream-300/60">
+            <p className="text-sm text-gray-500 dark:text-stone-400">
               {t('bank.acrossAllAccounts') || 'Across all accounts'}
             </p>
           </div>
 
           {/* Cash on Hand */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 grain-overlay border border-plum-200/30 dark:border-plum-700/30">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-                <ArrowUpRight className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                <ArrowUpRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="bliss-elegant font-semibold text-plum-800 dark:text-cream-100">
+              <h3 className="font-medium text-gray-500 dark:text-stone-400">
                 {t('bank.cashOnHand') || 'Cash on Hand'}
               </h3>
             </div>
-            <p className="bliss-body text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(balances.cash)}
             </p>
-            <p className="bliss-body text-sm text-plum-600/60 dark:text-cream-300/60">
+            <p className="text-sm text-gray-500 dark:text-stone-400">
               {t('bank.physicalCash') || 'Physical cash'}
             </p>
           </div>
 
           {/* Bank Account */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 grain-overlay border border-plum-200/30 dark:border-plum-700/30">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="bliss-elegant font-semibold text-plum-800 dark:text-cream-100">
+              <h3 className="font-medium text-gray-500 dark:text-stone-400">
                 {t('bank.bankAccount') || 'Bank Account'}
               </h3>
             </div>
-            <p className="bliss-body text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(balances.orangeMoney + balances.card)}
             </p>
-            <p className="bliss-body text-sm text-plum-600/60 dark:text-cream-300/60">
+            <p className="text-sm text-gray-500 dark:text-stone-400">
               {t('bank.currentBalance') || 'Current balance'}
             </p>
           </div>
         </div>
 
         {/* Cash Deposits Section */}
-        <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 grain-overlay mb-8 border border-plum-200/30 dark:border-plum-700/30">
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="bliss-elegant text-lg font-semibold text-plum-800 dark:text-cream-100">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
               {t('bank.cashDeposits') || 'Cash Deposits'}
             </h3>
             <button
               onClick={() => fetchDeposits()}
-              className="p-2 rounded-xl text-plum-600 dark:text-cream-300 hover:bg-plum-100 dark:hover:bg-plum-700 transition-colors"
+              className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -293,16 +293,16 @@ export default function BankPage() {
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Deposit */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 grain-overlay border border-plum-200/30 dark:border-plum-700/30">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-                <ArrowUpRight className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                <ArrowUpRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <h3 className="bliss-elegant font-semibold text-plum-800 dark:text-cream-100">
+                <h3 className="font-semibold text-gray-900 dark:text-stone-100">
                   {t('bank.deposit') || 'Deposit'}
                 </h3>
-                <p className="bliss-body text-sm text-plum-600/70 dark:text-cream-300/70">
+                <p className="text-sm text-gray-500 dark:text-stone-400">
                   {t('bank.depositDescription') || 'Add funds to your account'}
                 </p>
               </div>
@@ -310,30 +310,30 @@ export default function BankPage() {
             <button
               disabled={!isManager}
               onClick={() => setDepositModalOpen(true)}
-              className="bliss-body w-full px-4 py-2.5 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="w-full px-4 py-2.5 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {t('bank.recordDeposit') || 'Record Deposit'}
             </button>
           </div>
 
           {/* Withdrawal */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 grain-overlay border border-plum-200/30 dark:border-plum-700/30">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-red-100 dark:bg-red-900/30">
-                <ArrowDownRight className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-900/30">
+                <ArrowDownRight className="w-5 h-5 text-rose-600 dark:text-rose-400" />
               </div>
               <div>
-                <h3 className="bliss-elegant font-semibold text-plum-800 dark:text-cream-100">
+                <h3 className="font-semibold text-gray-900 dark:text-stone-100">
                   {t('bank.withdrawal') || 'Withdrawal'}
                 </h3>
-                <p className="bliss-body text-sm text-plum-600/70 dark:text-cream-300/70">
+                <p className="text-sm text-gray-500 dark:text-stone-400">
                   {t('bank.withdrawalDescription') || 'Remove funds from your account'}
                 </p>
               </div>
             </div>
             <button
               disabled={!isManager}
-              className="bliss-body w-full px-4 py-2.5 border-2 border-red-500 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="w-full px-4 py-2.5 border-2 border-rose-500 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {t('bank.recordWithdrawal') || 'Record Withdrawal'}
             </button>

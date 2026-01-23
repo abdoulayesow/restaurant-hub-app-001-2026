@@ -19,11 +19,11 @@ const AddEditSaleModal = dynamic(
 )
 const SalesTrendChart = dynamic(
   () => import('@/components/sales/SalesTrendChart').then(mod => ({ default: mod.SalesTrendChart })),
-  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-plum-100 dark:bg-plum-800 rounded-xl"></div> }
+  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-gray-200 dark:bg-stone-700 rounded-xl"></div> }
 )
 const PaymentMethodChart = dynamic(
   () => import('@/components/sales/PaymentMethodChart').then(mod => ({ default: mod.PaymentMethodChart })),
-  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-plum-100 dark:bg-plum-800 rounded-xl"></div> }
+  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-gray-200 dark:bg-stone-700 rounded-xl"></div> }
 )
 
 interface Sale {
@@ -235,12 +235,12 @@ export default function FinancesSalesPage() {
   // Loading state
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+      <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-plum-100 dark:bg-plum-800 rounded w-1/4"></div>
-            <div className="h-64 bg-plum-100 dark:bg-plum-800 rounded"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 dark:bg-stone-800 rounded"></div>
           </div>
         </main>
       </div>
@@ -248,17 +248,17 @@ export default function FinancesSalesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="bliss-display text-3xl font-bold text-plum-800 dark:text-cream-100">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {t('sales.title') || 'Sales'}
             </h1>
-            <p className="bliss-body text-plum-600/70 dark:text-plum-300/70 mt-1">
+            <p className="text-gray-600 dark:text-stone-400 mt-1">
               {currentRestaurant?.name || 'Loading...'}
             </p>
           </div>
@@ -268,7 +268,7 @@ export default function FinancesSalesPage() {
               setSelectedSale(null)
               setIsModalOpen(true)
             }}
-            className="btn-lift inline-flex items-center gap-2 px-5 py-2.5 bg-plum-700 text-cream-50 rounded-xl hover:bg-plum-800 transition-colors shadow-lg shadow-plum-900/20"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('sales.addSale') || 'Add Sale'}
@@ -283,19 +283,19 @@ export default function FinancesSalesPage() {
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           {/* Today's Sales */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-1">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10">
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
                 <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
                 {t('sales.todaysSales') || "Today's Sales"}
               </h3>
             </div>
-            <p className="bliss-display text-xl lg:text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(todaysTotal)}
             </p>
-            <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60">
+            <p className="text-xs text-gray-500 dark:text-stone-400">
               {todaysSales.length > 0
                 ? `${todaysSales.length} ${t('sales.recordsToday') || 'records today'}`
                 : (t('sales.noSalesYet') || 'No sales recorded yet')
@@ -304,20 +304,20 @@ export default function FinancesSalesPage() {
           </div>
 
           {/* Total Revenue */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-2">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 rounded-xl bg-plum-500/10 dark:bg-plum-400/10">
-                <Calendar className="w-5 h-5 text-plum-600 dark:text-plum-400" />
+              <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                <Calendar className="w-5 h-5 text-gray-700 dark:text-stone-300" />
               </div>
-              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
                 {t('sales.totalRevenue') || 'Total Revenue'}
               </h3>
             </div>
-            <p className="bliss-display text-xl lg:text-2xl font-bold text-plum-800 dark:text-cream-100 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(summary?.totalRevenue || 0)}
             </p>
             {summary && dateRange !== 'all' && summary.revenueChangePercent !== 0 ? (
-              <p className={`bliss-body text-xs flex items-center gap-1 ${
+              <p className={`text-xs flex items-center gap-1 ${
                 summary.revenueChangePercent > 0
                   ? 'text-emerald-600 dark:text-emerald-400'
                   : 'text-rose-600 dark:text-rose-400'
@@ -330,60 +330,60 @@ export default function FinancesSalesPage() {
                 {Math.abs(summary.revenueChangePercent)}% {t('sales.vsLastPeriod') || 'vs last period'}
               </p>
             ) : (
-              <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60">
+              <p className="text-xs text-gray-500 dark:text-stone-400">
                 {summary?.totalSales || 0} {t('sales.salesRecorded') || 'sales recorded'}
               </p>
             )}
           </div>
 
           {/* Pending Approvals */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-3">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 rounded-xl bg-mauve-500/10 dark:bg-mauve-400/10">
-                <Filter className="w-5 h-5 text-mauve-500 dark:text-mauve-400" />
+              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+                <Filter className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
                 {t('sales.pendingApprovals') || 'Pending Approvals'}
               </h3>
             </div>
-            <p className="bliss-display text-xl lg:text-2xl font-bold text-mauve-500 dark:text-mauve-400 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
               {summary?.pendingCount || 0}
             </p>
-            <p className="bliss-body text-xs text-plum-600/60 dark:text-plum-300/60">
+            <p className="text-xs text-gray-500 dark:text-stone-400">
               {t('sales.awaitingReview') || 'awaiting review'}
             </p>
           </div>
 
           {/* Payment Breakdown */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-5 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 bliss-card-stagger-4">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 rounded-xl bg-espresso-500/10 dark:bg-espresso-400/10">
-                <Wallet className="w-5 h-5 text-espresso-500 dark:text-espresso-400" />
+              <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                <Wallet className="w-5 h-5 text-gray-700 dark:text-stone-300" />
               </div>
-              <h3 className="bliss-elegant font-semibold text-sm text-plum-800 dark:text-cream-100">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
                 {t('sales.paymentBreakdown') || 'Payment Methods'}
               </h3>
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="bliss-body text-plum-700 dark:text-cream-200">{t('sales.cash') || 'Cash'}</span>
-                <span className="bliss-body font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="text-gray-700 dark:text-stone-300">{t('sales.cash') || 'Cash'}</span>
+                <span className="font-medium text-emerald-600 dark:text-emerald-400">
                   {summary && summary.totalRevenue > 0
                     ? `${Math.round((summary.totalCash / summary.totalRevenue) * 100)}%`
                     : '0%'}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="bliss-body text-plum-700 dark:text-cream-200">{t('sales.orangeMoney') || 'Orange'}</span>
-                <span className="bliss-body font-medium text-orange-600 dark:text-orange-400">
+                <span className="text-gray-700 dark:text-stone-300">{t('sales.orangeMoney') || 'Orange'}</span>
+                <span className="font-medium text-orange-600 dark:text-orange-400">
                   {summary && summary.totalRevenue > 0
                     ? `${Math.round((summary.totalOrangeMoney / summary.totalRevenue) * 100)}%`
                     : '0%'}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="bliss-body text-plum-700 dark:text-cream-200">{t('sales.card') || 'Card'}</span>
-                <span className="bliss-body font-medium text-plum-600 dark:text-plum-400">
+                <span className="text-gray-700 dark:text-stone-300">{t('sales.card') || 'Card'}</span>
+                <span className="font-medium text-gray-600 dark:text-stone-400">
                   {summary && summary.totalRevenue > 0
                     ? `${Math.round((summary.totalCard / summary.totalRevenue) * 100)}%`
                     : '0%'}
@@ -396,16 +396,16 @@ export default function FinancesSalesPage() {
         {/* Charts Section */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
           {/* Sales Trend Chart */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30">
-            <h3 className="bliss-elegant text-lg font-semibold text-plum-800 dark:text-cream-100 mb-4">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 mb-4">
               {t('sales.salesTrend') || 'Sales Trend'}
             </h3>
             <SalesTrendChart data={salesByDay} />
           </div>
 
           {/* Payment Method Distribution */}
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-6 diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30">
-            <h3 className="bliss-elegant text-lg font-semibold text-plum-800 dark:text-cream-100 mb-4">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 mb-4">
               {t('sales.paymentMethods') || 'Payment Methods'}
             </h3>
             <PaymentMethodChart
@@ -419,20 +419,20 @@ export default function FinancesSalesPage() {
         {/* Filters Row */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-plum-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('sales.searchPlaceholder') || 'Search sales...'}
-              className="bliss-body w-full pl-10 pr-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bliss-body px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100"
+            className="px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100"
           >
             <option value="">{t('sales.allSales') || 'All Sales'}</option>
             <option value="Pending">{t('common.pending') || 'Pending'}</option>
@@ -442,7 +442,7 @@ export default function FinancesSalesPage() {
 
           <button
             onClick={fetchSales}
-            className="p-2.5 rounded-xl border border-plum-200 dark:border-plum-700 text-plum-700 dark:text-plum-300 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors"
+            className="p-2.5 rounded-lg border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -460,12 +460,12 @@ export default function FinancesSalesPage() {
             loading={loading}
           />
         ) : (
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg p-12 text-center diagonal-stripes-bliss ornate-corners border border-plum-200/30 dark:border-plum-700/30 text-plum-700 dark:text-plum-300">
-            <TrendingUp className="w-16 h-16 mx-auto mb-4 text-plum-300 dark:text-plum-600" />
-            <h3 className="bliss-display text-lg font-medium text-plum-800 dark:text-cream-100 mb-2">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-12 text-center">
+            <TrendingUp className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-stone-600" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-stone-100 mb-2">
               {t('sales.noSales') || 'No Sales Recorded'}
             </h3>
-            <p className="bliss-body text-plum-600/60 dark:text-plum-300/60 mb-6 max-w-md mx-auto">
+            <p className="text-gray-500 dark:text-stone-400 mb-6 max-w-md mx-auto">
               {t('sales.noSalesDescription') || 'Record your first daily sale to start tracking revenue and payment methods.'}
             </p>
             <button
@@ -473,7 +473,7 @@ export default function FinancesSalesPage() {
                 setSelectedSale(null)
                 setIsModalOpen(true)
               }}
-              className="btn-lift inline-flex items-center gap-2 px-5 py-2.5 bg-plum-700 text-cream-50 rounded-xl hover:bg-plum-800 transition-colors shadow-lg shadow-plum-900/20"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
             >
               <Plus className="w-5 h-5" />
               {t('sales.addFirstSale') || 'Add First Sale'}

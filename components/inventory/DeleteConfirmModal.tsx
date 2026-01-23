@@ -46,7 +46,7 @@ export function DeleteConfirmModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-cream-50 dark:bg-dark-900 rounded-2xl warm-shadow-lg grain-overlay animate-fade-in-up overflow-hidden">
+      <div className="relative w-full max-w-md bg-white dark:bg-stone-900 rounded-xl shadow-xl animate-fade-in-up overflow-hidden">
         {/* Danger Header */}
         <div className="p-6 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800/50">
           <div className="flex items-center gap-4">
@@ -54,10 +54,7 @@ export function DeleteConfirmModal({
               <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
             <div className="flex-1">
-              <h3
-                className="text-xl font-semibold text-red-900 dark:text-red-100"
-                style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-              >
+              <h3 className="text-xl font-semibold text-red-900 dark:text-red-100">
                 {t('inventory.deleteItem') || 'Delete Item'}
               </h3>
               <p className="text-sm text-red-600 dark:text-red-300">
@@ -66,7 +63,7 @@ export function DeleteConfirmModal({
             </div>
             <button
               onClick={handleClose}
-              className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+              className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
             >
               <X className="w-5 h-5 text-red-600 dark:text-red-400" />
             </button>
@@ -76,17 +73,17 @@ export function DeleteConfirmModal({
         {/* Content */}
         <div className="p-6 space-y-5">
           {/* Item info */}
-          <div className="p-4 rounded-xl bg-cream-100 dark:bg-dark-800 border border-terracotta-200/30 dark:border-dark-600">
-            <p className="text-sm text-terracotta-600 dark:text-cream-300 mb-1">
+          <div className="p-4 rounded-lg bg-gray-50 dark:bg-stone-800 border border-gray-200 dark:border-stone-700">
+            <p className="text-sm text-gray-600 dark:text-stone-300 mb-1">
               {t('inventory.itemToDelete') || 'Item to delete:'}
             </p>
-            <p className="text-lg font-semibold text-terracotta-900 dark:text-cream-100">
+            <p className="text-lg font-semibold text-gray-900 dark:text-stone-100">
               {itemName}
             </p>
           </div>
 
           {/* Warning message */}
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+          <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
             <p className="text-sm text-amber-800 dark:text-amber-200">
               {t('inventory.deleteWarning') ||
                 'Deleting this item will remove all associated stock movements and history. This data cannot be recovered.'}
@@ -95,7 +92,7 @@ export function DeleteConfirmModal({
 
           {/* Confirmation input */}
           <div>
-            <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
               {t('common.typeToConfirm') || `Type "${itemName}" to confirm`}
             </label>
             <input
@@ -103,13 +100,13 @@ export function DeleteConfirmModal({
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               className="
-                w-full px-4 py-2.5 rounded-xl
+                w-full px-4 py-2.5 rounded-lg
                 border border-red-200 dark:border-red-900/50
-                bg-white dark:bg-dark-800
-                text-terracotta-900 dark:text-cream-100
+                bg-white dark:bg-stone-700
+                text-gray-900 dark:text-stone-100
                 focus:ring-2 focus:ring-red-500 focus:border-red-500
-                placeholder:text-terracotta-400 dark:placeholder:text-cream-500
-                transition-all duration-200
+                placeholder:text-gray-400 dark:placeholder:text-stone-500
+                transition-colors
               "
               placeholder={itemName}
             />
@@ -122,11 +119,11 @@ export function DeleteConfirmModal({
               onClick={handleClose}
               disabled={loading}
               className="
-                flex-1 px-4 py-2.5 rounded-xl
-                border border-terracotta-200 dark:border-dark-600
-                text-terracotta-700 dark:text-cream-300
-                hover:bg-cream-100 dark:hover:bg-dark-800
-                font-medium transition-colors duration-200
+                flex-1 px-4 py-2.5 rounded-lg
+                border border-gray-300 dark:border-stone-600
+                text-gray-700 dark:text-stone-300
+                hover:bg-gray-100 dark:hover:bg-stone-700
+                font-medium transition-colors
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
@@ -136,11 +133,11 @@ export function DeleteConfirmModal({
               onClick={handleConfirm}
               disabled={!canDelete || loading}
               className="
-                flex-1 px-4 py-2.5 rounded-xl
+                flex-1 px-4 py-2.5 rounded-lg
                 bg-red-600 text-white
                 hover:bg-red-700
                 disabled:opacity-50 disabled:cursor-not-allowed
-                font-medium transition-all duration-200
+                font-medium transition-colors
                 flex items-center justify-center gap-2
               "
             >

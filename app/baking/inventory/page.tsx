@@ -241,13 +241,13 @@ export default function BakingInventoryPage() {
   // Loading state
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+      <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-plum-200/50 dark:bg-plum-800 rounded-xl w-1/4"></div>
-            <div className="h-12 bg-plum-200/50 dark:bg-plum-800 rounded-xl"></div>
-            <div className="h-96 bg-plum-200/50 dark:bg-plum-800 rounded-2xl"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
+            <div className="h-12 bg-gray-200 dark:bg-stone-800 rounded-lg"></div>
+            <div className="h-96 bg-gray-200 dark:bg-stone-800 rounded-xl"></div>
           </div>
         </main>
       </div>
@@ -260,17 +260,17 @@ export default function BakingInventoryPage() {
   ).length
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="bliss-display text-3xl font-bold text-plum-800 dark:text-cream-100">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {t('inventory.title')}
             </h1>
-            <p className="bliss-body text-plum-600/70 dark:text-cream-300/70 mt-1">
+            <p className="text-gray-600 dark:text-stone-400 mt-1">
               {currentRestaurant?.name || 'Loading...'}
               {currentRestaurant?.location && ` - ${currentRestaurant.location}`}
             </p>
@@ -279,7 +279,7 @@ export default function BakingInventoryPage() {
           {isManager && (
             <button
               onClick={handleAddItem}
-              className="btn-lift inline-flex items-center gap-2 px-5 py-2.5 bg-plum-700 text-cream-50 rounded-xl hover:bg-plum-800 shadow-lg shadow-plum-900/20 font-medium transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
             >
               <Plus className="w-5 h-5" />
               {t('inventory.addItem')}
@@ -291,13 +291,13 @@ export default function BakingInventoryPage() {
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-plum-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('inventory.searchPlaceholder')}
-              className="bliss-body w-full pl-10 pr-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-500 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 transition-colors"
             />
           </div>
 
@@ -311,10 +311,10 @@ export default function BakingInventoryPage() {
           {/* Low Stock Toggle */}
           <button
             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-            className={`bliss-body inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all ${
               showLowStockOnly
                 ? 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-600'
-                : 'border-plum-200 dark:border-plum-700 text-plum-700 dark:text-cream-300 hover:bg-plum-50 dark:hover:bg-plum-800'
+                : 'border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700'
             }`}
           >
             <Package className="w-4 h-4" />
@@ -330,7 +330,7 @@ export default function BakingInventoryPage() {
           <button
             onClick={fetchItems}
             disabled={loading}
-            className="p-2.5 rounded-xl border border-plum-200 dark:border-plum-700 text-plum-700 dark:text-cream-300 hover:bg-plum-50 dark:hover:bg-plum-800 transition-all disabled:opacity-50"
+            className="p-2.5 rounded-lg border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 transition-all disabled:opacity-50"
             title={t('common.refresh')}
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -339,32 +339,32 @@ export default function BakingInventoryPage() {
 
         {/* Error State */}
         {error && (
-          <div className="bliss-body mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400">
+          <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-lg text-rose-700 dark:text-rose-400">
             {error}
           </div>
         )}
 
         {/* Inventory Table */}
         {loading && items.length === 0 ? (
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 p-12">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-12">
             <div className="flex flex-col items-center justify-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-plum-600 mb-4"></div>
-              <p className="bliss-body text-plum-600/60 dark:text-cream-300/60">{t('common.loading')}</p>
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-600 mb-4"></div>
+              <p className="text-gray-500 dark:text-stone-400">{t('common.loading')}</p>
             </div>
           </div>
         ) : items.length === 0 ? (
-          <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg diagonal-stripes-bliss border border-plum-200/30 dark:border-plum-700/30 p-12 text-center ornate-corners">
-            <Package className="w-16 h-16 mx-auto mb-4 text-plum-300 dark:text-plum-600" />
-            <h3 className="bliss-elegant text-xl font-medium text-plum-800 dark:text-cream-100 mb-2">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-12 text-center">
+            <Package className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-stone-600" />
+            <h3 className="text-xl font-medium text-gray-900 dark:text-stone-100 mb-2">
               {t('inventory.noItems')}
             </h3>
-            <p className="bliss-body text-plum-600/60 dark:text-cream-300/60 mb-6">
+            <p className="text-gray-500 dark:text-stone-400 mb-6">
               {t('inventory.noItemsDescription')}
             </p>
             {isManager && (
               <button
                 onClick={handleAddItem}
-                className="btn-lift inline-flex items-center gap-2 px-5 py-2.5 bg-plum-700 text-cream-50 rounded-xl hover:bg-plum-800 shadow-lg shadow-plum-900/20 font-medium transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
               >
                 <Plus className="w-5 h-5" />
                 {t('inventory.addItem')}

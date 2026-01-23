@@ -317,7 +317,7 @@ export function ProductionLogger({
       case 'low':
         return 'border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/20'
       default:
-        return 'border-terracotta-200/70 dark:border-dark-600 bg-cream-50/50 dark:bg-dark-800/50'
+        return 'border-gray-200 dark:border-stone-600 bg-gray-50/50 dark:bg-stone-800/50'
     }
   }
 
@@ -327,22 +327,19 @@ export function ProductionLogger({
       <div className="space-y-4">
         {/* Section Header with number indicator */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-terracotta-500 to-terracotta-600 text-white text-sm font-bold shadow-md shadow-terracotta-500/20">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
             1
           </div>
-          <h3
-            className="text-lg font-semibold text-terracotta-900 dark:text-cream-100"
-            style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-          >
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
             {t('production.productInfo') || 'Product Info'}
           </h3>
-          <div className="flex-1 h-px bg-gradient-to-r from-terracotta-200 to-transparent dark:from-terracotta-800" />
+          <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent dark:from-stone-700" />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           {/* Product Name */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-terracotta-500 dark:text-terracotta-400 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
               {t('production.productName') || 'Product Name'} <span className="text-red-500">*</span>
             </label>
             <input
@@ -351,23 +348,23 @@ export function ProductionLogger({
               onChange={(e) => setProductName(e.target.value)}
               placeholder={t('production.productNamePlaceholder') || 'e.g., Croissants'}
               className="
-                w-full px-4 py-3 rounded-xl
-                border-2 border-terracotta-200 dark:border-dark-600
-                bg-white dark:bg-dark-700
-                text-terracotta-900 dark:text-cream-100
-                focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
-                placeholder:text-terracotta-400/60 dark:placeholder:text-cream-500/60
+                w-full px-4 py-3 rounded-lg
+                border border-gray-300 dark:border-stone-600
+                bg-white dark:bg-stone-700
+                text-gray-900 dark:text-stone-100
+                focus:ring-2 focus:ring-gray-500 focus:border-gray-500
+                placeholder:text-gray-400 dark:placeholder:text-stone-500
                 transition-all duration-200
-                hover:border-terracotta-300 dark:hover:border-dark-500
+                hover:border-gray-400 dark:hover:border-stone-500
               "
             />
           </div>
 
           {/* Product Name (French) */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-terracotta-500 dark:text-terracotta-400 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
               {t('production.productNameFr') || 'French Name'}{' '}
-              <span className="text-terracotta-400/60 normal-case font-normal">({t('common.optional') || 'optional'})</span>
+              <span className="text-gray-400 dark:text-stone-500 normal-case font-normal">({t('common.optional') || 'optional'})</span>
             </label>
             <input
               type="text"
@@ -375,22 +372,22 @@ export function ProductionLogger({
               onChange={(e) => setProductNameFr(e.target.value)}
               placeholder={t('production.productNameFrPlaceholder') || 'e.g., Croissants'}
               className="
-                w-full px-4 py-3 rounded-xl
-                border-2 border-terracotta-200 dark:border-dark-600
-                bg-white dark:bg-dark-700
-                text-terracotta-900 dark:text-cream-100
-                focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
-                placeholder:text-terracotta-400/60 dark:placeholder:text-cream-500/60
+                w-full px-4 py-3 rounded-lg
+                border border-gray-300 dark:border-stone-600
+                bg-white dark:bg-stone-700
+                text-gray-900 dark:text-stone-100
+                focus:ring-2 focus:ring-gray-500 focus:border-gray-500
+                placeholder:text-gray-400 dark:placeholder:text-stone-500
                 transition-all duration-200
-                hover:border-terracotta-300 dark:hover:border-dark-500
+                hover:border-gray-400 dark:hover:border-stone-500
               "
             />
           </div>
         </div>
 
-        {/* Quantity - Enhanced with badge */}
+        {/* Quantity */}
         <div className="w-40">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-terracotta-500 dark:text-terracotta-400 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
             {t('production.quantity') || 'Quantity'} <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -400,16 +397,16 @@ export function ProductionLogger({
               onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
               min={1}
               className="
-                w-full px-4 py-3 pr-16 rounded-xl
-                border-2 border-terracotta-200 dark:border-dark-600
-                bg-white dark:bg-dark-700
-                text-terracotta-900 dark:text-cream-100 font-semibold text-lg
-                focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
+                w-full px-4 py-3 pr-16 rounded-lg
+                border border-gray-300 dark:border-stone-600
+                bg-white dark:bg-stone-700
+                text-gray-900 dark:text-stone-100 font-semibold text-lg
+                focus:ring-2 focus:ring-gray-500 focus:border-gray-500
                 transition-all duration-200
-                hover:border-terracotta-300 dark:hover:border-dark-500
+                hover:border-gray-400 dark:hover:border-stone-500
               "
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-terracotta-100 dark:bg-terracotta-900/30 text-xs font-medium text-terracotta-600 dark:text-terracotta-400">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-gray-100 dark:bg-stone-600 text-xs font-medium text-gray-600 dark:text-stone-300">
               {t('production.units') || 'units'}
             </span>
           </div>
@@ -420,29 +417,25 @@ export function ProductionLogger({
       <div className="space-y-4">
         {/* Section Header */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-terracotta-500 to-terracotta-600 text-white text-sm font-bold shadow-md shadow-terracotta-500/20">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
             2
           </div>
-          <h3
-            className="text-lg font-semibold text-terracotta-900 dark:text-cream-100"
-            style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-          >
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
             {t('production.ingredients') || 'Ingredients'}
           </h3>
-          <div className="flex-1 h-px bg-gradient-to-r from-terracotta-200 to-transparent dark:from-terracotta-800" />
+          <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent dark:from-stone-700" />
           <button
             onClick={addIngredient}
             disabled={loadingItems}
             className="
               inline-flex items-center gap-1.5 px-4 py-2
               text-sm font-semibold
-              text-terracotta-600 dark:text-terracotta-400
-              bg-terracotta-50 dark:bg-terracotta-900/20
-              hover:bg-terracotta-100 dark:hover:bg-terracotta-900/30
-              border border-terracotta-200 dark:border-terracotta-800
-              rounded-xl transition-all duration-200
-              hover:scale-105 active:scale-95
-              disabled:opacity-50 disabled:hover:scale-100
+              text-gray-700 dark:text-stone-300
+              bg-gray-100 dark:bg-stone-700
+              hover:bg-gray-200 dark:hover:bg-stone-600
+              border border-gray-300 dark:border-stone-600
+              rounded-lg transition-all duration-200
+              disabled:opacity-50
             "
           >
             <Plus className="w-4 h-4" />
@@ -452,20 +445,16 @@ export function ProductionLogger({
 
         {/* Ingredient Cards */}
         {ingredients.length === 0 ? (
-          /* Enhanced Empty State */
-          <div className="py-12 text-center rounded-2xl bg-gradient-to-b from-cream-100/50 to-cream-50 dark:from-dark-700/30 dark:to-dark-800/30 border-2 border-dashed border-terracotta-200 dark:border-dark-600">
-            {/* Decorative circles */}
-            <div className="relative w-20 h-20 mx-auto mb-4">
-              <div className="absolute inset-0 rounded-full bg-terracotta-100 dark:bg-terracotta-900/20 animate-pulse" />
-              <div className="absolute inset-2 rounded-full bg-cream-50 dark:bg-dark-800 flex items-center justify-center">
-                <Package className="w-8 h-8 text-terracotta-400" />
-              </div>
+          /* Empty State */
+          <div className="py-12 text-center rounded-xl bg-gray-50 dark:bg-stone-800/50 border-2 border-dashed border-gray-300 dark:border-stone-600">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-stone-700 flex items-center justify-center">
+              <Package className="w-8 h-8 text-gray-400 dark:text-stone-500" />
             </div>
 
-            <p className="text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+            <p className="text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
               {t('production.noIngredients') || 'No ingredients added yet'}
             </p>
-            <p className="text-xs text-terracotta-500 dark:text-cream-400 mb-5">
+            <p className="text-xs text-gray-500 dark:text-stone-400 mb-5">
               {t('production.addIngredientHint') || 'Start by adding your first ingredient'}
             </p>
 
@@ -474,11 +463,10 @@ export function ProductionLogger({
               disabled={loadingItems}
               className="
                 inline-flex items-center gap-2 px-5 py-2.5
-                bg-gradient-to-r from-terracotta-500 to-terracotta-600 text-white rounded-xl font-semibold
-                hover:from-terracotta-600 hover:to-terracotta-700
-                transition-all duration-300 hover:scale-105 active:scale-95
-                shadow-lg shadow-terracotta-500/25 hover:shadow-xl hover:shadow-terracotta-500/30
-                disabled:opacity-50 disabled:hover:scale-100
+                bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-semibold
+                hover:bg-gray-800 dark:hover:bg-gray-100
+                transition-all duration-300
+                disabled:opacity-50
               "
             >
               <Sparkles className="w-4 h-4" />
@@ -494,34 +482,32 @@ export function ProductionLogger({
                 <div
                   key={index}
                   className={`
-                    group relative p-5 rounded-2xl border-2 transition-all duration-300
+                    group relative p-5 rounded-xl border transition-all duration-300
                     ${getIngredientStatusClasses(availItem?.status)}
-                    hover:shadow-md hover:scale-[1.01]
-                    animate-fade-in-stagger
+                    hover:shadow-md
                   `}
-                  style={{ animationDelay: `${index * 75}ms` }}
                 >
                   {/* Ingredient Number Badge */}
-                  <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-terracotta-500 text-white text-xs font-bold flex items-center justify-center shadow-md">
+                  <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold flex items-center justify-center">
                     {index + 1}
                   </div>
 
                   {/* Ingredient Selector */}
                   <div className="mb-4">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-terracotta-500 dark:text-terracotta-400 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
                       {t('production.selectIngredient') || 'Ingredient'}
                     </label>
                     <select
                       value={ing.itemId}
                       onChange={(e) => handleItemSelect(index, e.target.value)}
                       className="
-                        w-full px-4 py-3 rounded-xl
-                        border-2 border-terracotta-200 dark:border-dark-600
-                        bg-white dark:bg-dark-700
-                        text-terracotta-900 dark:text-cream-100
-                        focus:ring-2 focus:ring-terracotta-500
+                        w-full px-4 py-3 rounded-lg
+                        border border-gray-300 dark:border-stone-600
+                        bg-white dark:bg-stone-700
+                        text-gray-900 dark:text-stone-100
+                        focus:ring-2 focus:ring-gray-500
                         transition-all duration-200
-                        hover:border-terracotta-300 dark:hover:border-dark-500
+                        hover:border-gray-400 dark:hover:border-stone-500
                         cursor-pointer
                       "
                     >
@@ -544,7 +530,7 @@ export function ProductionLogger({
                   {/* Quantity Row with Unit Badge */}
                   <div className="flex items-end gap-4">
                     <div className="flex-1 max-w-[200px]">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-terracotta-500 dark:text-terracotta-400 mb-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
                         {t('production.qty') || 'Quantity'}
                       </label>
                       <div className="relative">
@@ -559,17 +545,17 @@ export function ProductionLogger({
                           min={0}
                           step={0.1}
                           className="
-                            w-full pl-4 pr-16 py-3 rounded-xl
-                            border-2 border-terracotta-200 dark:border-dark-600
-                            bg-white dark:bg-dark-700
-                            text-terracotta-900 dark:text-cream-100 font-semibold
-                            focus:ring-2 focus:ring-terracotta-500
+                            w-full pl-4 pr-16 py-3 rounded-lg
+                            border border-gray-300 dark:border-stone-600
+                            bg-white dark:bg-stone-700
+                            text-gray-900 dark:text-stone-100 font-semibold
+                            focus:ring-2 focus:ring-gray-500
                             transition-all duration-200
-                            hover:border-terracotta-300 dark:hover:border-dark-500
+                            hover:border-gray-400 dark:hover:border-stone-500
                           "
                         />
                         {ing.unit && (
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-terracotta-100 dark:bg-terracotta-900/30 text-xs font-medium text-terracotta-600 dark:text-terracotta-400">
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-gray-100 dark:bg-stone-600 text-xs font-medium text-gray-600 dark:text-stone-300">
                             {ing.unit}
                           </span>
                         )}
@@ -580,12 +566,11 @@ export function ProductionLogger({
                     <button
                       onClick={() => removeIngredient(index)}
                       className="
-                        p-3 rounded-xl
+                        p-3 rounded-lg
                         bg-red-50 dark:bg-red-900/20 text-red-500
                         hover:bg-red-100 dark:hover:bg-red-900/40
                         transition-all duration-200
                         sm:opacity-0 sm:group-hover:opacity-100
-                        hover:scale-105 active:scale-95
                       "
                       aria-label={t('common.remove') || 'Remove'}
                     >
@@ -593,18 +578,18 @@ export function ProductionLogger({
                     </button>
                   </div>
 
-                  {/* Stock Preview - Enhanced */}
+                  {/* Stock Preview */}
                   {ing.itemId && availItem && (
-                    <div className="mt-4 pt-4 border-t border-dashed border-terracotta-200/50 dark:border-dark-600/50">
+                    <div className="mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-stone-600">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-terracotta-500 dark:text-terracotta-400">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-stone-400">
                           {t('production.stockPreview') || 'Stock Impact'}
                         </span>
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium text-terracotta-700 dark:text-cream-200">
+                          <span className="font-medium text-gray-700 dark:text-stone-200">
                             {availItem.currentStock.toFixed(1)}
                           </span>
-                          <ArrowRight className="w-4 h-4 text-terracotta-400" />
+                          <ArrowRight className="w-4 h-4 text-gray-400" />
                           <span
                             className={`font-bold px-2.5 py-1 rounded-lg ${
                               availItem.status === 'insufficient'
@@ -616,7 +601,7 @@ export function ProductionLogger({
                           >
                             {availItem.afterProduction.toFixed(1)}
                           </span>
-                          <span className="text-xs text-terracotta-500 dark:text-cream-400">
+                          <span className="text-xs text-gray-500 dark:text-stone-400">
                             {availItem.unit}
                           </span>
                         </div>
@@ -646,22 +631,19 @@ export function ProductionLogger({
       <div className="space-y-4">
         {/* Section Header */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-terracotta-400 to-terracotta-500 text-white text-sm font-bold shadow-md shadow-terracotta-500/20">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
             3
           </div>
-          <h3
-            className="text-lg font-semibold text-terracotta-900 dark:text-cream-100"
-            style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-          >
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
             {t('production.notes') || 'Notes'}
-            <span className="ml-2 text-sm font-normal text-terracotta-400">({t('common.optional') || 'optional'})</span>
+            <span className="ml-2 text-sm font-normal text-gray-400 dark:text-stone-500">({t('common.optional') || 'optional'})</span>
           </h3>
-          <div className="flex-1 h-px bg-gradient-to-r from-terracotta-200 to-transparent dark:from-terracotta-800" />
+          <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent dark:from-stone-700" />
         </div>
 
         <div className="relative">
           <div className="absolute left-4 top-4">
-            <FileText className="w-4 h-4 text-terracotta-300 dark:text-dark-600" />
+            <FileText className="w-4 h-4 text-gray-300 dark:text-stone-600" />
           </div>
           <textarea
             value={notes}
@@ -669,31 +651,28 @@ export function ProductionLogger({
             rows={3}
             placeholder={t('production.notesPlaceholder') || 'Any notes about this production...'}
             className="
-              w-full pl-11 pr-4 py-3 rounded-xl
-              border-2 border-terracotta-200 dark:border-dark-600
-              bg-white dark:bg-dark-700
-              text-terracotta-900 dark:text-cream-100
-              focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
-              placeholder:text-terracotta-400/60 dark:placeholder:text-cream-500/60
+              w-full pl-11 pr-4 py-3 rounded-lg
+              border border-gray-300 dark:border-stone-600
+              bg-white dark:bg-stone-700
+              text-gray-900 dark:text-stone-100
+              focus:ring-2 focus:ring-gray-500 focus:border-gray-500
+              placeholder:text-gray-400 dark:placeholder:text-stone-500
               resize-none transition-all duration-200
-              hover:border-terracotta-300 dark:hover:border-dark-500
+              hover:border-gray-400 dark:hover:border-stone-500
             "
           />
         </div>
       </div>
 
-      {/* Summary Section - Enhanced with gradient and visual weight */}
+      {/* Summary Section */}
       {ingredients.length > 0 && (
-        <div className="relative overflow-hidden p-6 rounded-2xl bg-gradient-to-br from-terracotta-500/15 via-terracotta-500/10 to-terracotta-400/5 dark:from-terracotta-500/20 dark:via-terracotta-500/10 dark:to-terracotta-400/5 border border-terracotta-500/20">
-          {/* Decorative blur accent */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-terracotta-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-
-          <div className="relative flex items-center justify-between">
+        <div className="p-6 rounded-xl bg-gray-50 dark:bg-stone-800/50 border border-gray-200 dark:border-stone-700">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-terracotta-600 dark:text-terracotta-400 mb-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-1">
                 {t('production.estimatedCost') || 'Estimated Cost'}
               </p>
-              <p className="text-sm text-terracotta-500 dark:text-cream-400">
+              <p className="text-sm text-gray-500 dark:text-stone-400">
                 {ingredients.length} {ingredients.length === 1 ? t('production.ingredient') || 'ingredient' : t('production.ingredients') || 'ingredients'}
               </p>
             </div>
@@ -701,15 +680,15 @@ export function ProductionLogger({
             <div className="text-right">
               {checkingAvailability ? (
                 <div className="flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin text-terracotta-500" />
-                  <span className="text-sm text-terracotta-500">{t('common.calculating') || 'Calculating...'}</span>
+                  <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                  <span className="text-sm text-gray-500">{t('common.calculating') || 'Calculating...'}</span>
                 </div>
               ) : (
                 <>
-                  <p className={`text-3xl font-bold text-terracotta-900 dark:text-cream-100 ${costAnimating ? 'animate-cost-pulse' : ''}`}>
+                  <p className={`text-3xl font-bold text-gray-900 dark:text-stone-100 ${costAnimating ? 'animate-cost-pulse' : ''}`}>
                     {formatCurrency(availability?.estimatedCostGNF || estimatedCost)}
                   </p>
-                  <p className="text-sm font-medium text-terracotta-500">GNF</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-stone-400">GNF</p>
                 </>
               )}
             </div>
@@ -729,20 +708,19 @@ export function ProductionLogger({
         </div>
       )}
 
-      {/* Action Buttons - Enhanced with primary dominance */}
+      {/* Action Buttons */}
       <div className="flex gap-3 pt-2">
         {onCancel && (
           <button
             onClick={onCancel}
             disabled={submitting}
             className="
-              px-6 py-3 rounded-xl
-              border-2 border-terracotta-200 dark:border-dark-600
-              text-terracotta-600 dark:text-cream-300 font-medium
-              hover:bg-cream-100 dark:hover:bg-dark-800
+              px-6 py-3 rounded-lg
+              border border-gray-300 dark:border-stone-600
+              text-gray-700 dark:text-stone-300 font-medium
+              hover:bg-gray-100 dark:hover:bg-stone-700
               transition-all duration-200
-              hover:scale-[1.02] active:scale-[0.98]
-              disabled:opacity-50 disabled:hover:scale-100
+              disabled:opacity-50
             "
           >
             {t('common.cancel') || 'Cancel'}
@@ -752,14 +730,11 @@ export function ProductionLogger({
           onClick={handleSubmit}
           disabled={submitting || (availability !== null && !availability.available)}
           className="
-            flex-1 px-6 py-3.5 rounded-xl font-semibold
-            bg-gradient-to-r from-terracotta-500 to-terracotta-600 text-white
-            hover:from-terracotta-600 hover:to-terracotta-700
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-terracotta-500 disabled:hover:to-terracotta-600
-            shadow-lg shadow-terracotta-500/25 hover:shadow-xl hover:shadow-terracotta-500/30
+            flex-1 px-6 py-3.5 rounded-lg font-semibold
+            bg-gray-900 dark:bg-white text-white dark:text-gray-900
+            hover:bg-gray-800 dark:hover:bg-gray-100
+            disabled:opacity-50 disabled:cursor-not-allowed
             transition-all duration-300
-            hover:scale-[1.02] active:scale-[0.98]
-            disabled:hover:scale-100
             inline-flex items-center justify-center gap-2
           "
         >

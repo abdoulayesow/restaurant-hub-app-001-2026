@@ -26,7 +26,7 @@ export function CategoryFilter({ value, onChange, className = '' }: CategoryFilt
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`bliss-body px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 transition-colors ${className}`}
+      className={`px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 transition-colors ${className}`}
     >
       <option value="">{t('common.all')}</option>
       {INVENTORY_CATEGORIES.map((category) => (

@@ -71,22 +71,22 @@ export default function SettingsPage() {
 
   if (status === 'loading' || !session || !isManager) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+      <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Loading skeleton */}
           <div className="animate-pulse space-y-6">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 bg-plum-200 dark:bg-plum-800 rounded-lg" />
-              <div className="h-8 bg-plum-200 dark:bg-plum-800 rounded-lg w-48" />
+              <div className="h-8 w-8 bg-gray-200 dark:bg-stone-800 rounded-lg" />
+              <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded-lg w-48" />
             </div>
-            <div className="h-5 bg-plum-200 dark:bg-plum-800 rounded w-72" />
+            <div className="h-5 bg-gray-200 dark:bg-stone-800 rounded w-72" />
             <div className="flex gap-2 mt-6">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-12 w-36 bg-plum-200 dark:bg-plum-800 rounded-xl" />
+                <div key={i} className="h-12 w-36 bg-gray-200 dark:bg-stone-800 rounded-lg" />
               ))}
             </div>
-            <div className="h-96 bg-plum-200 dark:bg-plum-800 rounded-2xl mt-6" />
+            <div className="h-96 bg-gray-200 dark:bg-stone-800 rounded-xl mt-6" />
           </div>
         </main>
       </div>
@@ -100,26 +100,21 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-plum-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="
-              w-10 h-10 rounded-xl
-              bg-gradient-to-br from-plum-500 to-plum-700
-              flex items-center justify-center
-              shadow-md shadow-plum-500/20
-            ">
-              <Settings className="w-5 h-5 text-cream-50" />
+            <div className="w-10 h-10 rounded-lg bg-gray-900 dark:bg-white flex items-center justify-center">
+              <Settings className="w-5 h-5 text-white dark:text-gray-900" />
             </div>
-            <h1 className="bliss-display text-3xl font-bold text-plum-800 dark:text-cream-100">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {t('settings.title') || (locale === 'fr' ? 'Paramètres' : 'Settings')}
             </h1>
           </div>
-          <p className="bliss-body text-plum-600 dark:text-cream-300 ml-[52px]">
+          <p className="text-gray-600 dark:text-stone-400 ml-[52px]">
             {t('settings.subtitle') || (locale === 'fr'
               ? 'Configurez les paramètres opérationnels de votre boulangerie'
               : 'Configure your bakery operational settings'
@@ -129,13 +124,7 @@ export default function SettingsPage() {
 
         {/* Tab Bar */}
         <div className="mb-8">
-          <div className="
-            inline-flex p-1.5 gap-1
-            bg-plum-100 dark:bg-plum-800
-            rounded-2xl
-            shadow-inner shadow-plum-900/5 dark:shadow-black/20
-            border border-plum-200/30 dark:border-plum-700/30
-          ">
+          <div className="inline-flex p-1 gap-1 bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-gray-200 dark:border-stone-700">
             {tabs.map((tab) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
@@ -144,36 +133,16 @@ export default function SettingsPage() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`
-                    bliss-body relative flex items-center gap-2.5 px-5 py-3
-                    rounded-xl font-medium text-sm
-                    transition-all duration-300 ease-out
-                    ${isActive
-                      ? 'bg-plum-700 text-cream-50 shadow-lg shadow-plum-700/30'
-                      : 'text-plum-700 dark:text-cream-200 hover:bg-plum-200/70 dark:hover:bg-plum-700/70'
-                    }
-                  `}
+                  className={`relative flex items-center gap-2.5 px-4 py-2.5 rounded-md font-medium text-sm transition-all ${
+                    isActive
+                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                      : 'text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700'
+                  }`}
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Active indicator glow */}
-                  {isActive && (
-                    <div className="
-                      absolute inset-0 rounded-xl
-                      bg-gradient-to-t from-plum-800/20 to-transparent
-                      pointer-events-none
-                    " />
-                  )}
-
-                  <Icon className={`
-                    w-4.5 h-4.5 relative z-10
-                    transition-transform duration-300
-                    ${isActive ? 'scale-110' : ''}
-                  `} />
-
-                  <span className="relative z-10 hidden sm:inline">
-                    {getTabLabel(tab)}
-                  </span>
+                  <Icon className={`w-4 h-4 ${isActive ? 'scale-110' : ''} transition-transform`} />
+                  <span className="hidden sm:inline">{getTabLabel(tab)}</span>
                 </button>
               )
             })}

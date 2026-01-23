@@ -29,7 +29,6 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { BlissLogoNav, blissPalettes } from '@/components/brand/BlissLogo'
-import { colorPalettes } from '@/components/brand/Logo'
 import { FloatingActionPicker, type FloatingActionItem } from '@/components/ui/FloatingActionPicker'
 import { useFilteredNavigation } from '@/hooks/useFilteredNavigation'
 import { getRestaurantTypeIcon } from '@/config/restaurantTypes'
@@ -128,6 +127,10 @@ export function NavigationHeader() {
   const accentColor = blissPalettes[currentBlissPalette].primary
   const isManager = session?.user?.role === 'Manager'
 
+  // Theme-aware button color for floating pickers
+  // Light mode: gray-900 (#111827), Dark mode: stone-600 (#57534e)
+  const navButtonColor = theme === 'dark' ? '#57534e' : '#111827'
+
   // Filter navigation based on restaurant's enabled features
   const filteredNavigationItems = useFilteredNavigation(navigationItems)
 
@@ -169,7 +172,7 @@ export function NavigationHeader() {
       sublabel: restaurant.location || undefined,
       color: restaurant.id === currentRestaurant?.id
         ? accentColor
-        : colorPalettes.terracotta.primary, // All unselected use terracotta
+        : navButtonColor, // Use theme-aware color for unselected
       icon: <TypeIcon className="w-5 h-5" strokeWidth={2.5} />,
       isActive: restaurant.id === currentRestaurant?.id
     }
@@ -179,9 +182,9 @@ export function NavigationHeader() {
     <>
       <header className="
         sticky top-0 z-40
-        bg-cream-50/95 dark:bg-plum-900/95 backdrop-blur-md
-        border-b border-plum-200/40 dark:border-plum-700/30
-        diagonal-stripes-bliss
+        bg-[rgb(223,216,227)] dark:bg-stone-800
+        border-b border-gray-200 dark:border-stone-700/40
+        dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]
       ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -192,7 +195,7 @@ export function NavigationHeader() {
               className="
                 flex items-center gap-3
                 p-2 -ml-2 rounded-2xl
-                hover:bg-plum-50 dark:hover:bg-plum-800/50
+                hover:bg-gray-200 dark:hover:bg-stone-700/50
                 transition-all duration-300
                 group
               "
@@ -203,12 +206,12 @@ export function NavigationHeader() {
 
               {/* Restaurant name indicator */}
               {currentRestaurant && (
-                <div className="hidden sm:flex items-center gap-1.5 ml-2 pl-3 border-l border-plum-200/30 dark:border-plum-700/30">
+                <div className="hidden sm:flex items-center gap-1.5 ml-2 pl-3 border-l border-gray-300 dark:border-stone-600/50">
                   <span
                     className="w-2 h-2 rounded-full inline-block animate-pulse"
                     style={{ backgroundColor: accentColor }}
                   />
-                  <span className="text-xs bliss-body text-plum-600 dark:text-plum-300">
+                  <span className="text-xs font-medium text-gray-600 dark:text-stone-300">
                     {currentRestaurant.name}
                   </span>
                 </div>
@@ -230,15 +233,13 @@ export function NavigationHeader() {
                     className={`
                       flex items-center justify-center gap-2
                       min-w-[130px] px-4 py-2.5 rounded-full
-                      bliss-body font-medium text-sm tracking-wide
+                      font-medium text-sm
                       transition-all duration-300 ease-out
-                      btn-lift
                       ${hasActiveSubItem
-                        ? 'text-cream-50 shadow-plum'
-                        : 'bg-plum-50 dark:bg-plum-800/50 text-plum-700 dark:text-cream-100 hover:bg-plum-100 dark:hover:bg-plum-700/50'
+                        ? 'bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 shadow-sm'
+                        : 'text-gray-600 dark:text-stone-400 hover:text-gray-900 dark:hover:text-stone-200 hover:bg-gray-200 dark:hover:bg-stone-700/50'
                       }
                     `}
-                    style={hasActiveSubItem ? { backgroundColor: accentColor } : undefined}
                   >
                     <Icon className="w-4 h-4" strokeWidth={2.5} />
                     <span>{locale === 'fr' ? item.labelFr : item.label}</span>
@@ -256,10 +257,10 @@ export function NavigationHeader() {
                 className="
                   hidden sm:flex items-center justify-center
                   w-10 h-10 rounded-full
-                  bliss-body text-xs font-bold tracking-wider
-                  bg-plum-50 dark:bg-plum-800/50
-                  text-plum-700 dark:text-cream-100
-                  hover:bg-plum-100 dark:hover:bg-plum-700/50
+                  text-xs font-bold tracking-wider
+                  text-gray-600 dark:text-stone-400
+                  hover:text-gray-900 dark:hover:text-stone-200
+                  hover:bg-gray-200 dark:hover:bg-stone-700/50
                   transition-all duration-300
                 "
                 aria-label={locale === 'fr' ? 'Switch to English' : 'Passer en français'}
@@ -272,8 +273,9 @@ export function NavigationHeader() {
                 onClick={toggleTheme}
                 className="
                   w-10 h-10 flex items-center justify-center rounded-full
-                  bg-plum-50 dark:bg-plum-800/50
-                  hover:bg-plum-100 dark:hover:bg-plum-700/50
+                  text-gray-600 dark:text-stone-400
+                  hover:text-gray-900 dark:hover:text-stone-200
+                  hover:bg-gray-200 dark:hover:bg-stone-700/50
                   transition-all duration-300
                 "
                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -281,7 +283,7 @@ export function NavigationHeader() {
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5 text-amber-400" />
                 ) : (
-                  <Moon className="w-5 h-5 text-plum-600" />
+                  <Moon className="w-5 h-5 text-gray-600" />
                 )}
               </button>
 
@@ -291,8 +293,8 @@ export function NavigationHeader() {
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className="
                     flex items-center gap-2 px-3 py-2 rounded-full
-                    bg-plum-50 dark:bg-plum-800/50
-                    hover:bg-plum-100 dark:hover:bg-plum-700/50
+                    bg-white dark:bg-stone-700
+                    shadow-sm hover:shadow
                     transition-all duration-300
                   "
                   aria-expanded={userDropdownOpen}
@@ -304,38 +306,38 @@ export function NavigationHeader() {
                       alt=""
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full ring-2 ring-plum-200 dark:ring-plum-600"
+                      className="w-8 h-8 rounded-full ring-2 ring-gray-200 dark:ring-stone-600"
                     />
                   ) : (
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center"
                       style={{ backgroundColor: accentColor }}
                     >
-                      <User className="w-4 h-4 text-cream-50" />
+                      <User className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <span className="hidden sm:block bliss-body text-sm font-medium text-plum-800 dark:text-cream-100 max-w-[100px] truncate">
+                  <span className="hidden sm:block text-sm font-medium text-gray-900 dark:text-stone-100 max-w-[100px] truncate">
                     {session?.user?.name?.split(' ')[0] || 'User'}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-plum-500/60 dark:text-plum-300/60" />
+                  <ChevronDown className="w-4 h-4 text-gray-500 dark:text-stone-400" />
                 </button>
 
                 {/* User Dropdown Menu */}
                 {userDropdownOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-60 bg-cream-50 dark:bg-plum-900 rounded-2xl shadow-plum-lg border border-plum-200/40 dark:border-plum-700/30 overflow-hidden z-50 animate-fade-in-up"
+                    className="absolute right-0 mt-2 w-60 bg-white dark:bg-stone-800 rounded-xl shadow-lg border border-gray-200 dark:border-stone-700/50 overflow-hidden z-50"
                     role="menu"
                   >
                     {/* User info header */}
-                    <div className="px-4 py-3 border-b border-plum-200/30 dark:border-plum-700/20 bg-plum-50/50 dark:bg-plum-800/50 diagonal-stripes-bliss">
-                      <p className="bliss-elegant text-sm font-semibold text-plum-800 dark:text-cream-100 truncate">
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-stone-700/50 bg-gray-50 dark:bg-stone-700/50">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-stone-100 truncate">
                         {session?.user?.name}
                       </p>
-                      <p className="bliss-body text-xs text-plum-600/70 dark:text-plum-300/70 truncate mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-stone-400 truncate mt-0.5">
                         {session?.user?.email}
                       </p>
                       <span
-                        className="inline-block mt-2 px-2.5 py-0.5 bliss-label text-[10px] rounded-full text-cream-50"
+                        className="inline-block mt-2 px-2.5 py-0.5 text-[10px] font-medium rounded-full text-white"
                         style={{ backgroundColor: accentColor }}
                       >
                         {session?.user?.role}
@@ -347,30 +349,30 @@ export function NavigationHeader() {
                       <Link
                         href="/profile"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center space-x-3 px-4 py-2.5 bliss-body text-sm text-plum-700 dark:text-cream-200 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors"
+                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 dark:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                         role="menuitem"
                       >
-                        <User className="w-4 h-4 text-plum-500 dark:text-plum-400" />
+                        <User className="w-4 h-4 text-gray-500 dark:text-stone-400" />
                         <span>{t('common.profile')}</span>
                       </Link>
                       {isManager && (
                         <Link
                           href="/settings"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center space-x-3 px-4 py-2.5 bliss-body text-sm text-plum-700 dark:text-cream-200 hover:bg-plum-50 dark:hover:bg-plum-800 transition-colors"
+                          className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 dark:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                           role="menuitem"
                         >
-                          <Settings className="w-4 h-4 text-plum-500 dark:text-plum-400" />
+                          <Settings className="w-4 h-4 text-gray-500 dark:text-stone-400" />
                           <span>{t('common.settings')}</span>
                         </Link>
                       )}
                     </div>
 
                     {/* Logout */}
-                    <div className="border-t border-plum-200/30 dark:border-plum-700/20 py-1">
+                    <div className="border-t border-gray-100 dark:border-stone-700/50 py-1">
                       <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
-                        className="w-full flex items-center space-x-3 px-4 py-2.5 bliss-body text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                        className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
                         role="menuitem"
                       >
                         <LogOut className="w-4 h-4" />
@@ -387,17 +389,18 @@ export function NavigationHeader() {
                 className="
                   lg:hidden
                   w-10 h-10 flex items-center justify-center rounded-full
-                  bg-plum-50 dark:bg-plum-800/50
-                  hover:bg-plum-100 dark:hover:bg-plum-700/50
+                  text-gray-600 dark:text-stone-400
+                  hover:text-gray-900 dark:hover:text-stone-200
+                  hover:bg-gray-200 dark:hover:bg-stone-700/50
                   transition-all duration-300
                 "
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? (
-                  <X className="w-5 h-5 text-plum-800 dark:text-cream-100" />
+                  <X className="w-5 h-5 text-gray-900 dark:text-stone-100" />
                 ) : (
-                  <Menu className="w-5 h-5 text-plum-800 dark:text-cream-100" />
+                  <Menu className="w-5 h-5 text-gray-600 dark:text-stone-400" />
                 )}
               </button>
             </div>
@@ -405,7 +408,7 @@ export function NavigationHeader() {
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <nav className="lg:hidden py-4 border-t border-plum-200/30 dark:border-plum-700/20 animate-fade-in-up" aria-label="Mobile navigation">
+            <nav className="lg:hidden py-4 border-t border-gray-200 dark:border-stone-700/50" aria-label="Mobile navigation">
               {filteredNavigationItems.map(item => {
                 const Icon = item.icon
                 const hasActiveSubItem = item.subItems.some(sub => sub.id === activeSubItemId)
@@ -415,13 +418,12 @@ export function NavigationHeader() {
                     <div
                       className={`
                         flex items-center gap-3 px-4 py-2 rounded-xl
-                        bliss-label text-sm
+                        text-sm font-medium
                         ${hasActiveSubItem
-                          ? 'text-cream-50'
-                          : 'text-plum-500 dark:text-plum-400'
+                          ? 'bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 shadow-sm'
+                          : 'text-gray-500 dark:text-stone-400'
                         }
                       `}
-                      style={hasActiveSubItem ? { backgroundColor: accentColor } : undefined}
                     >
                       <Icon className="w-4 h-4" />
                       {locale === 'fr' ? item.labelFr : item.label}
@@ -437,10 +439,10 @@ export function NavigationHeader() {
                             href={subItem.href}
                             className={`
                               flex items-center gap-3 px-4 py-3 rounded-xl
-                              bliss-body text-sm font-medium
+                              text-sm font-medium
                               ${isSubActive
-                                ? 'bg-plum-100 dark:bg-plum-800 text-plum-800 dark:text-cream-100'
-                                : 'text-plum-700 dark:text-cream-200 hover:bg-plum-50 dark:hover:bg-plum-800/50'
+                                ? 'bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 shadow-sm'
+                                : 'text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-700/50'
                               }
                             `}
                           >
@@ -455,10 +457,10 @@ export function NavigationHeader() {
               })}
 
               {/* Mobile language toggle */}
-              <div className="mt-4 pt-4 border-t border-plum-200/30 dark:border-plum-700/20">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-stone-700/50">
                 <button
                   onClick={() => setLocale(locale === 'fr' ? 'en' : 'fr')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-plum-50 dark:bg-plum-800/50 text-plum-800 dark:text-cream-100 bliss-body font-medium"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 font-medium shadow-sm"
                 >
                   {locale === 'fr' ? 'Switch to English' : 'Passer en fran\u00e7ais'}
                 </button>
@@ -482,7 +484,7 @@ export function NavigationHeader() {
         const navItems: FloatingActionItem[] = item.subItems.map(subItem => ({
           id: subItem.id,
           label: locale === 'fr' ? subItem.labelFr : subItem.label,
-          color: activeSubItemId === subItem.id ? accentColor : colorPalettes.terracotta.primary,
+          color: activeSubItemId === subItem.id ? accentColor : navButtonColor,
           icon: React.createElement(subItem.icon, { className: 'w-4 h-4', strokeWidth: 2.5 }),
           isActive: activeSubItemId === subItem.id
         }))

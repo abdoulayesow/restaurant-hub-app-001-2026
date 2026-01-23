@@ -261,8 +261,8 @@ export default function DebtsPage() {
 
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-cream-50 dark:bg-plum-900">
-        <div className="w-8 h-8 border-4 border-plum-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-stone-900">
+        <div className="w-8 h-8 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
@@ -272,137 +272,114 @@ export default function DebtsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-plum-50/30 dark:from-plum-950 dark:via-plum-900 dark:to-plum-800">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Header Section with Bliss Typography */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-12 bg-gradient-to-b from-plum-500 to-plum-600 rounded-full"></div>
-            <div>
-              <h1 className="bliss-display text-4xl font-bold text-plum-800 dark:text-cream-50 tracking-tight">
-                {locale === 'fr' ? 'Gestion des Crédits' : 'Credit Management'}
-              </h1>
-              <p className="bliss-body text-sm text-plum-600/70 dark:text-cream-400/70 mt-1 tracking-wide uppercase" style={{ letterSpacing: '0.1em' }}>
-                {locale === 'fr' ? 'Suivi et recouvrement' : 'Tracking & Collection'}
-              </p>
-            </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
+              {locale === 'fr' ? 'Gestion des Crédits' : 'Credit Management'}
+            </h1>
+            <p className="text-gray-600 dark:text-stone-400 mt-1">
+              {locale === 'fr' ? 'Suivi et recouvrement' : 'Tracking & Collection'}
+            </p>
           </div>
         </div>
 
-        {/* Summary Cards - Bliss Grid */}
+        {/* Summary Cards */}
         {summary && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Total Outstanding */}
-            <div className="group relative bg-cream-50 dark:bg-plum-800 rounded-2xl p-6 warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/10 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover:opacity-100 opacity-60"></div>
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-xl">
-                    <DollarSign className="w-6 h-6 text-amber-600 dark:text-amber-400" strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <p className="bliss-body text-xs font-semibold text-amber-600/60 dark:text-amber-400/60 uppercase tracking-wider mb-1">
-                      {locale === 'fr' ? 'Total Dû' : 'Total Outstanding'}
-                    </p>
-                    <p className="bliss-body text-2xl font-bold text-amber-700 dark:text-amber-400 tracking-tight">
-                      {formatCurrency(summary.totalOutstanding)}
-                    </p>
-                  </div>
+            <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+                  <DollarSign className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
-                <div className="bliss-body flex items-center gap-2 text-xs text-plum-600 dark:text-cream-400">
-                  <Users className="w-3.5 h-3.5" />
-                  <span>{summary.customersWithDebt} {locale === 'fr' ? 'clients' : 'customers'}</span>
-                </div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
+                  {locale === 'fr' ? 'Total Dû' : 'Total Outstanding'}
+                </h3>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">
+                {formatCurrency(summary.totalOutstanding)}
+              </p>
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
+                <Users className="w-3.5 h-3.5" />
+                <span>{summary.customersWithDebt} {locale === 'fr' ? 'clients' : 'customers'}</span>
               </div>
             </div>
 
             {/* Overdue Debts */}
-            <div className="group relative bg-cream-50 dark:bg-plum-800 rounded-2xl p-6 warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover:opacity-100 opacity-60"></div>
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl">
-                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <p className="bliss-body text-xs font-semibold text-red-600/60 dark:text-red-400/60 uppercase tracking-wider mb-1">
-                      {locale === 'fr' ? 'En Retard' : 'Overdue'}
-                    </p>
-                    <p className="bliss-body text-2xl font-bold text-red-700 dark:text-red-400 tracking-tight">
-                      {formatCurrency(summary.totalOverdue)}
-                    </p>
-                  </div>
+            <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-900/30">
+                  <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                 </div>
-                <div className="bliss-body flex items-center gap-2 text-xs text-plum-600 dark:text-cream-400">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{summary.overdueCount} {locale === 'fr' ? 'dettes' : 'debts'}</span>
-                </div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
+                  {locale === 'fr' ? 'En Retard' : 'Overdue'}
+                </h3>
+              </div>
+              <p className="text-2xl font-bold text-rose-600 dark:text-rose-400 mb-2">
+                {formatCurrency(summary.totalOverdue)}
+              </p>
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
+                <Clock className="w-3.5 h-3.5" />
+                <span>{summary.overdueCount} {locale === 'fr' ? 'dettes' : 'debts'}</span>
               </div>
             </div>
 
             {/* Fully Paid */}
-            <div className="group relative bg-cream-50 dark:bg-plum-800 rounded-2xl p-6 warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover:opacity-100 opacity-60"></div>
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl">
-                    <TrendingDown className="w-6 h-6 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <p className="bliss-body text-xs font-semibold text-emerald-600/60 dark:text-emerald-400/60 uppercase tracking-wider mb-1">
-                      {locale === 'fr' ? 'Payé' : 'Fully Paid'}
-                    </p>
-                    <p className="bliss-body text-2xl font-bold text-emerald-700 dark:text-emerald-400 tracking-tight">
-                      {summary.fullyPaidCount}
-                    </p>
-                  </div>
+            <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                  <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <div className="bliss-body flex items-center gap-2 text-xs text-plum-600 dark:text-cream-400">
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{locale === 'fr' ? 'dettes soldées' : 'debts cleared'}</span>
-                </div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
+                  {locale === 'fr' ? 'Payé' : 'Fully Paid'}
+                </h3>
+              </div>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+                {summary.fullyPaidCount}
+              </p>
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
+                <FileText className="w-3.5 h-3.5" />
+                <span>{locale === 'fr' ? 'dettes soldées' : 'debts cleared'}</span>
               </div>
             </div>
 
             {/* Written Off */}
-            <div className="group relative bg-cream-50 dark:bg-plum-800 rounded-2xl p-6 warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-plum-500/10 to-transparent rounded-full blur-2xl transition-opacity duration-500 group-hover:opacity-100 opacity-60"></div>
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-plum-50 to-plum-100 dark:from-plum-900/40 dark:to-plum-800/40 rounded-xl">
-                    <TrendingDown className="w-6 h-6 text-plum-600 dark:text-plum-400" strokeWidth={2.5} />
-                  </div>
-                  <div className="text-right">
-                    <p className="bliss-body text-xs font-semibold text-plum-600/60 dark:text-plum-400/60 uppercase tracking-wider mb-1">
-                      {locale === 'fr' ? 'Irrécouvrable' : 'Written Off'}
-                    </p>
-                    <p className="bliss-body text-2xl font-bold text-plum-700 dark:text-plum-400 tracking-tight">
-                      {formatCurrency(summary.writtenOffTotal)}
-                    </p>
-                  </div>
+            <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                  <TrendingDown className="w-5 h-5 text-gray-600 dark:text-stone-400" />
                 </div>
-                <div className="bliss-body flex items-center gap-2 text-xs text-plum-600 dark:text-cream-400">
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{locale === 'fr' ? 'créances perdues' : 'bad debt'}</span>
-                </div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
+                  {locale === 'fr' ? 'Irrécouvrable' : 'Written Off'}
+                </h3>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">
+                {formatCurrency(summary.writtenOffTotal)}
+              </p>
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
+                <FileText className="w-3.5 h-3.5" />
+                <span>{locale === 'fr' ? 'créances perdues' : 'bad debt'}</span>
               </div>
             </div>
           </div>
         )}
 
         {/* Filters & Actions Section */}
-        <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl p-6 warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30">
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
           {/* Create Debt Button - Manager Only */}
           {isManager && (
             <div className="mb-4">
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="btn-lift px-5 py-3 bg-plum-700 hover:bg-plum-800 text-cream-50 rounded-xl transition-all duration-300 hover:shadow-lg shadow-lg shadow-plum-900/20 flex items-center gap-2 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                <span className="bliss-body">{locale === 'fr' ? 'Créer une Dette' : 'Create Debt'}</span>
+                <span>{locale === 'fr' ? 'Créer une Dette' : 'Create Debt'}</span>
               </button>
             </div>
           )}
@@ -411,13 +388,13 @@ export default function DebtsPage() {
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-plum-400 dark:text-plum-500" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder={locale === 'fr' ? 'Rechercher par client, téléphone, email...' : 'Search by customer, phone, email...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bliss-body w-full pl-12 pr-4 py-3 bg-plum-50/50 dark:bg-plum-900/50 border border-plum-200/50 dark:border-plum-700/40 rounded-xl text-plum-900 dark:text-cream-100 placeholder:text-plum-400/60 focus:outline-none focus:ring-2 focus:ring-plum-500/50 focus:border-plum-500 transition-all"
+                  className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-stone-700 border border-gray-300 dark:border-stone-600 rounded-lg text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
                 />
               </div>
             </div>
@@ -426,7 +403,7 @@ export default function DebtsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bliss-body px-4 py-3 bg-plum-50/50 dark:bg-plum-900/50 border border-plum-200/50 dark:border-plum-700/40 rounded-xl text-plum-900 dark:text-cream-100 focus:outline-none focus:ring-2 focus:ring-plum-500/50 focus:border-plum-500 transition-all"
+              className="px-4 py-2.5 bg-white dark:bg-stone-700 border border-gray-300 dark:border-stone-600 rounded-lg text-gray-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
             >
               <option value="all">{locale === 'fr' ? 'Tous les statuts' : 'All Statuses'}</option>
               <option value="active">{locale === 'fr' ? 'Actifs' : 'Active'}</option>
@@ -438,14 +415,14 @@ export default function DebtsPage() {
             </select>
 
             {/* Overdue Toggle */}
-            <label className="bliss-body flex items-center gap-3 px-4 py-3 bg-plum-50/50 dark:bg-plum-900/50 border border-plum-200/50 dark:border-plum-700/40 rounded-xl cursor-pointer hover:bg-plum-100/50 dark:hover:bg-plum-700/50 transition-all">
+            <label className="flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-stone-700 border border-gray-300 dark:border-stone-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-stone-600 transition-all">
               <input
                 type="checkbox"
                 checked={showOverdueOnly}
                 onChange={(e) => setShowOverdueOnly(e.target.checked)}
-                className="w-4 h-4 rounded text-plum-600 focus:ring-plum-500 border-plum-300 dark:border-plum-600"
+                className="w-4 h-4 rounded text-gray-600 focus:ring-gray-500 border-gray-300 dark:border-stone-600"
               />
-              <span className="text-sm font-medium text-plum-800 dark:text-cream-100">
+              <span className="text-sm font-medium text-gray-900 dark:text-stone-100">
                 {locale === 'fr' ? 'En retard uniquement' : 'Overdue Only'}
               </span>
             </label>
@@ -454,16 +431,15 @@ export default function DebtsPage() {
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="bliss-body px-4 py-3 bg-plum-700 hover:bg-plum-800 disabled:bg-plum-400 text-cream-50 rounded-xl transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+              className="p-2.5 rounded-lg border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 disabled:opacity-50 transition-colors"
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{locale === 'fr' ? 'Actualiser' : 'Refresh'}</span>
             </button>
           </div>
         </div>
 
         {/* Debts Table */}
-        <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 overflow-hidden">
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 overflow-hidden">
           <DebtsTable
             debts={filteredDebts}
             onViewDetails={handleViewDetails}

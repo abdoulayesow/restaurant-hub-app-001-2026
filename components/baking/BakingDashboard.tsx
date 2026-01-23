@@ -137,51 +137,51 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
       {/* Summary Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Today's Production */}
-        <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2.5 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
-              <ChefHat className="w-5 h-5 text-terracotta-500 dark:text-terracotta-400" />
+            <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+              <ChefHat className="w-5 h-5 text-gray-700 dark:text-stone-300" />
             </div>
-            <span className="text-sm text-terracotta-600/80 dark:text-cream-300/80">
+            <span className="text-sm text-gray-600 dark:text-stone-400">
               {t('production.todaysProduction') || "Today's Production"}
             </span>
           </div>
-          <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">
             {loading ? '...' : todaysProductionCount}
           </p>
-          <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+          <p className="text-xs text-gray-500 dark:text-stone-400">
             {t('production.itemsLogged') || 'items logged'} • {todaysTotalQuantity}{' '}
             {t('production.totalUnits') || 'total units'}
           </p>
         </div>
 
         {/* Ingredient Status */}
-        <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5">
           <div className="flex items-center gap-3 mb-3">
             <div
-              className={`p-2.5 rounded-xl ${
+              className={`p-2.5 rounded-lg ${
                 criticalCount > 0
-                  ? 'bg-red-500/10 dark:bg-red-400/10'
+                  ? 'bg-red-50 dark:bg-red-900/30'
                   : lowCount > 0
-                    ? 'bg-amber-500/10 dark:bg-amber-400/10'
-                    : 'bg-green-500/10 dark:bg-green-400/10'
+                    ? 'bg-amber-50 dark:bg-amber-900/30'
+                    : 'bg-green-50 dark:bg-green-900/30'
               }`}
             >
               <Package
                 className={`w-5 h-5 ${
                   criticalCount > 0
-                    ? 'text-red-500 dark:text-red-400'
+                    ? 'text-red-600 dark:text-red-400'
                     : lowCount > 0
-                      ? 'text-amber-500 dark:text-amber-400'
-                      : 'text-green-500 dark:text-green-400'
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-green-600 dark:text-green-400'
                 }`}
               />
             </div>
-            <span className="text-sm text-terracotta-600/80 dark:text-cream-300/80">
+            <span className="text-sm text-gray-600 dark:text-stone-400">
               {t('production.ingredientStatus') || 'Ingredient Status'}
             </span>
           </div>
-          <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">
             {loading ? '...' : criticalCount + lowCount === 0 ? (
               <span className="text-green-600 dark:text-green-400">
                 {t('production.allGood') || 'All Good'}
@@ -190,7 +190,7 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
               criticalCount + lowCount
             )}
           </p>
-          <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+          <p className="text-xs text-gray-500 dark:text-stone-400">
             {criticalCount > 0 && (
               <span className="text-red-600 dark:text-red-400">
                 {criticalCount} {t('production.critical') || 'critical'}
@@ -209,19 +209,19 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
         </div>
 
         {/* Estimated Cost */}
-        <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-5 grain-overlay">
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2.5 rounded-xl bg-green-500/10 dark:bg-green-400/10">
+            <div className="p-2.5 rounded-lg bg-green-50 dark:bg-green-900/30">
               <Coins className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
-            <span className="text-sm text-terracotta-600/80 dark:text-cream-300/80">
+            <span className="text-sm text-gray-600 dark:text-stone-400">
               {t('production.estimatedCost') || 'Est. Ingredient Cost'}
             </span>
           </div>
-          <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">
             {loading ? '...' : formatCurrency(todaysEstimatedCost)}
           </p>
-          <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+          <p className="text-xs text-gray-500 dark:text-stone-400">
             {t('production.forTodaysProduction') || "for today's production"}
           </p>
         </div>
@@ -247,10 +247,10 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
           className="
             fixed bottom-6 right-6 md:hidden
             w-14 h-14 rounded-full
-            bg-terracotta-500 text-white
-            shadow-lg shadow-terracotta-500/30
+            bg-gray-900 dark:bg-white text-white dark:text-gray-900
+            shadow-lg
             flex items-center justify-center
-            hover:bg-terracotta-600 active:scale-95
+            hover:bg-gray-800 dark:hover:bg-gray-100 active:scale-95
             transition-all
           "
           aria-label={t('production.logProduction') || 'Log Production'}
