@@ -27,12 +27,12 @@ export default function AdminLayout({
 
   if (status === 'loading' || !session || !isManager) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-cream-200 dark:bg-dark-800 rounded w-1/4"></div>
-            <div className="h-96 bg-cream-200 dark:bg-dark-800 rounded-2xl"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
+            <div className="h-96 bg-gray-200 dark:bg-stone-800 rounded-2xl"></div>
           </div>
         </main>
       </div>
@@ -40,7 +40,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
       <NavigationHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}

@@ -96,28 +96,28 @@ export function RestaurantTypeSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
 
   return (
     <div className="max-w-4xl">
-      <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+      <div className="bg-gray-100 dark:bg-stone-800 rounded-2xl shadow p-6">
         <h2
-          className="text-xl font-semibold text-terracotta-900 dark:text-cream-100 mb-2"
+          className="text-xl font-semibold text-gray-900 dark:text-stone-100 mb-2"
           style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
         >
           {t('settings.restaurantType') || 'Restaurant Type & Features'}
         </h2>
-        <p className="text-sm text-terracotta-600 dark:text-cream-300 mb-6">
+        <p className="text-sm text-gray-600 dark:text-stone-300 mb-6">
           {t('settings.restaurantTypeDesc') || 'Configure your restaurant type and enabled features.'}
         </p>
 
         <div className="space-y-6">
           {/* Restaurant Type Selection */}
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-medium text-terracotta-800 dark:text-cream-200 mb-4">
+            <h3 className="flex items-center gap-2 text-lg font-medium text-gray-800 dark:text-stone-200 mb-4">
               <Store className="w-5 h-5" />
               {t('settings.restaurantTypeLabel') || 'Restaurant Type'}
             </h3>
@@ -133,8 +133,8 @@ export function RestaurantTypeSettings() {
                     className={`
                       flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left
                       ${isSelected
-                        ? 'border-terracotta-500 bg-terracotta-50 dark:bg-terracotta-900/20'
-                        : 'border-terracotta-200 dark:border-dark-600 hover:border-terracotta-300 dark:hover:border-dark-500'
+                        ? 'border-gray-900 bg-gray-100 dark:bg-stone-700'
+                        : 'border-gray-300 dark:border-stone-600 hover:border-gray-400'
                       }
                     `}
                   >
@@ -142,23 +142,23 @@ export function RestaurantTypeSettings() {
                       className={`
                         w-10 h-10 rounded-lg flex items-center justify-center
                         ${isSelected
-                          ? 'bg-terracotta-500 text-white'
-                          : 'bg-cream-200 dark:bg-dark-700 text-terracotta-600 dark:text-cream-300'
+                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                          : 'bg-gray-200 dark:bg-stone-700 text-gray-600 dark:text-stone-300'
                         }
                       `}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className={`font-medium ${isSelected ? 'text-terracotta-900 dark:text-cream-100' : 'text-terracotta-700 dark:text-cream-200'}`}>
+                      <div className={`font-medium ${isSelected ? 'text-gray-900 dark:text-stone-100' : 'text-gray-700 dark:text-stone-200'}`}>
                         {locale === 'fr' ? typeConfig.labelFr : typeConfig.labelEn}
                       </div>
-                      <div className="text-xs text-terracotta-500 dark:text-cream-400">
+                      <div className="text-xs text-gray-500 dark:text-stone-400">
                         {locale === 'fr' ? typeConfig.descriptionFr : typeConfig.descriptionEn}
                       </div>
                     </div>
                     {isSelected && (
-                      <Check className="w-5 h-5 text-terracotta-500 ml-auto" />
+                      <Check className="w-5 h-5 text-gray-900 dark:text-white ml-auto" />
                     )}
                   </button>
                 )
@@ -168,26 +168,26 @@ export function RestaurantTypeSettings() {
 
           {/* Feature Toggles */}
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-medium text-terracotta-800 dark:text-cream-200 mb-4">
+            <h3 className="flex items-center gap-2 text-lg font-medium text-gray-800 dark:text-stone-200 mb-4">
               <Package className="w-5 h-5" />
               {t('settings.featureToggles') || 'Feature Settings'}
             </h3>
             <div className="space-y-4">
               {/* Inventory Toggle */}
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-cream-50 dark:bg-dark-700">
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-stone-700">
                 <div className="flex-shrink-0">
-                  <Package className="w-6 h-6 text-terracotta-500" />
+                  <Package className="w-6 h-6 text-gray-700" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div>
                       <label
                         htmlFor="inventoryEnabled"
-                        className="font-medium text-terracotta-900 dark:text-cream-100"
+                        className="font-medium text-gray-900 dark:text-stone-100"
                       >
                         {t('settings.inventoryEnabled') || 'Inventory Management'}
                       </label>
-                      <p className="text-sm text-terracotta-600 dark:text-cream-300 mt-0.5">
+                      <p className="text-sm text-gray-600 dark:text-stone-300 mt-0.5">
                         {t('settings.inventoryEnabledDesc') || 'Track inventory items, stock levels, and movements'}
                       </p>
                     </div>
@@ -199,27 +199,27 @@ export function RestaurantTypeSettings() {
                         onChange={(e) => setSettings(prev => ({ ...prev, inventoryEnabled: e.target.checked }))}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-cream-300 dark:bg-dark-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-terracotta-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-terracotta-500"></div>
+                      <div className="w-11 h-6 bg-gray-300 dark:bg-stone-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-gray-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-700"></div>
                     </label>
                   </div>
                 </div>
               </div>
 
               {/* Production Toggle */}
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-cream-50 dark:bg-dark-700">
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-stone-700">
                 <div className="flex-shrink-0">
-                  <ChefHat className="w-6 h-6 text-terracotta-500" />
+                  <ChefHat className="w-6 h-6 text-gray-700" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div>
                       <label
                         htmlFor="productionEnabled"
-                        className="font-medium text-terracotta-900 dark:text-cream-100"
+                        className="font-medium text-gray-900 dark:text-stone-100"
                       >
                         {t('settings.productionEnabled') || 'Production Tracking'}
                       </label>
-                      <p className="text-sm text-terracotta-600 dark:text-cream-300 mt-0.5">
+                      <p className="text-sm text-gray-600 dark:text-stone-300 mt-0.5">
                         {t('settings.productionEnabledDesc') || 'Log daily production and track ingredient usage'}
                       </p>
                     </div>
@@ -231,7 +231,7 @@ export function RestaurantTypeSettings() {
                         onChange={(e) => setSettings(prev => ({ ...prev, productionEnabled: e.target.checked }))}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-cream-300 dark:bg-dark-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-terracotta-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-terracotta-500"></div>
+                      <div className="w-11 h-6 bg-gray-300 dark:bg-stone-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-gray-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-700"></div>
                     </label>
                   </div>
                 </div>
@@ -264,8 +264,8 @@ export function RestaurantTypeSettings() {
             disabled={saving}
             className="
               inline-flex items-center gap-2 px-4 py-2
-              bg-terracotta-500 text-white rounded-xl
-              hover:bg-terracotta-600 transition-colors
+              bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl
+              hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           >

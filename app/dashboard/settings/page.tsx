@@ -28,12 +28,12 @@ export default function SettingsPage() {
 
   if (status === 'loading' || !session || !isManager) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-cream-200 dark:bg-dark-800 rounded w-1/4"></div>
-            <div className="h-64 bg-cream-200 dark:bg-dark-800 rounded-2xl"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 dark:bg-stone-800 rounded-2xl"></div>
           </div>
         </main>
       </div>
@@ -41,22 +41,22 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Settings className="w-8 h-8 text-terracotta-500" />
+            <Settings className="w-8 h-8 text-gray-700" />
             <h1
-              className="text-3xl font-bold text-terracotta-900 dark:text-cream-100"
+              className="text-3xl font-bold text-gray-900 dark:text-stone-100"
               style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
             >
               {t('settings.title') || 'Bakery Settings'}
             </h1>
           </div>
-          <p className="text-terracotta-600 dark:text-cream-300">
+          <p className="text-gray-600 dark:text-stone-300">
             {t('settings.subtitle') || 'Configure your bakery operational settings'}
           </p>
         </div>

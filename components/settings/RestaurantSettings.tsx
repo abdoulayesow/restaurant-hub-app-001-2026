@@ -78,22 +78,22 @@ export function RestaurantSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
 
   return (
     <div className="max-w-2xl">
-      <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+      <div className="bg-gray-100 dark:bg-stone-800 rounded-2xl shadow p-6">
         <h2
-          className="text-xl font-semibold text-terracotta-900 dark:text-cream-100 mb-4"
+          className="text-xl font-semibold text-gray-900 dark:text-stone-100 mb-4"
           style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
         >
           {t('settings.stockDeduction') || 'Stock Deduction Settings'}
         </h2>
 
-        <p className="text-sm text-terracotta-600 dark:text-cream-300 mb-6">
+        <p className="text-sm text-gray-600 dark:text-stone-300 mb-6">
           {t('settings.stockDeductionDesc') ||
             'Choose when inventory stock should be deducted for production logs.'}
         </p>
@@ -105,8 +105,8 @@ export function RestaurantSettings() {
               flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
               ${
                 mode === 'immediate'
-                  ? 'border-terracotta-500 bg-terracotta-50 dark:bg-terracotta-900/20'
-                  : 'border-terracotta-200 dark:border-dark-600 hover:border-terracotta-300'
+                  ? 'border-gray-900 bg-gray-100 dark:bg-stone-700'
+                  : 'border-gray-300 dark:border-stone-600 hover:border-gray-400'
               }
             `}
           >
@@ -116,17 +116,17 @@ export function RestaurantSettings() {
               value="immediate"
               checked={mode === 'immediate'}
               onChange={(e) => setMode(e.target.value as StockDeductionMode)}
-              className="mt-1 w-4 h-4 text-terracotta-500 focus:ring-terracotta-500"
+              className="mt-1 w-4 h-4 text-gray-500 focus:ring-gray-500"
             />
             <div className="flex-1">
-              <div className="font-medium text-terracotta-900 dark:text-cream-100 mb-1">
+              <div className="font-medium text-gray-900 dark:text-stone-100 mb-1">
                 {t('settings.immediateMode') || 'Immediate Deduction'}
               </div>
-              <div className="text-sm text-terracotta-600 dark:text-cream-300">
+              <div className="text-sm text-gray-600 dark:text-stone-300">
                 {t('settings.immediateModeDesc') ||
                   'Stock is deducted immediately when production is logged. This reserves ingredients and prevents over-allocation.'}
               </div>
-              <div className="mt-2 text-xs text-terracotta-500 dark:text-terracotta-400">
+              <div className="mt-2 text-xs text-gray-600 dark:text-stone-400">
                 {t('settings.recommended') || 'Recommended for most bakeries'}
               </div>
             </div>
@@ -138,8 +138,8 @@ export function RestaurantSettings() {
               flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
               ${
                 mode === 'deferred'
-                  ? 'border-terracotta-500 bg-terracotta-50 dark:bg-terracotta-900/20'
-                  : 'border-terracotta-200 dark:border-dark-600 hover:border-terracotta-300'
+                  ? 'border-gray-900 bg-gray-100 dark:bg-stone-700'
+                  : 'border-gray-300 dark:border-stone-600 hover:border-gray-400'
               }
             `}
           >
@@ -149,13 +149,13 @@ export function RestaurantSettings() {
               value="deferred"
               checked={mode === 'deferred'}
               onChange={(e) => setMode(e.target.value as StockDeductionMode)}
-              className="mt-1 w-4 h-4 text-terracotta-500 focus:ring-terracotta-500"
+              className="mt-1 w-4 h-4 text-gray-500 focus:ring-gray-500"
             />
             <div className="flex-1">
-              <div className="font-medium text-terracotta-900 dark:text-cream-100 mb-1">
+              <div className="font-medium text-gray-900 dark:text-stone-100 mb-1">
                 {t('settings.deferredMode') || 'Deferred Deduction'}
               </div>
-              <div className="text-sm text-terracotta-600 dark:text-cream-300">
+              <div className="text-sm text-gray-600 dark:text-stone-300">
                 {t('settings.deferredModeDesc') ||
                   'Stock is only deducted when production status is marked as Complete. This allows planning without committing inventory.'}
               </div>
@@ -180,8 +180,8 @@ export function RestaurantSettings() {
             disabled={saving}
             className="
               inline-flex items-center gap-2 px-4 py-2
-              bg-terracotta-500 text-white rounded-xl
-              hover:bg-terracotta-600 transition-colors
+              bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl
+              hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           >

@@ -81,7 +81,7 @@ export default function ProductionDetail({
   const getStatusColor = (status: ProductionStatus) => {
     switch (status) {
       case 'Planning':
-        return 'text-plum-600 dark:text-plum-400 bg-plum-50 dark:bg-plum-900/20'
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
       case 'Ready':
         return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
       case 'InProgress':
@@ -89,7 +89,7 @@ export default function ProductionDetail({
       case 'Complete':
         return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20'
       default:
-        return 'text-plum-600 dark:text-plum-400 bg-plum-50 dark:bg-plum-900/20'
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
     }
   }
 
@@ -102,7 +102,7 @@ export default function ProductionDetail({
       case 'Rejected':
         return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
       default:
-        return 'text-plum-600 dark:text-plum-400 bg-plum-50 dark:bg-plum-900/20'
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
     }
   }
 
@@ -126,18 +126,18 @@ export default function ProductionDetail({
   return (
     <div className="space-y-6">
       {/* Header Card */}
-      <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 grain-overlay">
-        <div className="p-6 border-b border-plum-200/40 dark:border-plum-700/40">
+      <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-lg border border-gray-200 dark:border-stone-700">
+        <div className="p-6 border-b border-gray-200 dark:border-stone-700">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-plum-100 dark:bg-plum-900/40 rounded-xl">
-                <Package className="w-8 h-8 text-plum-600 dark:text-plum-400" />
+              <div className="p-3 bg-gray-100 dark:bg-stone-700 rounded-xl">
+                <Package className="w-8 h-8 text-gray-600 dark:text-gray-400" />
               </div>
               <div>
-                <h1 className="bliss-display text-2xl font-bold text-plum-800 dark:text-cream-100">
+                <h1 className="bliss-display text-2xl font-bold text-gray-800 dark:text-stone-100">
                   {productName}
                 </h1>
-                <p className="bliss-body text-sm text-plum-500 dark:text-cream-400 mt-1">
+                <p className="bliss-body text-sm text-gray-500 dark:text-stone-400 mt-1">
                   {production.quantity} {t('production.quantity')}
                 </p>
               </div>
@@ -170,36 +170,36 @@ export default function ProductionDetail({
         {/* Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
           <div className="flex items-start gap-3">
-            <Calendar className="w-5 h-5 text-plum-400 mt-0.5" />
+            <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="bliss-body text-sm text-plum-500 dark:text-cream-400">
+              <p className="bliss-body text-sm text-gray-500 dark:text-stone-400">
                 {t('production.date')}
               </p>
-              <p className="bliss-body text-sm font-medium text-plum-800 dark:text-cream-100 mt-1">
+              <p className="bliss-body text-sm font-medium text-gray-800 dark:text-stone-100 mt-1">
                 {formatDate(production.date)}
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <User className="w-5 h-5 text-plum-400 mt-0.5" />
+            <User className="w-5 h-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="bliss-body text-sm text-plum-500 dark:text-cream-400">
+              <p className="bliss-body text-sm text-gray-500 dark:text-stone-400">
                 Created By
               </p>
-              <p className="bliss-body text-sm font-medium text-plum-800 dark:text-cream-100 mt-1">
+              <p className="bliss-body text-sm font-medium text-gray-800 dark:text-stone-100 mt-1">
                 {production.createdByName || 'Unknown'}
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <DollarSign className="w-5 h-5 text-plum-400 mt-0.5" />
+            <DollarSign className="w-5 h-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="bliss-body text-sm text-plum-500 dark:text-cream-400">
+              <p className="bliss-body text-sm text-gray-500 dark:text-stone-400">
                 {t('production.estimatedCost')}
               </p>
-              <p className="bliss-body text-sm font-medium text-plum-800 dark:text-cream-100 mt-1">
+              <p className="bliss-body text-sm font-medium text-gray-800 dark:text-stone-100 mt-1">
                 {totalCost.toLocaleString()} GNF
               </p>
             </div>
@@ -233,7 +233,7 @@ export default function ProductionDetail({
                   : 'Stock Not Yet Deducted'}
               </p>
               {production.stockDeductedAt && (
-                <p className="bliss-body text-xs text-plum-500 dark:text-cream-400 mt-0.5">
+                <p className="bliss-body text-xs text-gray-500 dark:text-stone-400 mt-0.5">
                   {formatDateTime(production.stockDeductedAt)}
                 </p>
               )}
@@ -243,34 +243,34 @@ export default function ProductionDetail({
       </div>
 
       {/* Ingredients Table */}
-      <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 overflow-hidden">
-        <div className="p-6 border-b border-plum-200/40 dark:border-plum-700/40">
-          <h2 className="bliss-elegant text-xl font-semibold text-plum-800 dark:text-cream-100">
+      <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-lg border border-gray-200 dark:border-stone-700 overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-stone-700">
+          <h2 className="bliss-elegant text-xl font-semibold text-gray-800 dark:text-stone-100">
             {t('production.ingredients')}
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-plum-50/50 dark:bg-plum-900/50 border-b border-plum-200/30 dark:border-plum-700/30">
+            <thead className="bg-gray-50 dark:bg-stone-700 border-b border-gray-200 dark:border-stone-600">
               <tr>
-                <th className="bliss-body px-6 py-3 text-left text-xs font-semibold text-plum-600 dark:text-cream-300 uppercase tracking-wider">
+                <th className="bliss-body px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-stone-300 uppercase tracking-wider">
                   Ingredient
                 </th>
-                <th className="bliss-body px-6 py-3 text-right text-xs font-semibold text-plum-600 dark:text-cream-300 uppercase tracking-wider">
+                <th className="bliss-body px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-stone-300 uppercase tracking-wider">
                   Quantity
                 </th>
-                <th className="bliss-body px-6 py-3 text-right text-xs font-semibold text-plum-600 dark:text-cream-300 uppercase tracking-wider">
+                <th className="bliss-body px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-stone-300 uppercase tracking-wider">
                   Unit Cost
                 </th>
-                <th className="bliss-body px-6 py-3 text-right text-xs font-semibold text-plum-600 dark:text-cream-300 uppercase tracking-wider">
+                <th className="bliss-body px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-stone-300 uppercase tracking-wider">
                   Total Cost
                 </th>
-                <th className="bliss-body px-6 py-3 text-center text-xs font-semibold text-plum-600 dark:text-cream-300 uppercase tracking-wider">
+                <th className="bliss-body px-6 py-3 text-center text-xs font-semibold text-gray-600 dark:text-stone-300 uppercase tracking-wider">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-plum-200/30 dark:divide-plum-700/30">
+            <tbody className="divide-y divide-gray-200 dark:divide-stone-600">
               {production.ingredientDetails?.map((ingredient, index) => {
                 const totalItemCost = ingredient.quantity * ingredient.unitCostGNF
                 const hasStock =
@@ -278,23 +278,23 @@ export default function ProductionDetail({
                   ingredient.currentStock >= ingredient.quantity
 
                 return (
-                  <tr key={index} className="hover:bg-plum-50/60 dark:hover:bg-plum-700/30 transition-colors">
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-stone-700/50 transition-colors">
                     <td className="px-6 py-4">
                       <Link
                         href={`/inventory/${ingredient.itemId}`}
-                        className="bliss-body text-sm font-medium text-plum-600 dark:text-plum-400 hover:text-plum-800 dark:hover:text-plum-300 hover:underline inline-flex items-center gap-1 transition-colors"
+                        className="bliss-body text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 hover:underline inline-flex items-center gap-1 transition-colors"
                       >
                         {ingredient.itemName}
                         <ExternalLink className="w-3 h-3" />
                       </Link>
                     </td>
-                    <td className="bliss-body px-6 py-4 text-right text-sm text-plum-800 dark:text-cream-100">
+                    <td className="bliss-body px-6 py-4 text-right text-sm text-gray-800 dark:text-stone-100">
                       {ingredient.quantity} {ingredient.unit}
                     </td>
-                    <td className="bliss-body px-6 py-4 text-right text-sm text-plum-800 dark:text-cream-100">
+                    <td className="bliss-body px-6 py-4 text-right text-sm text-gray-800 dark:text-stone-100">
                       {ingredient.unitCostGNF.toLocaleString()} GNF
                     </td>
-                    <td className="bliss-body px-6 py-4 text-right text-sm font-medium text-plum-800 dark:text-cream-100">
+                    <td className="bliss-body px-6 py-4 text-right text-sm font-medium text-gray-800 dark:text-stone-100">
                       {totalItemCost.toLocaleString()} GNF
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -324,15 +324,15 @@ export default function ProductionDetail({
                 )
               })}
             </tbody>
-            <tfoot className="bg-plum-50/50 dark:bg-plum-900/50 border-t border-plum-200/30 dark:border-plum-700/30">
+            <tfoot className="bg-gray-50 dark:bg-stone-700 border-t border-gray-200 dark:border-stone-600">
               <tr>
                 <td
                   colSpan={3}
-                  className="bliss-body px-6 py-4 text-sm font-medium text-plum-800 dark:text-cream-100 text-right"
+                  className="bliss-body px-6 py-4 text-sm font-medium text-gray-800 dark:text-stone-100 text-right"
                 >
                   Total Estimated Cost:
                 </td>
-                <td className="bliss-body px-6 py-4 text-right text-lg font-bold text-plum-800 dark:text-cream-100">
+                <td className="bliss-body px-6 py-4 text-right text-lg font-bold text-gray-800 dark:text-stone-100">
                   {totalCost.toLocaleString()} GNF
                 </td>
                 <td></td>
@@ -344,11 +344,11 @@ export default function ProductionDetail({
 
       {/* Notes */}
       {production.notes && (
-        <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 p-6">
-          <h3 className="bliss-elegant text-lg font-semibold text-plum-800 dark:text-cream-100 mb-3">
+        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-lg border border-gray-200 dark:border-stone-700 p-6">
+          <h3 className="bliss-elegant text-lg font-semibold text-gray-800 dark:text-stone-100 mb-3">
             {t('production.notes')}
           </h3>
-          <p className="bliss-body text-sm text-plum-700 dark:text-cream-300 whitespace-pre-wrap">
+          <p className="bliss-body text-sm text-gray-700 dark:text-stone-300 whitespace-pre-wrap">
             {production.notes}
           </p>
         </div>
@@ -356,8 +356,8 @@ export default function ProductionDetail({
 
       {/* Status Change */}
       {canEdit && onStatusChange && (
-        <div className="bg-cream-50 dark:bg-plum-800 rounded-2xl warm-shadow-lg border border-plum-200/30 dark:border-plum-700/30 p-6">
-          <h3 className="bliss-elegant text-lg font-semibold text-plum-800 dark:text-cream-100 mb-4">
+        <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-lg border border-gray-200 dark:border-stone-700 p-6">
+          <h3 className="bliss-elegant text-lg font-semibold text-gray-800 dark:text-stone-100 mb-4">
             Change Production Status
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -371,8 +371,8 @@ export default function ProductionDetail({
                   }
                   className={`bliss-body px-4 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                     production.preparationStatus === status
-                      ? 'bg-plum-700 text-cream-50 shadow-lg shadow-plum-900/20'
-                      : 'bg-plum-100 dark:bg-plum-900/40 text-plum-700 dark:text-cream-300 hover:bg-plum-200 dark:hover:bg-plum-700/60'
+                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg'
+                      : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
                   }`}
                 >
                   {t(`production.status${status}`)}

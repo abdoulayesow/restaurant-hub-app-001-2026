@@ -159,44 +159,44 @@ export function RestaurantConfigSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
 
   return (
     <div className="max-w-4xl">
-      <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+      <div className="bg-gray-100 dark:bg-stone-800 rounded-2xl shadow p-6">
         <h2
-          className="text-xl font-semibold text-terracotta-900 dark:text-cream-100 mb-2"
+          className="text-xl font-semibold text-gray-900 dark:text-stone-100 mb-2"
           style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
         >
           {t('settings.bakeryConfig') || 'Bakery Configuration'}
         </h2>
-        <p className="text-sm text-terracotta-600 dark:text-cream-300 mb-6">
+        <p className="text-sm text-gray-600 dark:text-stone-300 mb-6">
           {t('settings.bakeryConfigDesc') || 'Configure basic information, financial settings, and contact details for this bakery.'}
         </p>
 
         <div className="space-y-6">
           {/* Basic Information */}
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-medium text-terracotta-800 dark:text-cream-200 mb-4">
+            <h3 className="flex items-center gap-2 text-lg font-medium text-gray-800 dark:text-stone-200 mb-4">
               <Building2 className="w-5 h-5" />
               {t('settings.basicInfo') || 'Basic Information'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   {t('settings.bakeryName') || 'Bakery Name'} *
                 </label>
                 <input
                   type="text"
                   value={config.name}
                   onChange={(e) => handleChange('name', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors ${
                     errors.name
                       ? 'border-red-500 dark:border-red-500'
-                      : 'border-terracotta-300 dark:border-dark-600'
+                      : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="Boulangerie Centrale"
                 />
@@ -206,7 +206,7 @@ export function RestaurantConfigSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   <MapPin className="w-4 h-4 inline mr-1" />
                   {t('settings.location') || 'Location'}
                 </label>
@@ -214,13 +214,13 @@ export function RestaurantConfigSettings() {
                   type="text"
                   value={config.location}
                   onChange={(e) => handleChange('location', e.target.value)}
-                  className="w-full px-3 py-2 border border-terracotta-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors"
                   placeholder="Conakry - Centre"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   <Calendar className="w-4 h-4 inline mr-1" />
                   {t('settings.openingDate') || 'Opening Date'}
                 </label>
@@ -228,12 +228,12 @@ export function RestaurantConfigSettings() {
                   type="date"
                   value={config.openingDate}
                   onChange={(e) => handleChange('openingDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-terracotta-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   <Calendar className="w-4 h-4 inline mr-1" />
                   {t('settings.trackingStartDate') || 'Tracking Start Date'}
                 </label>
@@ -241,7 +241,7 @@ export function RestaurantConfigSettings() {
                   type="date"
                   value={config.trackingStartDate}
                   onChange={(e) => handleChange('trackingStartDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-terracotta-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors"
                 />
               </div>
             </div>
@@ -249,23 +249,23 @@ export function RestaurantConfigSettings() {
 
           {/* Financial Configuration */}
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-medium text-terracotta-800 dark:text-cream-200 mb-4">
+            <h3 className="flex items-center gap-2 text-lg font-medium text-gray-800 dark:text-stone-200 mb-4">
               <DollarSign className="w-5 h-5" />
               {t('settings.financialConfig') || 'Financial Configuration'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   {t('settings.initialCapital') || 'Initial Capital'} (GNF)
                 </label>
                 <input
                   type="number"
                   value={config.initialCapital}
                   onChange={(e) => handleChange('initialCapital', parseFloat(e.target.value) || 0)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors ${
                     errors.initialCapital
                       ? 'border-red-500 dark:border-red-500'
-                      : 'border-terracotta-300 dark:border-dark-600'
+                      : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="50000000"
                   min="0"
@@ -276,17 +276,17 @@ export function RestaurantConfigSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   {t('settings.initialCashBalance') || 'Initial Cash Balance'} (GNF)
                 </label>
                 <input
                   type="number"
                   value={config.initialCashBalance}
                   onChange={(e) => handleChange('initialCashBalance', parseFloat(e.target.value) || 0)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors ${
                     errors.initialCashBalance
                       ? 'border-red-500 dark:border-red-500'
-                      : 'border-terracotta-300 dark:border-dark-600'
+                      : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="10000000"
                   min="0"
@@ -297,17 +297,17 @@ export function RestaurantConfigSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   {t('settings.initialOrangeBalance') || 'Initial Orange Money Balance'} (GNF)
                 </label>
                 <input
                   type="number"
                   value={config.initialOrangeBalance}
                   onChange={(e) => handleChange('initialOrangeBalance', parseFloat(e.target.value) || 0)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors ${
                     errors.initialOrangeBalance
                       ? 'border-red-500 dark:border-red-500'
-                      : 'border-terracotta-300 dark:border-dark-600'
+                      : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="5000000"
                   min="0"
@@ -318,17 +318,17 @@ export function RestaurantConfigSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   {t('settings.initialCardBalance') || 'Initial Card Balance'} (GNF)
                 </label>
                 <input
                   type="number"
                   value={config.initialCardBalance}
                   onChange={(e) => handleChange('initialCardBalance', parseFloat(e.target.value) || 0)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors ${
                     errors.initialCardBalance
                       ? 'border-red-500 dark:border-red-500'
-                      : 'border-terracotta-300 dark:border-dark-600'
+                      : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="0"
                   min="0"
@@ -342,13 +342,13 @@ export function RestaurantConfigSettings() {
 
           {/* Contact Information */}
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-medium text-terracotta-800 dark:text-cream-200 mb-4">
+            <h3 className="flex items-center gap-2 text-lg font-medium text-gray-800 dark:text-stone-200 mb-4">
               <Phone className="w-5 h-5" />
               {t('settings.contactInfo') || 'Contact Information'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   <Phone className="w-4 h-4 inline mr-1" />
                   {t('settings.contactPhone') || 'Contact Phone'}
                 </label>
@@ -356,13 +356,13 @@ export function RestaurantConfigSettings() {
                   type="tel"
                   value={config.contactPhone}
                   onChange={(e) => handleChange('contactPhone', e.target.value)}
-                  className="w-full px-3 py-2 border border-terracotta-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors"
                   placeholder="+224 XXX XX XX XX"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   <Mail className="w-4 h-4 inline mr-1" />
                   {t('settings.contactEmail') || 'Contact Email'}
                 </label>
@@ -370,10 +370,10 @@ export function RestaurantConfigSettings() {
                   type="email"
                   value={config.contactEmail}
                   onChange={(e) => handleChange('contactEmail', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors ${
                     errors.contactEmail
                       ? 'border-red-500 dark:border-red-500'
-                      : 'border-terracotta-300 dark:border-dark-600'
+                      : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="contact@bakery.com"
                 />
@@ -383,7 +383,7 @@ export function RestaurantConfigSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   <User className="w-4 h-4 inline mr-1" />
                   {t('settings.managerName') || 'Manager Name'}
                 </label>
@@ -391,7 +391,7 @@ export function RestaurantConfigSettings() {
                   type="text"
                   value={config.managerName}
                   onChange={(e) => handleChange('managerName', e.target.value)}
-                  className="w-full px-3 py-2 border border-terracotta-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 transition-colors"
                   placeholder="Fatoumata Camara"
                 />
               </div>
@@ -413,8 +413,8 @@ export function RestaurantConfigSettings() {
             disabled={saving}
             className="
               inline-flex items-center gap-2 px-4 py-2
-              bg-terracotta-500 text-white rounded-xl
-              hover:bg-terracotta-600 transition-colors
+              bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl
+              hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           >

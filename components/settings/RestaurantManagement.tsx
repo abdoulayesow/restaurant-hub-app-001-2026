@@ -183,31 +183,30 @@ export function RestaurantManagement() {
   if (loading) {
     return (
       <div className="
-        bg-cream-100 dark:bg-dark-800
-        rounded-2xl warm-shadow p-8
-        grain-overlay
+        bg-gray-100 dark:bg-stone-800
+        rounded-2xl shadow p-8
         min-h-[400px]
         flex items-center justify-center
       ">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
 
   return (
     <>
-      <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow grain-overlay overflow-hidden">
+      <div className="bg-gray-100 dark:bg-stone-800 rounded-2xl shadow overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-terracotta-200/30 dark:border-dark-600">
+        <div className="p-6 border-b border-gray-200 dark:border-stone-600">
           <div className="flex items-center justify-between">
             <div>
               <h2
-                className="text-xl font-semibold text-terracotta-900 dark:text-cream-100"
+                className="text-xl font-semibold text-gray-900 dark:text-stone-100"
                 style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
               >
                 {locale === 'fr' ? 'Gérer les restaurants' : 'Manage Restaurants'}
               </h2>
-              <p className="text-sm text-terracotta-600 dark:text-cream-300 mt-1">
+              <p className="text-sm text-gray-600 dark:text-stone-300 mt-1">
                 {locale === 'fr'
                   ? `${restaurants.length} restaurant${restaurants.length !== 1 ? 's' : ''} configuré${restaurants.length !== 1 ? 's' : ''}`
                   : `${restaurants.length} restaurant${restaurants.length !== 1 ? 's' : ''} configured`
@@ -218,11 +217,11 @@ export function RestaurantManagement() {
               onClick={() => setShowAddModal(true)}
               className="
                 inline-flex items-center gap-2 px-4 py-2.5
-                bg-terracotta-500 text-white rounded-xl
-                hover:bg-terracotta-600 active:bg-terracotta-700
+                bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl
+                hover:bg-gray-800 dark:hover:bg-gray-100
                 transition-all duration-200
-                shadow-md shadow-terracotta-500/20
-                hover:shadow-lg hover:shadow-terracotta-500/30
+                shadow-md shadow-gray-500/20
+                hover:shadow-lg hover:shadow-gray-500/30
                 hover:-translate-y-0.5
               "
             >
@@ -252,8 +251,8 @@ export function RestaurantManagement() {
         <div className="p-6">
           {restaurants.length === 0 ? (
             <div className="text-center py-12">
-              <Building2 className="w-12 h-12 text-terracotta-300 dark:text-dark-600 mx-auto mb-4" />
-              <p className="text-terracotta-600 dark:text-cream-300">
+              <Building2 className="w-12 h-12 text-gray-300 dark:text-stone-600 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-stone-300">
                 {locale === 'fr'
                   ? 'Aucun restaurant configuré'
                   : 'No restaurants configured yet'
@@ -261,7 +260,7 @@ export function RestaurantManagement() {
               </p>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="mt-4 text-terracotta-500 hover:text-terracotta-600 font-medium"
+                className="mt-4 text-gray-700 hover:text-gray-900 dark:text-stone-300 dark:hover:text-stone-100 font-medium"
               >
                 {locale === 'fr' ? 'Ajouter votre premier restaurant' : 'Add your first restaurant'}
               </button>
@@ -277,10 +276,10 @@ export function RestaurantManagement() {
                     key={restaurant.id}
                     className="
                       group relative
-                      bg-cream-50 dark:bg-dark-700
+                      bg-white dark:bg-stone-700
                       rounded-xl p-5
                       border-2 border-transparent
-                      hover:border-terracotta-200 dark:hover:border-dark-500
+                      hover:border-gray-200 dark:hover:border-stone-500
                       transition-all duration-300
                       hover:shadow-lg hover:-translate-y-1
                     "
@@ -304,8 +303,8 @@ export function RestaurantManagement() {
                         className={`
                           w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0
                           ${restaurant.isActive
-                            ? 'bg-terracotta-100 dark:bg-terracotta-900/30 text-terracotta-600 dark:text-terracotta-400'
-                            : 'bg-gray-100 dark:bg-dark-600 text-gray-400 dark:text-gray-500'
+                            ? 'bg-gray-200 dark:bg-stone-600 text-gray-700 dark:text-stone-200'
+                            : 'bg-gray-100 dark:bg-stone-600 text-gray-400 dark:text-gray-500'
                           }
                           transition-colors duration-300
                         `}
@@ -316,7 +315,7 @@ export function RestaurantManagement() {
                         <h3 className={`
                           font-semibold truncate
                           ${restaurant.isActive
-                            ? 'text-terracotta-900 dark:text-cream-100'
+                            ? 'text-gray-900 dark:text-stone-100'
                             : 'text-gray-500 dark:text-gray-400'
                           }
                           transition-colors duration-300
@@ -324,7 +323,7 @@ export function RestaurantManagement() {
                           {restaurant.name}
                         </h3>
                         {restaurant.location && (
-                          <p className="text-sm text-terracotta-500 dark:text-cream-400 flex items-center gap-1 truncate">
+                          <p className="text-sm text-gray-500 dark:text-stone-400 flex items-center gap-1 truncate">
                             <MapPin className="w-3 h-3 flex-shrink-0" />
                             {restaurant.location}
                           </p>
@@ -337,8 +336,8 @@ export function RestaurantManagement() {
                       <span className="
                         inline-flex items-center gap-1.5 px-2.5 py-1
                         text-xs font-medium rounded-full
-                        bg-terracotta-100 dark:bg-terracotta-900/30
-                        text-terracotta-700 dark:text-terracotta-300
+                        bg-gray-200 dark:bg-stone-600
+                        text-gray-700 dark:text-stone-300
                       ">
                         <TypeIcon className="w-3 h-3" />
                         {locale === 'fr' ? typeConfig?.labelFr : typeConfig?.labelEn}
@@ -361,7 +360,7 @@ export function RestaurantManagement() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-between pt-3 border-t border-terracotta-200/30 dark:border-dark-600">
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-stone-600">
                       {/* Toggle switch */}
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -373,7 +372,7 @@ export function RestaurantManagement() {
                         />
                         <div className={`
                           w-11 h-6 rounded-full
-                          bg-gray-200 dark:bg-dark-600
+                          bg-gray-200 dark:bg-stone-600
                           peer-checked:bg-green-500
                           peer-focus:ring-2 peer-focus:ring-green-300 dark:peer-focus:ring-green-800
                           after:content-[''] after:absolute after:top-[2px] after:left-[2px]
@@ -384,7 +383,7 @@ export function RestaurantManagement() {
                           transition-colors duration-300
                         `} />
                         {togglingId === restaurant.id && (
-                          <Loader2 className="w-4 h-4 animate-spin text-terracotta-500 ml-2" />
+                          <Loader2 className="w-4 h-4 animate-spin text-gray-500 ml-2" />
                         )}
                       </label>
 
@@ -420,13 +419,13 @@ export function RestaurantManagement() {
           />
           <div className="
             relative w-full max-w-md
-            bg-cream-50 dark:bg-dark-800
+            bg-white dark:bg-stone-800
             rounded-2xl shadow-2xl
             animate-fade-in-up
           ">
-            <div className="p-6 border-b border-terracotta-200/30 dark:border-dark-600">
+            <div className="p-6 border-b border-gray-200 dark:border-stone-600">
               <h3
-                className="text-xl font-semibold text-terracotta-900 dark:text-cream-100"
+                className="text-xl font-semibold text-gray-900 dark:text-stone-100"
                 style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
               >
                 {locale === 'fr' ? 'Ajouter un restaurant' : 'Add Restaurant'}
@@ -436,7 +435,7 @@ export function RestaurantManagement() {
             <form onSubmit={handleAddRestaurant} className="p-6 space-y-5">
               {/* Name field */}
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   {locale === 'fr' ? 'Nom du restaurant' : 'Restaurant Name'} *
                 </label>
                 <input
@@ -445,10 +444,10 @@ export function RestaurantManagement() {
                   onChange={(e) => setNewRestaurant(prev => ({ ...prev, name: e.target.value }))}
                   className="
                     w-full px-4 py-3 rounded-xl
-                    border border-terracotta-200 dark:border-dark-600
-                    bg-white dark:bg-dark-700
-                    text-terracotta-900 dark:text-cream-100
-                    focus:ring-2 focus:ring-terracotta-500 focus:border-transparent
+                    border border-gray-300 dark:border-stone-600
+                    bg-white dark:bg-stone-700
+                    text-gray-900 dark:text-stone-100
+                    focus:ring-2 focus:ring-gray-500 focus:border-transparent
                     transition-all duration-200
                   "
                   placeholder={locale === 'fr' ? 'Ex: Boulangerie Centrale' : 'e.g., Central Bakery'}
@@ -458,7 +457,7 @@ export function RestaurantManagement() {
 
               {/* Location field */}
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   {locale === 'fr' ? 'Emplacement' : 'Location'}
                 </label>
                 <input
@@ -467,10 +466,10 @@ export function RestaurantManagement() {
                   onChange={(e) => setNewRestaurant(prev => ({ ...prev, location: e.target.value }))}
                   className="
                     w-full px-4 py-3 rounded-xl
-                    border border-terracotta-200 dark:border-dark-600
-                    bg-white dark:bg-dark-700
-                    text-terracotta-900 dark:text-cream-100
-                    focus:ring-2 focus:ring-terracotta-500 focus:border-transparent
+                    border border-gray-300 dark:border-stone-600
+                    bg-white dark:bg-stone-700
+                    text-gray-900 dark:text-stone-100
+                    focus:ring-2 focus:ring-gray-500 focus:border-transparent
                     transition-all duration-200
                   "
                   placeholder={locale === 'fr' ? 'Ex: Conakry - Centre' : 'e.g., Downtown'}
@@ -479,7 +478,7 @@ export function RestaurantManagement() {
 
               {/* Restaurant type */}
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   {locale === 'fr' ? 'Type de restaurant' : 'Restaurant Type'}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -496,16 +495,16 @@ export function RestaurantManagement() {
                           flex items-center gap-2 p-3 rounded-xl
                           border-2 transition-all duration-200
                           ${isSelected
-                            ? 'border-terracotta-500 bg-terracotta-50 dark:bg-terracotta-900/20'
-                            : 'border-terracotta-200 dark:border-dark-600 hover:border-terracotta-300'
+                            ? 'border-gray-900 bg-gray-100 dark:bg-stone-700'
+                            : 'border-gray-300 dark:border-stone-600 hover:border-gray-400'
                           }
                         `}
                       >
-                        <Icon className={`w-5 h-5 ${isSelected ? 'text-terracotta-500' : 'text-terracotta-400'}`} />
-                        <span className={`text-sm font-medium ${isSelected ? 'text-terracotta-900 dark:text-cream-100' : 'text-terracotta-600 dark:text-cream-300'}`}>
+                        <Icon className={`w-5 h-5 ${isSelected ? 'text-gray-700' : 'text-gray-500'}`} />
+                        <span className={`text-sm font-medium ${isSelected ? 'text-gray-900 dark:text-stone-100' : 'text-gray-600 dark:text-stone-300'}`}>
                           {locale === 'fr' ? type.labelFr : type.labelEn}
                         </span>
-                        {isSelected && <Check className="w-4 h-4 text-terracotta-500 ml-auto" />}
+                        {isSelected && <Check className="w-4 h-4 text-gray-700 ml-auto" />}
                       </button>
                     )
                   })}
@@ -519,9 +518,9 @@ export function RestaurantManagement() {
                   onClick={() => setShowAddModal(false)}
                   className="
                     flex-1 px-4 py-3 rounded-xl
-                    border border-terracotta-200 dark:border-dark-600
-                    text-terracotta-700 dark:text-cream-200
-                    hover:bg-cream-100 dark:hover:bg-dark-700
+                    border border-gray-300 dark:border-stone-600
+                    text-gray-700 dark:text-stone-200
+                    hover:bg-gray-100 dark:hover:bg-stone-700
                     font-medium transition-colors duration-200
                   "
                 >
@@ -532,8 +531,8 @@ export function RestaurantManagement() {
                   disabled={submitting || !newRestaurant.name.trim()}
                   className="
                     flex-1 px-4 py-3 rounded-xl
-                    bg-terracotta-500 text-white
-                    hover:bg-terracotta-600
+                    bg-gray-900 dark:bg-white text-white dark:text-gray-900
+                    hover:bg-gray-800 dark:hover:bg-gray-100
                     disabled:opacity-50 disabled:cursor-not-allowed
                     font-medium transition-all duration-200
                     flex items-center justify-center gap-2
@@ -567,7 +566,7 @@ export function RestaurantManagement() {
           />
           <div className="
             relative w-full max-w-md
-            bg-cream-50 dark:bg-dark-800
+            bg-white dark:bg-stone-800
             rounded-2xl shadow-2xl
             animate-fade-in-up
             border-2 border-red-200 dark:border-red-900/50
@@ -598,15 +597,15 @@ export function RestaurantManagement() {
 
             <div className="p-6 space-y-5">
               {/* Restaurant info */}
-              <div className="p-4 rounded-xl bg-cream-100 dark:bg-dark-700 border border-terracotta-200/30 dark:border-dark-600">
-                <p className="text-sm text-terracotta-600 dark:text-cream-300 mb-1">
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-stone-700 border border-gray-200 dark:border-stone-600">
+                <p className="text-sm text-gray-600 dark:text-stone-300 mb-1">
                   {locale === 'fr' ? 'Restaurant à supprimer:' : 'Restaurant to delete:'}
                 </p>
-                <p className="text-lg font-semibold text-terracotta-900 dark:text-cream-100">
+                <p className="text-lg font-semibold text-gray-900 dark:text-stone-100">
                   {restaurantToDelete.name}
                 </p>
                 {restaurantToDelete.location && (
-                  <p className="text-sm text-terracotta-500 dark:text-cream-400">
+                  <p className="text-sm text-gray-500 dark:text-stone-400">
                     {restaurantToDelete.location}
                   </p>
                 )}
@@ -624,7 +623,7 @@ export function RestaurantManagement() {
 
               {/* Confirmation input */}
               <div>
-                <label className="block text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   {locale === 'fr'
                     ? `Tapez "${restaurantToDelete.name}" pour confirmer`
                     : `Type "${restaurantToDelete.name}" to confirm`
@@ -637,8 +636,8 @@ export function RestaurantManagement() {
                   className="
                     w-full px-4 py-3 rounded-xl
                     border border-red-200 dark:border-red-900/50
-                    bg-white dark:bg-dark-700
-                    text-terracotta-900 dark:text-cream-100
+                    bg-white dark:bg-stone-700
+                    text-gray-900 dark:text-stone-100
                     focus:ring-2 focus:ring-red-500 focus:border-transparent
                     transition-all duration-200
                   "
@@ -657,9 +656,9 @@ export function RestaurantManagement() {
                   }}
                   className="
                     flex-1 px-4 py-3 rounded-xl
-                    border border-terracotta-200 dark:border-dark-600
-                    text-terracotta-700 dark:text-cream-200
-                    hover:bg-cream-100 dark:hover:bg-dark-700
+                    border border-gray-300 dark:border-stone-600
+                    text-gray-700 dark:text-stone-200
+                    hover:bg-gray-100 dark:hover:bg-stone-700
                     font-medium transition-colors duration-200
                   "
                 >
