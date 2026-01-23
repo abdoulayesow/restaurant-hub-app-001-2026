@@ -67,7 +67,7 @@ export function NavPill({
           transition-all duration-300 ease-out
           ${isActive || isExpanded
             ? 'text-white shadow-md'
-            : 'bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 hover:bg-cream-200 dark:hover:bg-dark-700'
+            : 'bg-gray-100 dark:bg-stone-800 text-gray-900 dark:text-stone-100 hover:bg-gray-200 dark:hover:bg-stone-700'
           }
         `}
         style={isActive || isExpanded ? {
@@ -89,17 +89,16 @@ export function NavPill({
             animate-fade-in-up
             absolute top-full left-1/2 -translate-x-1/2 mt-2
             min-w-[200px] p-2
-            bg-cream-50 dark:bg-dark-900
+            bg-white dark:bg-stone-800
             rounded-2xl
-            warm-shadow-lg
-            grain-overlay
-            z-50
+            shadow-lg
+                        z-50
           "
           role="menu"
         >
           {/* Decorative arrow */}
           <div
-            className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-cream-50 dark:bg-dark-900"
+            className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-stone-800"
             style={{ boxShadow: '-2px -2px 4px rgba(92, 46, 19, 0.1)' }}
             aria-hidden="true"
           />
@@ -121,7 +120,7 @@ export function NavPill({
                     transition-all duration-200
                     ${isSubActive
                       ? 'text-white'
-                      : 'text-terracotta-900 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-dark-800'
+                      : 'text-gray-900 dark:text-stone-100 hover:bg-gray-100 dark:hover:bg-stone-700'
                     }
                   `}
                   style={{
@@ -134,7 +133,7 @@ export function NavPill({
                     p-2 rounded-lg
                     ${isSubActive
                       ? 'bg-white/20'
-                      : 'bg-cream-200 dark:bg-dark-700'
+                      : 'bg-gray-200 dark:bg-stone-700'
                     }
                   `}>
                     <SubIcon className="w-4 h-4" strokeWidth={2} />

@@ -116,7 +116,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
         <div
           className="
             w-full max-w-2xl max-h-[90vh] overflow-y-auto
-            bg-white dark:bg-dark-900
+            bg-white dark:bg-stone-800
             rounded-3xl shadow-2xl
             pointer-events-auto
           "
@@ -128,7 +128,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
         >
           {/* Header */}
           <div
-            className="sticky top-0 z-10 px-8 py-6 border-b border-terracotta-200/30 dark:border-terracotta-400/20 backdrop-blur-xl"
+            className="sticky top-0 z-10 px-8 py-6 border-b border-gray-200 dark:border-stone-700 backdrop-blur-xl"
             style={{
               background: `linear-gradient(135deg, ${accentColor}10 0%, transparent 100%)`,
             }}
@@ -136,7 +136,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
             <div className="flex items-start justify-between">
               <div>
                 <h2
-                  className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 flex items-center gap-3"
+                  className="text-2xl font-bold text-gray-900 dark:text-stone-100 flex items-center gap-3"
                   style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
                 >
                   <div
@@ -149,7 +149,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                   </div>
                   {locale === 'fr' ? 'Nouveau Client' : 'New Customer'}
                 </h2>
-                <p className="text-sm text-terracotta-600/70 dark:text-cream-300/70 mt-2 ml-[60px]">
+                <p className="text-sm text-gray-600/70 dark:text-stone-300/70 mt-2 ml-[60px]">
                   {locale === 'fr'
                     ? 'Créer un client pour les ventes à crédit'
                     : 'Create a customer for credit sales'}
@@ -160,12 +160,12 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 disabled={loading}
                 className="
                   w-10 h-10 rounded-full flex items-center justify-center
-                  hover:bg-terracotta-100 dark:hover:bg-dark-800
+                  hover:bg-gray-100 dark:hover:bg-stone-700
                   transition-colors
                   disabled:opacity-50
                 "
               >
-                <X className="w-5 h-5 text-terracotta-600 dark:text-cream-400" />
+                <X className="w-5 h-5 text-gray-600 dark:text-stone-400" />
               </button>
             </div>
           </div>
@@ -174,7 +174,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             {/* Name */}
             <div>
-              <label className="block text-sm font-semibold text-terracotta-900 dark:text-cream-100 mb-2">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
                 {locale === 'fr' ? 'Nom' : 'Name'} <span style={{ color: accentColor }}>*</span>
               </label>
               <input
@@ -184,10 +184,10 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 onChange={(e) => updateField('name', e.target.value)}
                 className="
                   w-full px-4 py-3 rounded-xl
-                  bg-terracotta-50/50 dark:bg-dark-800
-                  border-2 border-terracotta-200/40 dark:border-terracotta-400/20
-                  text-terracotta-900 dark:text-cream-100
-                  placeholder:text-terracotta-400/50 dark:placeholder:text-cream-400/30
+                  bg-gray-50/50 dark:bg-stone-700
+                  border-2 border-gray-300 dark:border-stone-600
+                  text-gray-900 dark:text-stone-100
+                  placeholder:text-gray-400/50 dark:placeholder:text-stone-500
                   focus:outline-none focus:border-opacity-100 transition-colors
                 "
                 style={{ borderColor: `${accentColor}40` }}
@@ -197,7 +197,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
 
             {/* Customer Type */}
             <div>
-              <label className="block text-sm font-semibold text-terracotta-900 dark:text-cream-100 mb-3">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-3">
                 {locale === 'fr' ? 'Type de Client' : 'Customer Type'} <span style={{ color: accentColor }}>*</span>
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -211,7 +211,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                       transition-all duration-300
                       ${formData.customerType === type
                         ? 'text-white shadow-lg scale-105'
-                        : 'bg-terracotta-50 dark:bg-dark-800 text-terracotta-700 dark:text-cream-200 hover:bg-terracotta-100 dark:hover:bg-dark-700'
+                        : 'bg-gray-50 dark:bg-stone-700 text-gray-700 dark:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-600'
                       }
                     `}
                     style={
@@ -231,7 +231,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
             {/* Phone & Email */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-terracotta-900 dark:text-cream-100 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
                   <Phone className="w-4 h-4 inline mr-1" />
                   {locale === 'fr' ? 'Téléphone' : 'Phone'}
                 </label>
@@ -241,10 +241,10 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                   onChange={(e) => updateField('phone', e.target.value)}
                   className="
                     w-full px-4 py-3 rounded-xl
-                    bg-terracotta-50/50 dark:bg-dark-800
-                    border-2 border-terracotta-200/40 dark:border-terracotta-400/20
-                    text-terracotta-900 dark:text-cream-100
-                    placeholder:text-terracotta-400/50 dark:placeholder:text-cream-400/30
+                    bg-gray-50/50 dark:bg-stone-700
+                    border-2 border-gray-300 dark:border-stone-600
+                    text-gray-900 dark:text-stone-100
+                    placeholder:text-gray-400/50 dark:placeholder:text-stone-500
                     focus:outline-none transition-colors
                   "
                   style={{ borderColor: `${accentColor}20` }}
@@ -252,7 +252,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-terracotta-900 dark:text-cream-100 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
                   <Mail className="w-4 h-4 inline mr-1" />
                   {locale === 'fr' ? 'Email' : 'Email'}
                 </label>
@@ -262,10 +262,10 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                   onChange={(e) => updateField('email', e.target.value)}
                   className="
                     w-full px-4 py-3 rounded-xl
-                    bg-terracotta-50/50 dark:bg-dark-800
-                    border-2 border-terracotta-200/40 dark:border-terracotta-400/20
-                    text-terracotta-900 dark:text-cream-100
-                    placeholder:text-terracotta-400/50 dark:placeholder:text-cream-400/30
+                    bg-gray-50/50 dark:bg-stone-700
+                    border-2 border-gray-300 dark:border-stone-600
+                    text-gray-900 dark:text-stone-100
+                    placeholder:text-gray-400/50 dark:placeholder:text-stone-500
                     focus:outline-none transition-colors
                   "
                   style={{ borderColor: `${accentColor}20` }}
@@ -277,7 +277,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
             {/* Company (conditional) */}
             {formData.customerType !== 'Individual' && (
               <div>
-                <label className="block text-sm font-semibold text-terracotta-900 dark:text-cream-100 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
                   <Building2 className="w-4 h-4 inline mr-1" />
                   {locale === 'fr' ? 'Entreprise' : 'Company'}
                 </label>
@@ -287,10 +287,10 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                   onChange={(e) => updateField('company', e.target.value)}
                   className="
                     w-full px-4 py-3 rounded-xl
-                    bg-terracotta-50/50 dark:bg-dark-800
-                    border-2 border-terracotta-200/40 dark:border-terracotta-400/20
-                    text-terracotta-900 dark:text-cream-100
-                    placeholder:text-terracotta-400/50 dark:placeholder:text-cream-400/30
+                    bg-gray-50/50 dark:bg-stone-700
+                    border-2 border-gray-300 dark:border-stone-600
+                    text-gray-900 dark:text-stone-100
+                    placeholder:text-gray-400/50 dark:placeholder:text-stone-500
                     focus:outline-none transition-colors
                   "
                   style={{ borderColor: `${accentColor}20` }}
@@ -301,7 +301,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
 
             {/* Credit Limit */}
             <div>
-              <label className="block text-sm font-semibold text-terracotta-900 dark:text-cream-100 mb-2">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
                 <CreditCard className="w-4 h-4 inline mr-1" />
                 {locale === 'fr' ? 'Limite de Crédit (GNF)' : 'Credit Limit (GNF)'}
               </label>
@@ -313,16 +313,16 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 onChange={(e) => updateField('creditLimit', e.target.value)}
                 className="
                   w-full px-4 py-3 rounded-xl
-                  bg-terracotta-50/50 dark:bg-dark-800
-                  border-2 border-terracotta-200/40 dark:border-terracotta-400/20
-                  text-terracotta-900 dark:text-cream-100
-                  placeholder:text-terracotta-400/50 dark:placeholder:text-cream-400/30
+                  bg-gray-50/50 dark:bg-stone-700
+                  border-2 border-gray-300 dark:border-stone-600
+                  text-gray-900 dark:text-stone-100
+                  placeholder:text-gray-400/50 dark:placeholder:text-stone-500
                   focus:outline-none transition-colors
                 "
                 style={{ borderColor: `${accentColor}20` }}
                 placeholder="5000000"
               />
-              <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60 mt-1.5">
+              <p className="text-xs text-gray-600/60 dark:text-stone-300/60 mt-1.5">
                 {locale === 'fr'
                   ? 'Montant maximum pouvant être dû'
                   : 'Maximum amount that can be owed'}
@@ -331,7 +331,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-semibold text-terracotta-900 dark:text-cream-100 mb-2">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
                 <FileText className="w-4 h-4 inline mr-1" />
                 {locale === 'fr' ? 'Notes' : 'Notes'}
               </label>
@@ -341,10 +341,10 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 onChange={(e) => updateField('notes', e.target.value)}
                 className="
                   w-full px-4 py-3 rounded-xl
-                  bg-terracotta-50/50 dark:bg-dark-800
-                  border-2 border-terracotta-200/40 dark:border-terracotta-400/20
-                  text-terracotta-900 dark:text-cream-100
-                  placeholder:text-terracotta-400/50 dark:placeholder:text-cream-400/30
+                  bg-gray-50/50 dark:bg-stone-700
+                  border-2 border-gray-300 dark:border-stone-600
+                  text-gray-900 dark:text-stone-100
+                  placeholder:text-gray-400/50 dark:placeholder:text-stone-500
                   focus:outline-none transition-colors
                   resize-none
                 "
@@ -387,9 +387,9 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 disabled={loading}
                 className="
                   flex-1 px-6 py-3.5 rounded-xl font-semibold
-                  bg-terracotta-100 dark:bg-dark-800
-                  text-terracotta-700 dark:text-cream-200
-                  hover:bg-terracotta-200 dark:hover:bg-dark-700
+                  bg-gray-100 dark:bg-stone-700
+                  text-gray-700 dark:text-stone-200
+                  hover:bg-gray-200 dark:hover:bg-stone-600
                   transition-colors
                   disabled:opacity-50
                 "

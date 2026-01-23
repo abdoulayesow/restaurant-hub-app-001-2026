@@ -43,20 +43,20 @@ export function QuickActionsMenu() {
         {/* Quick Actions Panel */}
         {isOpen && (
           <div
-            className="mb-4 w-72 bg-white/95 dark:bg-dark-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-terracotta-200/40 dark:border-terracotta-400/20 overflow-hidden"
+            className="mb-4 w-72 bg-white/95 dark:bg-stone-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-stone-700 overflow-hidden"
             style={{
               animation: 'slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             {/* Header */}
             <div
-              className="px-5 py-4 border-b border-terracotta-200/30 dark:border-terracotta-400/20"
+              className="px-5 py-4 border-b border-gray-200 dark:border-stone-700"
               style={{
                 background: `linear-gradient(135deg, ${accentColor}15 0%, transparent 100%)`,
               }}
             >
               <h3
-                className="text-lg font-bold text-terracotta-900 dark:text-cream-100 flex items-center gap-2"
+                className="text-lg font-bold text-gray-900 dark:text-stone-100 flex items-center gap-2"
                 style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
               >
                 <Zap
@@ -66,7 +66,7 @@ export function QuickActionsMenu() {
                 />
                 {locale === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
               </h3>
-              <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 mt-1">
+              <p className="text-xs text-gray-600/70 dark:text-stone-300/70 mt-1">
                 {locale === 'fr'
                   ? 'Raccourcis pour tâches fréquentes'
                   : 'Shortcuts for common tasks'}
@@ -84,7 +84,7 @@ export function QuickActionsMenu() {
                     className="
                       w-full flex items-center gap-4 px-4 py-3.5 rounded-xl
                       text-left transition-all duration-300
-                      hover:bg-terracotta-50 dark:hover:bg-dark-800
+                      hover:bg-gray-50 dark:hover:bg-stone-700
                       group
                     "
                     style={{
@@ -94,8 +94,8 @@ export function QuickActionsMenu() {
                     <div
                       className="
                         w-12 h-12 rounded-xl flex items-center justify-center
-                        bg-gradient-to-br from-terracotta-50 to-terracotta-100
-                        dark:from-dark-800 dark:to-dark-700
+                        bg-gradient-to-br from-gray-50 to-gray-100
+                        dark:from-stone-800 dark:to-stone-700
                         group-hover:scale-110 transition-transform duration-300
                       "
                       style={{
@@ -109,25 +109,25 @@ export function QuickActionsMenu() {
                       />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-terracotta-900 dark:text-cream-100">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-stone-100">
                         {locale === 'fr' ? action.labelFr : action.label}
                       </p>
-                      <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60 mt-0.5">
+                      <p className="text-xs text-gray-600/60 dark:text-stone-300/60 mt-0.5">
                         {action.id === 'customers' &&
                           (locale === 'fr'
                             ? 'Créer nouveau client'
                             : 'Create new customer')}
                       </p>
                     </div>
-                    <Plus className="w-4 h-4 text-terracotta-400/40 dark:text-cream-400/40 group-hover:text-terracotta-600 dark:group-hover:text-cream-200 transition-colors" />
+                    <Plus className="w-4 h-4 text-gray-400/40 dark:text-stone-400/40 group-hover:text-gray-600 dark:group-hover:text-stone-200 transition-colors" />
                   </button>
                 )
               })}
             </div>
 
             {/* Footer Tip */}
-            <div className="px-4 py-3 bg-terracotta-50/50 dark:bg-dark-800/50 border-t border-terracotta-200/20 dark:border-terracotta-400/10">
-              <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60 text-center">
+            <div className="px-4 py-3 bg-gray-50/50 dark:bg-stone-800/50 border-t border-gray-200/20 dark:border-stone-700">
+              <p className="text-xs text-gray-600/60 dark:text-stone-300/60 text-center">
                 {locale === 'fr'
                   ? 'Plus d\'actions bientôt disponibles'
                   : 'More actions coming soon'}
