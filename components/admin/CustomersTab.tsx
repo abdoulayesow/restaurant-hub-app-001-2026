@@ -229,7 +229,7 @@ export function CustomersTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
@@ -246,14 +246,14 @@ export function CustomersTab() {
               placeholder={t('common.search') || 'Search customers...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+            className="px-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
           >
             <option value="all">All Types</option>
             <option value="Individual">Individual</option>
@@ -263,19 +263,19 @@ export function CustomersTab() {
         </div>
 
         <div className="flex gap-2">
-          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-dark-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors">
+          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-stone-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors">
             <input
               type="checkbox"
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
-              className="rounded text-terracotta-500 focus:ring-terracotta-500"
+              className="rounded text-gray-500 focus:ring-gray-500"
             />
             Show Inactive
           </label>
 
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('admin.addCustomer') || 'Add Customer'}
@@ -286,7 +286,7 @@ export function CustomersTab() {
       {/* Customers Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-dark-700 border-b border-gray-200 dark:border-dark-600">
+          <thead className="bg-gray-50 dark:bg-stone-700 border-b border-gray-200 dark:border-stone-600">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Name
@@ -314,7 +314,7 @@ export function CustomersTab() {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-dark-600">
+          <tbody className="divide-y divide-gray-200 dark:divide-stone-600">
             {filteredCustomers.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
@@ -325,9 +325,9 @@ export function CustomersTab() {
               filteredCustomers.map((customer) => {
                 const TypeIcon = customerTypeIcons[customer.customerType]
                 return (
-                  <tr key={customer.id} className="hover:bg-gray-50 dark:hover:bg-dark-700/50">
+                  <tr key={customer.id} className="hover:bg-gray-50 dark:hover:bg-stone-700/50">
                     <td className="px-4 py-3 text-sm">
-                      <div className="font-medium text-gray-900 dark:text-cream-100">
+                      <div className="font-medium text-gray-900 dark:text-stone-100">
                         {customer.name}
                       </div>
                       {customer.company && (
@@ -405,10 +405,10 @@ export function CustomersTab() {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-cream-100">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
                 {editingCustomer ? (t('admin.editCustomer') || 'Edit Customer') : (t('admin.addCustomer') || 'Add Customer')}
               </h3>
               <button
@@ -430,8 +430,8 @@ export function CustomersTab() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                      errors.name ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                      errors.name ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                     }`}
                     placeholder="Full name"
                   />
@@ -445,7 +445,7 @@ export function CustomersTab() {
                   <select
                     value={formData.customerType}
                     onChange={(e) => setFormData({ ...formData, customerType: e.target.value as CustomerFormData['customerType'] })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   >
                     <option value="Individual">Individual</option>
                     <option value="Corporate">Corporate</option>
@@ -462,7 +462,7 @@ export function CustomersTab() {
                   type="text"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   placeholder="Company name"
                 />
               </div>
@@ -476,7 +476,7 @@ export function CustomersTab() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                     placeholder="+224 XXX XX XX XX"
                   />
                 </div>
@@ -489,8 +489,8 @@ export function CustomersTab() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                      errors.email ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                      errors.email ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                     }`}
                     placeholder="customer@example.com"
                   />
@@ -506,7 +506,7 @@ export function CustomersTab() {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   placeholder="Street address, city"
                 />
               </div>
@@ -519,8 +519,8 @@ export function CustomersTab() {
                   type="number"
                   value={formData.creditLimit}
                   onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.creditLimit ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.creditLimit ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="0"
                   min="0"
@@ -539,24 +539,24 @@ export function CustomersTab() {
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   placeholder="Internal notes about this customer"
                 />
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-dark-700">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-stone-700">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 {saving ? (
                   <>

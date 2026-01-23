@@ -191,7 +191,7 @@ export function CategoriesTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
@@ -207,24 +207,24 @@ export function CategoriesTab() {
             placeholder={t('common.search') || 'Search categories...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
           />
         </div>
 
         <div className="flex gap-2">
-          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-dark-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors">
+          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-stone-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors">
             <input
               type="checkbox"
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
-              className="rounded text-terracotta-500 focus:ring-terracotta-500"
+              className="rounded text-gray-500 focus:ring-gray-500"
             />
             Show Inactive
           </label>
 
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('admin.addCategory') || 'Add Category'}
@@ -242,7 +242,7 @@ export function CategoriesTab() {
           groupedCategories.map(({ group, categories }) => (
             <div key={group.id} className="space-y-2">
               {/* Group Header */}
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-dark-700 rounded-lg">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-stone-700 rounded-lg">
                 <div
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: group.color }}
@@ -258,7 +258,7 @@ export function CategoriesTab() {
               {/* Categories Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-dark-700 border-b border-gray-200 dark:border-dark-600">
+                  <thead className="bg-gray-50 dark:bg-stone-700 border-b border-gray-200 dark:border-stone-600">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Color
@@ -277,9 +277,9 @@ export function CategoriesTab() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-dark-600">
+                  <tbody className="divide-y divide-gray-200 dark:divide-stone-600">
                     {categories.map((category) => (
-                      <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-dark-700/50">
+                      <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-stone-700/50">
                         <td className="px-4 py-3">
                           <div
                             className="w-8 h-8 rounded-lg border border-gray-300 dark:border-gray-600"
@@ -287,7 +287,7 @@ export function CategoriesTab() {
                             title={category.color}
                           />
                         </td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-cream-100">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-stone-100">
                           {category.name}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
@@ -333,10 +333,10 @@ export function CategoriesTab() {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-cream-100">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
                 {editingCategory ? (t('admin.editCategory') || 'Edit Category') : (t('admin.addCategory') || 'Add Category')}
               </h3>
               <button
@@ -357,8 +357,8 @@ export function CategoriesTab() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.name ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="e.g., Ingredients"
                 />
@@ -373,7 +373,7 @@ export function CategoriesTab() {
                   type="text"
                   value={formData.nameFr}
                   onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   placeholder="e.g., Ingrédients"
                 />
               </div>
@@ -385,8 +385,8 @@ export function CategoriesTab() {
                 <select
                   value={formData.expenseGroupId}
                   onChange={(e) => setFormData({ ...formData, expenseGroupId: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.expenseGroupId ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.expenseGroupId ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
                 >
                   <option value="">Select expense group</option>
@@ -410,17 +410,17 @@ export function CategoriesTab() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-dark-700">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-stone-700">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 {saving ? (
                   <>

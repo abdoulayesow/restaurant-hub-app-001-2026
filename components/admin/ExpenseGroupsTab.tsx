@@ -229,7 +229,7 @@ export function ExpenseGroupsTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
@@ -245,24 +245,24 @@ export function ExpenseGroupsTab() {
             placeholder={t('common.search') || 'Search expense groups...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
           />
         </div>
 
         <div className="flex gap-2">
-          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-dark-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors">
+          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-stone-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors">
             <input
               type="checkbox"
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
-              className="rounded text-terracotta-500 focus:ring-terracotta-500"
+              className="rounded text-gray-500 focus:ring-gray-500"
             />
             Show Inactive
           </label>
 
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('admin.addExpenseGroup') || 'Add Expense Group'}
@@ -273,7 +273,7 @@ export function ExpenseGroupsTab() {
       {/* Expense Groups Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-dark-700 border-b border-gray-200 dark:border-dark-600">
+          <thead className="bg-gray-50 dark:bg-stone-700 border-b border-gray-200 dark:border-stone-600">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Order
@@ -298,7 +298,7 @@ export function ExpenseGroupsTab() {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-dark-600">
+          <tbody className="divide-y divide-gray-200 dark:divide-stone-600">
             {filteredGroups.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
@@ -307,7 +307,7 @@ export function ExpenseGroupsTab() {
               </tr>
             ) : (
               filteredGroups.map((group, index) => (
-                <tr key={group.id} className="hover:bg-gray-50 dark:hover:bg-dark-700/50">
+                <tr key={group.id} className="hover:bg-gray-50 dark:hover:bg-stone-700/50">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
                       <button
@@ -343,7 +343,7 @@ export function ExpenseGroupsTab() {
                   <td className="px-4 py-3 text-sm font-mono text-gray-600 dark:text-gray-400">
                     {group.key}
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-cream-100">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-stone-100">
                     {group.label}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
@@ -386,10 +386,10 @@ export function ExpenseGroupsTab() {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-cream-100">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
                 {editingGroup ? (t('admin.editExpenseGroup') || 'Edit Expense Group') : (t('admin.addExpenseGroup') || 'Add Expense Group')}
               </h3>
               <button
@@ -411,8 +411,8 @@ export function ExpenseGroupsTab() {
                   value={formData.key}
                   onChange={(e) => setFormData({ ...formData, key: e.target.value })}
                   disabled={!!editingGroup}
-                  className={`w-full px-3 py-2 font-mono border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.key ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 font-mono border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.key ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   } ${editingGroup ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="e.g., ingredient_purchases"
                 />
@@ -432,8 +432,8 @@ export function ExpenseGroupsTab() {
                   type="text"
                   value={formData.label}
                   onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.label ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.label ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="e.g., Ingredient Purchases"
                 />
@@ -448,8 +448,8 @@ export function ExpenseGroupsTab() {
                   type="text"
                   value={formData.labelFr}
                   onChange={(e) => setFormData({ ...formData, labelFr: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.labelFr ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.labelFr ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="e.g., Achats d'ingrédients"
                 />
@@ -476,17 +476,17 @@ export function ExpenseGroupsTab() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-dark-700">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-stone-700">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 {saving ? (
                   <>
