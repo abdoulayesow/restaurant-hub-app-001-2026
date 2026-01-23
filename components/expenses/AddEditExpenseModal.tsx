@@ -330,20 +330,19 @@ export function AddEditExpenseModal({
           className="
             animate-fade-in-up
             w-full max-w-lg max-h-[90vh] overflow-y-auto
-            bg-cream-50 dark:bg-dark-900
-            rounded-2xl warm-shadow-lg grain-overlay
+            bg-white dark:bg-stone-800
+            rounded-2xl shadow-lg
           "
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
         >
           {/* Header */}
-          <div className="sticky top-0 bg-cream-50 dark:bg-dark-900 p-6 border-b border-terracotta-500/15 dark:border-terracotta-400/20 z-10">
+          <div className="sticky top-0 bg-white dark:bg-stone-800 p-6 border-b border-gray-200 dark:border-stone-700 z-10">
             <div className="flex items-center justify-between">
               <h2
                 id="modal-title"
-                className="text-xl font-bold text-terracotta-900 dark:text-cream-100"
-                style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
+                className="text-xl font-bold text-gray-900 dark:text-stone-100"
               >
                 {isEditMode
                   ? (t('expenses.editExpense') || 'Edit Expense')
@@ -352,10 +351,10 @@ export function AddEditExpenseModal({
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 rounded-full hover:bg-cream-200 dark:hover:bg-dark-700 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                 aria-label={t('common.close') || 'Close'}
               >
-                <X className="w-5 h-5 text-terracotta-600 dark:text-cream-300" />
+                <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
               </button>
             </div>
           </div>
@@ -364,7 +363,7 @@ export function AddEditExpenseModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Date */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <Calendar className="w-4 h-4" />
                 {t('expenses.date') || 'Date'} *
               </label>
@@ -374,10 +373,10 @@ export function AddEditExpenseModal({
                 onChange={(e) => handleChange('date', e.target.value)}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
-                  border ${errors.date ? 'border-red-500' : 'border-terracotta-200 dark:border-dark-600'}
-                  bg-cream-100 dark:bg-dark-800
-                  text-terracotta-900 dark:text-cream-100
-                  focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
+                  border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
+                  bg-gray-50 dark:bg-stone-700
+                  text-gray-900 dark:text-stone-100
+                  focus:ring-2 focus:ring-gray-500 focus:border-gray-500
                 `}
               />
               {errors.date && (
@@ -387,7 +386,7 @@ export function AddEditExpenseModal({
 
             {/* Category */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <Tag className="w-4 h-4" />
                 {t('expenses.category') || 'Category'} *
               </label>
@@ -396,10 +395,10 @@ export function AddEditExpenseModal({
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
-                  border ${errors.category ? 'border-red-500' : 'border-terracotta-200 dark:border-dark-600'}
-                  bg-cream-100 dark:bg-dark-800
-                  text-terracotta-900 dark:text-cream-100
-                  focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
+                  border ${errors.category ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
+                  bg-gray-50 dark:bg-stone-700
+                  text-gray-900 dark:text-stone-100
+                  focus:ring-2 focus:ring-gray-500 focus:border-gray-500
                 `}
               >
                 <option value="">{t('expenses.selectCategory') || 'Select category'}</option>
@@ -420,7 +419,7 @@ export function AddEditExpenseModal({
 
             {/* Amount */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <DollarSign className="w-4 h-4" />
                 {t('expenses.amount') || 'Amount'} (GNF) *
               </label>
@@ -431,10 +430,10 @@ export function AddEditExpenseModal({
                 min="0"
                 className={`
                   w-full px-4 py-2.5 rounded-xl
-                  border ${errors.amount ? 'border-red-500' : 'border-terracotta-200 dark:border-dark-600'}
-                  bg-cream-100 dark:bg-dark-800
-                  text-terracotta-900 dark:text-cream-100
-                  focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500
+                  border ${errors.amount ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
+                  bg-gray-50 dark:bg-stone-700
+                  text-gray-900 dark:text-stone-100
+                  focus:ring-2 focus:ring-gray-500 focus:border-gray-500
                 `}
                 placeholder="0"
               />
@@ -442,7 +441,7 @@ export function AddEditExpenseModal({
                 <p className="mt-1 text-sm text-red-500">{errors.amount}</p>
               )}
               {formData.amountGNF > 0 && (
-                <p className="mt-1 text-sm text-terracotta-600 dark:text-cream-300">
+                <p className="mt-1 text-sm text-gray-600 dark:text-stone-300">
                   {formatCurrency(formData.amountGNF)}
                 </p>
               )}
@@ -450,7 +449,7 @@ export function AddEditExpenseModal({
 
             {/* Payment Method */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 <CreditCard className="w-4 h-4" />
                 {t('expenses.paymentMethod') || 'Payment Method'} *
               </label>
@@ -471,7 +470,7 @@ export function AddEditExpenseModal({
                         flex flex-col items-center gap-1 p-3 rounded-xl border transition-all
                         ${isSelected
                           ? `border-${method.color}-500 bg-${method.color}-500/10 text-${method.color}-700 dark:text-${method.color}-400`
-                          : 'border-terracotta-200 dark:border-dark-600 text-terracotta-600 dark:text-cream-300 hover:bg-cream-100 dark:hover:bg-dark-800'
+                          : 'border-gray-300 dark:border-stone-600 text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700'
                         }
                       `}
                     >
@@ -488,20 +487,20 @@ export function AddEditExpenseModal({
 
             {/* Optional Fields */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-terracotta-800 dark:text-cream-200 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
                 {t('expenses.additionalInfo') || 'Additional Info'} ({t('common.optional') || 'Optional'})
               </h3>
 
               {/* Supplier */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   <Building2 className="w-4 h-4" />
                   {t('expenses.supplier') || 'Supplier'}
                 </label>
                 <select
                   value={formData.supplierId}
                   onChange={(e) => handleChange('supplierId', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-gray-50 dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                 >
                   <option value="">{t('expenses.selectSupplier') || 'Select supplier (optional)'}</option>
                   {suppliers.map(sup => (
@@ -512,7 +511,7 @@ export function AddEditExpenseModal({
 
               {/* Description */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   <FileText className="w-4 h-4" />
                   {t('expenses.description') || 'Description'}
                 </label>
@@ -520,7 +519,7 @@ export function AddEditExpenseModal({
                   type="text"
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-gray-50 dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                   placeholder={t('expenses.descriptionPlaceholder') || 'Brief description...'}
                 />
               </div>
@@ -528,7 +527,7 @@ export function AddEditExpenseModal({
               {/* Transaction Ref */}
               {(formData.paymentMethod === 'Orange Money' || formData.paymentMethod === 'Card') && (
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                     <FileText className="w-4 h-4" />
                     {t('expenses.transactionRef') || 'Transaction Reference'}
                   </label>
@@ -536,28 +535,28 @@ export function AddEditExpenseModal({
                     type="text"
                     value={formData.transactionRef}
                     onChange={(e) => handleChange('transactionRef', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-gray-50 dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                     placeholder={t('expenses.transactionRefPlaceholder') || 'e.g., OM123456'}
                   />
                 </div>
               )}
 
               {/* Is Inventory Purchase */}
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-cream-100 dark:bg-dark-800 border border-terracotta-200 dark:border-dark-600">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-stone-700 border border-gray-300 dark:border-stone-600">
                 <input
                   type="checkbox"
                   id="isInventoryPurchase"
                   checked={formData.isInventoryPurchase}
                   onChange={(e) => handleChange('isInventoryPurchase', e.target.checked)}
-                  className="w-4 h-4 rounded border-terracotta-300 text-terracotta-500 focus:ring-terracotta-500"
+                  className="w-4 h-4 rounded border-gray-300 text-gray-500 focus:ring-gray-500"
                 />
                 <label htmlFor="isInventoryPurchase" className="flex items-center gap-2 cursor-pointer">
                   <Package className="w-4 h-4 text-green-600 dark:text-green-400" />
                   <div>
-                    <span className="text-sm font-medium text-terracotta-900 dark:text-cream-100">
+                    <span className="text-sm font-medium text-gray-900 dark:text-stone-100">
                       {t('expenses.isInventoryPurchase') || 'Inventory Purchase'}
                     </span>
-                    <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+                    <p className="text-xs text-gray-600/60 dark:text-stone-300/60">
                       {t('expenses.inventoryPurchaseHint') || 'Check if this expense is for restocking inventory'}
                     </p>
                   </div>
@@ -591,13 +590,13 @@ export function AddEditExpenseModal({
                       {expenseItems.map((item, index) => {
                         const selectedItem = inventoryItems.find(inv => inv.id === item.inventoryItemId)
                         return (
-                          <div key={index} className="flex gap-2 items-start bg-white dark:bg-dark-800 p-3 rounded-lg">
+                          <div key={index} className="flex gap-2 items-start bg-white dark:bg-stone-800 p-3 rounded-lg">
                             <div className="flex-1 space-y-2">
                               {/* Item Select */}
                               <select
                                 value={item.inventoryItemId}
                                 onChange={(e) => updateExpenseItem(index, 'inventoryItemId', e.target.value)}
-                                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-dark-600 bg-cream-50 dark:bg-dark-700 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-green-500"
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-green-500"
                               >
                                 <option value="">{t('expenses.selectItem') || 'Select item...'}</option>
                                 {inventoryItems.map(inv => (
@@ -618,7 +617,7 @@ export function AddEditExpenseModal({
                                     onChange={(e) => updateExpenseItem(index, 'quantity', parseFloat(e.target.value) || 0)}
                                     min="0.01"
                                     step="0.01"
-                                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-dark-600 bg-cream-50 dark:bg-dark-700 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-green-500"
+                                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-green-500"
                                     placeholder="0"
                                   />
                                 </div>
@@ -631,7 +630,7 @@ export function AddEditExpenseModal({
                                     value={item.unitCostGNF || ''}
                                     onChange={(e) => updateExpenseItem(index, 'unitCostGNF', parseFloat(e.target.value) || 0)}
                                     min="0"
-                                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-dark-600 bg-cream-50 dark:bg-dark-700 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-green-500"
+                                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-stone-600 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-green-500"
                                     placeholder="0"
                                   />
                                 </div>
@@ -677,7 +676,7 @@ export function AddEditExpenseModal({
 
               {/* Comments */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-terracotta-700 dark:text-cream-200 mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                   <FileText className="w-4 h-4" />
                   {t('expenses.comments') || 'Comments'}
                 </label>
@@ -685,7 +684,7 @@ export function AddEditExpenseModal({
                   value={formData.comments}
                   onChange={(e) => handleChange('comments', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500 resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-gray-50 dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 resize-none"
                   placeholder={t('expenses.commentsPlaceholder') || 'Any additional notes...'}
                 />
               </div>
@@ -696,14 +695,14 @@ export function AddEditExpenseModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-terracotta-200 dark:border-dark-600 text-terracotta-700 dark:text-cream-300 hover:bg-cream-100 dark:hover:bg-dark-800 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-terracotta-500 text-white font-medium hover:bg-terracotta-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading
                   ? (t('common.saving') || 'Saving...')

@@ -161,23 +161,23 @@ export function DepositFormModal({
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div
-          className="animate-modal-entrance w-full max-w-md max-h-[90vh] overflow-y-auto bg-cream-50 dark:bg-plum-900 rounded-2xl warm-shadow-lg"
+          className="animate-modal-entrance w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-800 rounded-2xl shadow-lg"
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-plum-200/30 dark:border-plum-700/30">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
             <h2
               id="modal-title"
-              className="bliss-display text-xl font-bold text-plum-800 dark:text-cream-100"
+              className="text-xl font-bold text-gray-900 dark:text-stone-100"
             >
               {t('bank.newDeposit') || 'New Cash Deposit'}
             </h2>
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="p-2 rounded-xl text-plum-600 dark:text-cream-300 hover:bg-plum-100 dark:hover:bg-plum-800 disabled:opacity-50"
+              className="p-2 rounded-xl text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 disabled:opacity-50"
             >
               <X className="w-5 h-5" />
             </button>
@@ -187,7 +187,7 @@ export function DepositFormModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Date */}
             <div>
-              <label className="bliss-body block text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 {t('common.date') || 'Date'} <span className="text-red-500">*</span>
               </label>
               <input
@@ -195,20 +195,20 @@ export function DepositFormModal({
                 value={formData.date}
                 onChange={(e) => handleChange('date', e.target.value)}
                 disabled={isLoading}
-                className={`bliss-body w-full px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 disabled:opacity-50 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 ${
+                className={`w-full px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 disabled:opacity-50 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 ${
                   errors.date
                     ? 'border-red-500 border'
-                    : 'border border-plum-200 dark:border-plum-700'
+                    : 'border border-gray-300 dark:border-stone-600'
                 }`}
               />
               {errors.date && (
-                <p className="bliss-body text-sm text-red-500 mt-1">{errors.date}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.date}</p>
               )}
             </div>
 
             {/* Amount */}
             <div>
-              <label className="bliss-body block text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 {t('bank.amount') || 'Amount'} (GNF) <span className="text-red-500">*</span>
               </label>
               <input
@@ -219,27 +219,27 @@ export function DepositFormModal({
                 placeholder="0"
                 min="0"
                 step="1"
-                className={`bliss-body w-full px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 disabled:opacity-50 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600 ${
+                className={`w-full px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 disabled:opacity-50 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 ${
                   errors.amount
                     ? 'border-red-500 border'
-                    : 'border border-plum-200 dark:border-plum-700'
+                    : 'border border-gray-300 dark:border-stone-600'
                 }`}
               />
               {errors.amount && (
-                <p className="bliss-body text-sm text-red-500 mt-1">{errors.amount}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.amount}</p>
               )}
             </div>
 
             {/* Linked Sale (Optional) */}
             <div>
-              <label className="bliss-body block text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 {t('bank.linkedSale') || 'Linked Sale'} ({t('common.optional') || 'Optional'})
               </label>
               <select
                 value={formData.saleId}
                 onChange={(e) => handleChange('saleId', e.target.value)}
                 disabled={isLoading || loadingSales}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 disabled:opacity-50"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 disabled:opacity-50"
               >
                 <option value="">
                   {loadingSales
@@ -253,7 +253,7 @@ export function DepositFormModal({
                 ))}
               </select>
               {availableSales.length === 0 && !loadingSales && (
-                <p className="bliss-body text-sm text-plum-500 dark:text-plum-400 mt-1">
+                <p className="text-sm text-gray-500 dark:text-stone-400 mt-1">
                   {t('bank.noAvailableSales') || 'No approved sales without deposits'}
                 </p>
               )}
@@ -261,7 +261,7 @@ export function DepositFormModal({
 
             {/* Comments */}
             <div>
-              <label className="bliss-body block text-sm font-medium text-plum-700 dark:text-cream-200 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 {t('common.comments') || 'Comments'} ({t('common.optional') || 'Optional'})
               </label>
               <textarea
@@ -270,24 +270,24 @@ export function DepositFormModal({
                 disabled={isLoading}
                 rows={3}
                 placeholder={t('bank.commentsPlaceholder') || 'Add any notes about this deposit...'}
-                className="bliss-body w-full px-4 py-2.5 border border-plum-200 dark:border-plum-700 rounded-xl focus:ring-2 focus:ring-plum-500 focus:border-plum-500 bg-cream-50 dark:bg-plum-950 text-plum-900 dark:text-cream-100 placeholder:text-plum-400 dark:placeholder:text-plum-600 disabled:opacity-50 resize-none"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 disabled:opacity-50 resize-none"
               />
             </div>
 
             {/* Footer */}
-            <div className="flex gap-3 pt-4 border-t border-plum-200/30 dark:border-plum-700/30">
+            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-stone-700">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-plum-200 dark:border-plum-700 text-plum-700 dark:text-cream-300 hover:bg-plum-50 dark:hover:bg-plum-800 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 disabled:opacity-50"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="btn-lift flex-1 px-4 py-2.5 rounded-xl bg-plum-700 text-cream-50 font-medium hover:bg-plum-800 shadow-lg shadow-plum-900/20 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm disabled:opacity-50"
               >
                 {isLoading
                   ? (t('common.saving') || 'Saving...')

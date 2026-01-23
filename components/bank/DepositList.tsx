@@ -56,7 +56,7 @@ export function DepositList({ deposits, onMarkDeposited, canEdit, loading }: Dep
               onClick={() => setStatusFilter(status)}
               className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
                 statusFilter === status
-                  ? 'border-terracotta-500 text-terracotta-600 dark:text-terracotta-400'
+                  ? 'border-gray-900 text-gray-900 dark:text-white'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
@@ -72,7 +72,7 @@ export function DepositList({ deposits, onMarkDeposited, canEdit, loading }: Dep
       {/* Loading State */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-terracotta-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
         </div>
       ) : filteredDeposits.length === 0 ? (
         /* Empty State */
