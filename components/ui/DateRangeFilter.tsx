@@ -20,15 +20,15 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
   ]
 
   return (
-    <div className="flex bg-cream-200 dark:bg-dark-700 rounded-xl p-1">
+    <div className="flex bg-gray-200 dark:bg-stone-700 rounded-xl p-1">
       {options.map((option) => (
         <button
           key={option.value}
           onClick={() => onChange(option.value)}
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
             value === option.value
-              ? 'bg-terracotta-500 text-white'
-              : 'text-terracotta-700 dark:text-cream-300 hover:bg-cream-300 dark:hover:bg-dark-600'
+              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+              : 'text-gray-700 dark:text-stone-300 hover:bg-gray-300 dark:hover:bg-stone-600'
           }`}
         >
           {option.label}

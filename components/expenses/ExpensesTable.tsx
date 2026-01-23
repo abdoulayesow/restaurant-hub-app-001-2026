@@ -128,9 +128,9 @@ export function ExpensesTable({
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-12 bg-cream-200 dark:bg-dark-700 rounded-t-xl"></div>
+        <div className="h-12 bg-gray-200 dark:bg-stone-700 rounded-t-xl"></div>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-16 bg-cream-100 dark:bg-dark-800 border-t border-terracotta-500/10"></div>
+          <div key={i} className="h-16 bg-white dark:bg-stone-800 border-t border-gray-200 dark:border-stone-700"></div>
         ))}
       </div>
     )
@@ -141,12 +141,12 @@ export function ExpensesTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl warm-shadow">
+    <div className="overflow-x-auto rounded-xl shadow-sm border border-gray-200 dark:border-stone-700">
       <table className="w-full">
         <thead>
-          <tr className="bg-cream-200 dark:bg-dark-700">
+          <tr className="bg-gray-100 dark:bg-stone-700">
             <th
-              className="px-6 py-4 text-left text-sm font-semibold text-terracotta-900 dark:text-cream-100 cursor-pointer hover:bg-cream-300 dark:hover:bg-dark-600"
+              className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600"
               onClick={() => handleSort('date')}
             >
               <div className="flex items-center gap-1">
@@ -155,7 +155,7 @@ export function ExpensesTable({
               </div>
             </th>
             <th
-              className="px-6 py-4 text-left text-sm font-semibold text-terracotta-900 dark:text-cream-100 cursor-pointer hover:bg-cream-300 dark:hover:bg-dark-600"
+              className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600"
               onClick={() => handleSort('categoryName')}
             >
               <div className="flex items-center gap-1">
@@ -164,7 +164,7 @@ export function ExpensesTable({
               </div>
             </th>
             <th
-              className="px-6 py-4 text-right text-sm font-semibold text-terracotta-900 dark:text-cream-100 cursor-pointer hover:bg-cream-300 dark:hover:bg-dark-600"
+              className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600"
               onClick={() => handleSort('amountGNF')}
             >
               <div className="flex items-center justify-end gap-1">
@@ -172,14 +172,14 @@ export function ExpensesTable({
                 <SortIcon field="amountGNF" />
               </div>
             </th>
-            <th className="px-6 py-4 text-center text-sm font-semibold text-terracotta-900 dark:text-cream-100 hidden md:table-cell">
+            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-stone-100 hidden md:table-cell">
               {t('expenses.paymentMethod') || 'Payment'}
             </th>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-terracotta-900 dark:text-cream-100 hidden lg:table-cell">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-stone-100 hidden lg:table-cell">
               {t('expenses.supplier') || 'Supplier'}
             </th>
             <th
-              className="px-6 py-4 text-center text-sm font-semibold text-terracotta-900 dark:text-cream-100 cursor-pointer hover:bg-cream-300 dark:hover:bg-dark-600"
+              className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600"
               onClick={() => handleSort('status')}
             >
               <div className="flex items-center justify-center gap-1">
@@ -187,12 +187,12 @@ export function ExpensesTable({
                 <SortIcon field="status" />
               </div>
             </th>
-            <th className="px-6 py-4 text-right text-sm font-semibold text-terracotta-900 dark:text-cream-100">
+            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-stone-100">
               {t('common.actions') || 'Actions'}
             </th>
           </tr>
         </thead>
-        <tbody className="bg-cream-100 dark:bg-dark-800">
+        <tbody className="bg-white dark:bg-stone-800">
           {sortedExpenses.map((expense, index) => {
             const paymentConfig = paymentMethodConfig[expense.paymentMethod] || defaultPaymentConfig
             const PaymentIcon = paymentConfig.icon
@@ -201,18 +201,18 @@ export function ExpensesTable({
               <tr
                 key={expense.id}
                 className={`
-                  border-t border-terracotta-500/10 dark:border-terracotta-400/10
-                  hover:bg-cream-50 dark:hover:bg-dark-700 transition-colors
-                  ${index === sortedExpenses.length - 1 ? 'rounded-b-2xl' : ''}
+                  border-t border-gray-200 dark:border-stone-700
+                  hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors
+                  ${index === sortedExpenses.length - 1 ? 'rounded-b-xl' : ''}
                 `}
               >
                 <td className="px-6 py-4">
                   <div>
-                    <p className="font-medium text-terracotta-900 dark:text-cream-100">
+                    <p className="font-medium text-gray-900 dark:text-stone-100">
                       {formatDate(expense.date)}
                     </p>
                     {expense.submittedByName && (
-                      <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60 mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-stone-400 mt-0.5">
                         {t('expenses.by') || 'by'} {expense.submittedByName}
                       </p>
                     )}
@@ -220,7 +220,7 @@ export function ExpensesTable({
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-terracotta-900 dark:text-cream-100">
+                    <span className="font-medium text-gray-900 dark:text-stone-100">
                       {expense.categoryName}
                     </span>
                     {expense.isInventoryPurchase && (
@@ -233,12 +233,12 @@ export function ExpensesTable({
                     )}
                   </div>
                   {expense.description && (
-                    <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60 mt-0.5 truncate max-w-[200px]">
+                    <p className="text-xs text-gray-500 dark:text-stone-400 mt-0.5 truncate max-w-[200px]">
                       {expense.description}
                     </p>
                   )}
                 </td>
-                <td className="px-6 py-4 text-right font-semibold text-terracotta-900 dark:text-cream-100">
+                <td className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-stone-100">
                   {formatCurrency(expense.amountGNF)}
                 </td>
                 <td className="px-6 py-4 text-center hidden md:table-cell">
@@ -247,7 +247,7 @@ export function ExpensesTable({
                     <span className="text-sm">{paymentConfig.label}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-terracotta-700 dark:text-cream-200 hidden lg:table-cell">
+                <td className="px-6 py-4 text-gray-700 dark:text-stone-200 hidden lg:table-cell">
                   {expense.supplier?.name || '-'}
                 </td>
                 <td className="px-6 py-4 text-center">
@@ -257,7 +257,7 @@ export function ExpensesTable({
                   <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => onView(expense)}
-                      className="p-2 rounded-lg text-terracotta-600 dark:text-cream-300 hover:bg-cream-200 dark:hover:bg-dark-600 transition-colors"
+                      className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
                       title={t('common.view') || 'View'}
                     >
                       <Eye className="w-4 h-4" />
@@ -266,7 +266,7 @@ export function ExpensesTable({
                     {(isManager || expense.status === 'Pending') && (
                       <button
                         onClick={() => onEdit(expense)}
-                        className="p-2 rounded-lg text-terracotta-600 dark:text-cream-300 hover:bg-cream-200 dark:hover:bg-dark-600 transition-colors"
+                        className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
                         title={t('common.edit') || 'Edit'}
                       >
                         <Edit2 className="w-4 h-4" />

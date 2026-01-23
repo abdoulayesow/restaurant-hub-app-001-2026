@@ -66,14 +66,14 @@ export function ExpenseCategoryChart({ data }: ExpenseCategoryChartProps) {
       const item = payload[0].payload
       const percentage = total > 0 ? ((item.amount / total) * 100).toFixed(1) : '0'
       return (
-        <div className="bg-cream-50 dark:bg-plum-800 border-2 border-plum-200 dark:border-plum-600 rounded-xl shadow-lg p-3">
-          <p className="bliss-body text-sm font-medium text-plum-800 dark:text-cream-100 mb-1">
+        <div className="bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-xl shadow-lg p-3">
+          <p className="text-sm font-medium text-gray-900 dark:text-stone-100 mb-1">
             {getLocalizedName(item)}
           </p>
-          <p className="bliss-body text-lg font-bold text-plum-800 dark:text-cream-100">
+          <p className="text-lg font-bold text-gray-900 dark:text-stone-100">
             {formatAmount(item.amount)} GNF
           </p>
-          <p className="bliss-body text-sm text-plum-600 dark:text-plum-300">
+          <p className="text-sm text-gray-600 dark:text-stone-300">
             {percentage}%
           </p>
         </div>
@@ -96,7 +96,7 @@ export function ExpenseCategoryChart({ data }: ExpenseCategoryChartProps) {
                 className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="bliss-body text-plum-700 dark:text-cream-200">
+              <span className="text-gray-700 dark:text-stone-200">
                 {getLocalizedName(item)} ({percentage}%)
               </span>
             </li>
@@ -108,8 +108,8 @@ export function ExpenseCategoryChart({ data }: ExpenseCategoryChartProps) {
 
   if (total === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-plum-600/60 dark:text-plum-300/60">
-        <p className="bliss-body">{t('common.noData') || 'No data available'}</p>
+      <div className="h-64 flex items-center justify-center text-gray-500 dark:text-stone-400">
+        <p>{t('common.noData') || 'No data available'}</p>
       </div>
     )
   }
