@@ -33,7 +33,8 @@
       "Bash(npx tsc:*)",
       "Bash(timeout /t 5 /nobreak)",
       "Bash(dir:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

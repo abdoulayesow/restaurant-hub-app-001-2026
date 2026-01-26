@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Plus, Search, Receipt, RefreshCw, Filter, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { ExpensesTable } from '@/components/expenses/ExpensesTable'
 import { AddEditExpenseModal } from '@/components/expenses/AddEditExpenseModal'
+import { RecordPaymentModal } from '@/components/expenses/RecordPaymentModal'
+import { Toast } from '@/components/ui/Toast'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
 import { ExpenseTrendChart } from '@/components/expenses/ExpenseTrendChart'
 import { ExpenseCategoryChart } from '@/components/expenses/ExpenseCategoryChart'
@@ -22,6 +24,8 @@ interface Expense {
   paymentMethod: string
   description?: string | null
   status: 'Pending' | 'Approved' | 'Rejected'
+  paymentStatus?: 'Unpaid' | 'PartiallyPaid' | 'Paid'
+  totalPaidAmount?: number
   submittedByName?: string | null
   supplier?: { id: string; name: string } | null
   isInventoryPurchase: boolean
@@ -90,8 +94,12 @@ interface ExpenseCategoryData {
 export default function ExpensesPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t, locale } = useLocale()
   const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+
+  // Initialize filters from URL params
+  const initialPaymentStatus = searchParams.get('paymentStatus') || ''
 
   const [loading, setLoading] = useState(true)
   const [expenses, setExpenses] = useState<Expense[]>([])
@@ -100,12 +108,17 @@ export default function ExpensesPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
   const [statusFilter, setStatusFilter] = useState('')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState(initialPaymentStatus)
   const [categoryFilter, setCategoryFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [dateRange, setDateRange] = useState<DateRangeValue>('30days')
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [paymentExpense, setPaymentExpense] = useState<Expense | null>(null)
+  const [isRecordingPayment, setIsRecordingPayment] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [expensesByDay, setExpensesByDay] = useState<ExpenseTrendDataPoint[]>([])
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseCategoryData[]>([])
 
@@ -169,6 +182,7 @@ export default function ExpensesPage() {
       const params = new URLSearchParams({
         restaurantId: currentRestaurant.id,
         ...(statusFilter && { status: statusFilter }),
+        ...(paymentStatusFilter && { paymentStatus: paymentStatusFilter }),
         ...(categoryFilter && { categoryId: categoryFilter }),
         ...(startDate && { startDate: startDate.toISOString() }),
         endDate: endDate.toISOString(),
@@ -187,7 +201,7 @@ export default function ExpensesPage() {
     } finally {
       setLoading(false)
     }
-  }, [currentRestaurant?.id, statusFilter, categoryFilter, dateRange])
+  }, [currentRestaurant?.id, statusFilter, paymentStatusFilter, categoryFilter, dateRange])
 
   // Initial data fetch
   useEffect(() => {
@@ -279,6 +293,51 @@ export default function ExpensesPage() {
       }
     } catch (error) {
       console.error('Error rejecting expense:', error)
+    }
+  }
+
+  // Handle record payment
+  const handleOpenPaymentModal = (expense: Expense) => {
+    setPaymentExpense(expense)
+    setIsPaymentModalOpen(true)
+  }
+
+  const handleRecordPayment = async (data: {
+    amount: number
+    paymentMethod: 'Cash' | 'OrangeMoney' | 'Card'
+    notes?: string
+    receiptUrl?: string
+  }) => {
+    if (!paymentExpense) return
+
+    setIsRecordingPayment(true)
+    try {
+      const res = await fetch(`/api/expenses/${paymentExpense.id}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      if (res.ok) {
+        setIsPaymentModalOpen(false)
+        setPaymentExpense(null)
+        setToast({
+          message: t('expenses.payment.paymentRecorded') || 'Payment recorded successfully',
+          type: 'success',
+        })
+        fetchExpenses()
+      } else {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to record payment')
+      }
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : 'Failed to record payment',
+        type: 'error',
+      })
+      throw error
+    } finally {
+      setIsRecordingPayment(false)
     }
   }
 
@@ -487,6 +546,18 @@ export default function ExpensesPage() {
           </select>
 
           <select
+            value={paymentStatusFilter}
+            onChange={(e) => setPaymentStatusFilter(e.target.value)}
+            className="px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100"
+          >
+            <option value="">{t('expenses.allPaymentStatuses') || 'All Payment Status'}</option>
+            <option value="Unpaid">{t('expenses.payment.unpaid') || 'Unpaid'}</option>
+            <option value="PartiallyPaid">{t('expenses.payment.partiallyPaid') || 'Partially Paid'}</option>
+            <option value="Paid">{t('expenses.payment.paid') || 'Paid'}</option>
+            <option value="Unpaid,PartiallyPaid">{t('expenses.unpaidOrPartial') || 'Unpaid + Partial'}</option>
+          </select>
+
+          <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100"
@@ -516,6 +587,7 @@ export default function ExpensesPage() {
             onEdit={handleEdit}
             onApprove={handleApprove}
             onReject={handleReject}
+            onRecordPayment={handleOpenPaymentModal}
             isManager={isManager}
             loading={loading}
           />
@@ -553,6 +625,27 @@ export default function ExpensesPage() {
         inventoryItems={inventoryItems}
         loading={isSaving}
       />
+
+      {/* Record Payment Modal */}
+      <RecordPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => {
+          setIsPaymentModalOpen(false)
+          setPaymentExpense(null)
+        }}
+        onSubmit={handleRecordPayment}
+        expense={paymentExpense}
+        isLoading={isRecordingPayment}
+      />
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }

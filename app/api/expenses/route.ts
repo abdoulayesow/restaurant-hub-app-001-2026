@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const restaurantId = searchParams.get('restaurantId')
     const status = searchParams.get('status')
+    const paymentStatus = searchParams.get('paymentStatus') // Unpaid | PartiallyPaid | Paid (comma-separated for multiple)
     const categoryId = searchParams.get('categoryId')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
     const where: {
       restaurantId: string
       status?: 'Pending' | 'Approved' | 'Rejected'
+      paymentStatus?: { in: ('Unpaid' | 'PartiallyPaid' | 'Paid')[] }
       categoryId?: string
       date?: { gte?: Date; lte?: Date }
     } = {
@@ -49,6 +51,15 @@ export async function GET(request: NextRequest) {
 
     if (status && ['Pending', 'Approved', 'Rejected'].includes(status)) {
       where.status = status as 'Pending' | 'Approved' | 'Rejected'
+    }
+
+    // Payment status filter (supports comma-separated values)
+    if (paymentStatus) {
+      const validStatuses = ['Unpaid', 'PartiallyPaid', 'Paid']
+      const requestedStatuses = paymentStatus.split(',').filter(s => validStatuses.includes(s))
+      if (requestedStatuses.length > 0) {
+        where.paymentStatus = { in: requestedStatuses as ('Unpaid' | 'PartiallyPaid' | 'Paid')[] }
+      }
     }
 
     if (categoryId) {
@@ -95,6 +106,16 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+        },
+        expensePayments: {
+          select: {
+            id: true,
+            amount: true,
+            paymentMethod: true,
+            paidAt: true,
+            paidByName: true,
+          },
+          orderBy: { paidAt: 'desc' },
         },
       },
     })
@@ -184,12 +205,28 @@ export async function GET(request: NextRequest) {
         return acc
       }, [])
 
+    // Payment status calculations (only for approved expenses)
+    const approvedExpenses = expenses.filter(e => e.status === 'Approved')
+    const unpaidCount = approvedExpenses.filter(e => e.paymentStatus === 'Unpaid').length
+    const partiallyPaidCount = approvedExpenses.filter(e => e.paymentStatus === 'PartiallyPaid').length
+    const paidCount = approvedExpenses.filter(e => e.paymentStatus === 'Paid').length
+    const totalPaid = approvedExpenses.reduce((sum, e) => sum + e.totalPaidAmount, 0)
+    const totalUnpaid = approvedExpenses.reduce((sum, e) => sum + (e.amountGNF - e.totalPaidAmount), 0)
+
     const summary = {
       totalExpenses: expenses.length,
       totalAmount,
+      // Approval status counts
       pendingCount: expenses.filter(e => e.status === 'Pending').length,
       approvedCount: expenses.filter(e => e.status === 'Approved').length,
       rejectedCount: expenses.filter(e => e.status === 'Rejected').length,
+      // Payment status counts (for approved expenses)
+      unpaidCount,
+      partiallyPaidCount,
+      paidCount,
+      totalPaid,
+      totalUnpaid,
+      // Payment method totals
       totalCash: expenses.filter(e => e.paymentMethod === 'Cash').reduce((sum, e) => sum + e.amountGNF, 0),
       totalOrangeMoney: expenses.filter(e => e.paymentMethod === 'OrangeMoney').reduce((sum, e) => sum + e.amountGNF, 0),
       totalCard: expenses.filter(e => e.paymentMethod === 'Card').reduce((sum, e) => sum + e.amountGNF, 0),

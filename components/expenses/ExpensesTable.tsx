@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, DollarSign, Smartphone, CreditCard } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, DollarSign, Smartphone, CreditCard, Banknote } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 
@@ -13,6 +13,8 @@ interface Expense {
   paymentMethod: string
   description?: string | null
   status: 'Pending' | 'Approved' | 'Rejected'
+  paymentStatus?: 'Unpaid' | 'PartiallyPaid' | 'Paid'
+  totalPaidAmount?: number
   submittedByName?: string | null
   supplier?: { id: string; name: string } | null
   isInventoryPurchase: boolean
@@ -35,6 +37,7 @@ interface ExpensesTableProps {
   onEdit: (expense: Expense) => void
   onApprove?: (expense: Expense) => void
   onReject?: (expense: Expense) => void
+  onRecordPayment?: (expense: Expense) => void
   isManager?: boolean
   loading?: boolean
 }
@@ -48,6 +51,7 @@ export function ExpensesTable({
   onEdit,
   onApprove,
   onReject,
+  onRecordPayment,
   isManager = false,
   loading = false,
 }: ExpensesTableProps) {
@@ -187,6 +191,9 @@ export function ExpensesTable({
                 <SortIcon field="status" />
               </div>
             </th>
+            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-stone-100 hidden lg:table-cell">
+              {t('expenses.payment.status') || 'Payment'}
+            </th>
             <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-stone-100">
               {t('common.actions') || 'Actions'}
             </th>
@@ -253,6 +260,34 @@ export function ExpensesTable({
                 <td className="px-6 py-4 text-center">
                   <StatusBadge status={expense.status} size="sm" />
                 </td>
+                <td className="px-6 py-4 text-center hidden lg:table-cell">
+                  {expense.status === 'Approved' && expense.paymentStatus && (
+                    <div className="flex flex-col items-center gap-1">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        expense.paymentStatus === 'Paid'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                          : expense.paymentStatus === 'PartiallyPaid'
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {expense.paymentStatus === 'Paid'
+                          ? (t('expenses.payment.paid') || 'Paid')
+                          : expense.paymentStatus === 'PartiallyPaid'
+                            ? (t('expenses.payment.partial') || 'Partial')
+                            : (t('expenses.payment.unpaid') || 'Unpaid')
+                        }
+                      </span>
+                      {expense.paymentStatus !== 'Paid' && expense.totalPaidAmount !== undefined && expense.totalPaidAmount > 0 && (
+                        <span className="text-xs text-gray-500 dark:text-stone-400">
+                          {Math.round((expense.totalPaidAmount / expense.amountGNF) * 100)}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {expense.status !== 'Approved' && (
+                    <span className="text-xs text-gray-400 dark:text-stone-500">-</span>
+                  )}
+                </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-2">
                     <button
@@ -290,6 +325,16 @@ export function ExpensesTable({
                           <XCircle className="w-4 h-4" />
                         </button>
                       </>
+                    )}
+
+                    {isManager && expense.status === 'Approved' && expense.paymentStatus !== 'Paid' && onRecordPayment && (
+                      <button
+                        onClick={() => onRecordPayment(expense)}
+                        className="p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                        title={t('expenses.payment.recordPayment') || 'Record Payment'}
+                      >
+                        <Banknote className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
                 </td>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Calendar, DollarSign, Smartphone, CreditCard, FileText, Tag, Building2, Package, Plus, Trash2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { X, Calendar, DollarSign, Smartphone, CreditCard, FileText, Tag, Building2, Package, Plus, Trash2, History } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { PaymentHistory } from './PaymentHistory'
 
 interface Category {
   id: string
@@ -49,6 +50,8 @@ interface Expense {
   isInventoryPurchase?: boolean
   comments?: string | null
   status?: 'Pending' | 'Approved' | 'Rejected'
+  paymentStatus?: 'Unpaid' | 'PartiallyPaid' | 'Paid'
+  totalPaidAmount?: number
   expenseItems?: Array<{
     inventoryItemId: string
     quantity: number
@@ -60,6 +63,20 @@ interface Expense {
       unit: string
     }
   }>
+}
+
+interface ExpensePayment {
+  id: string
+  amount: number
+  paymentMethod: 'Cash' | 'OrangeMoney' | 'Card'
+  paidAt: string
+  paidByName?: string | null
+  notes?: string | null
+  bankTransaction?: {
+    id: string
+    status: 'Pending' | 'Confirmed'
+    bankRef?: string | null
+  } | null
 }
 
 interface AddEditExpenseModalProps {
@@ -85,6 +102,10 @@ export function AddEditExpenseModal({
 }: AddEditExpenseModalProps) {
   const { t, locale } = useLocale()
   const isEditMode = !!expense?.id
+  const showPaymentHistory = isEditMode && expense?.status === 'Approved'
+
+  const [payments, setPayments] = useState<ExpensePayment[]>([])
+  const [paymentsLoading, setPaymentsLoading] = useState(false)
 
   const [formData, setFormData] = useState({
     date: '',
@@ -144,7 +165,32 @@ export function AddEditExpenseModal({
       setExpenseItems([])
     }
     setErrors({})
+    setPayments([])
   }, [expense, isOpen])
+
+  // Fetch payment history for approved expenses
+  const fetchPayments = useCallback(async () => {
+    if (!expense?.id || expense.status !== 'Approved') return
+
+    setPaymentsLoading(true)
+    try {
+      const res = await fetch(`/api/expenses/${expense.id}/payments`)
+      if (res.ok) {
+        const data = await res.json()
+        setPayments(data.payments || [])
+      }
+    } catch (error) {
+      console.error('Error fetching payments:', error)
+    } finally {
+      setPaymentsLoading(false)
+    }
+  }, [expense?.id, expense?.status])
+
+  useEffect(() => {
+    if (isOpen && showPaymentHistory) {
+      fetchPayments()
+    }
+  }, [isOpen, showPaymentHistory, fetchPayments])
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -689,6 +735,43 @@ export function AddEditExpenseModal({
                 />
               </div>
             </div>
+
+            {/* Payment History Section - Only for approved expenses */}
+            {showPaymentHistory && (
+              <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-stone-700">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
+                  <History className="w-4 h-4" />
+                  {t('expenses.payment.history') || 'Payment History'}
+                </h3>
+
+                {/* Payment Status Badge */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-stone-700/50">
+                  <span className="text-sm text-gray-600 dark:text-stone-400">
+                    {t('expenses.payment.status') || 'Payment Status'}
+                  </span>
+                  <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                    expense?.paymentStatus === 'Paid'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                      : expense?.paymentStatus === 'PartiallyPaid'
+                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                        : 'bg-gray-100 dark:bg-stone-600 text-gray-700 dark:text-stone-300'
+                  }`}>
+                    {expense?.paymentStatus === 'Paid'
+                      ? (t('expenses.payment.paid') || 'Paid')
+                      : expense?.paymentStatus === 'PartiallyPaid'
+                        ? (t('expenses.payment.partiallyPaid') || 'Partially Paid')
+                        : (t('expenses.payment.unpaid') || 'Unpaid')
+                    }
+                  </span>
+                </div>
+
+                <PaymentHistory
+                  payments={payments}
+                  totalAmount={expense?.amountGNF || 0}
+                  loading={paymentsLoading}
+                />
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">
