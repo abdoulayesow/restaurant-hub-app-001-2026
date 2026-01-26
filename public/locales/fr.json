@@ -75,7 +75,11 @@
     "period30Days": "30 jours",
     "period90Days": "90 jours",
     "viewAll": "Voir tout",
-    "noAlerts": "Tout est en ordre!"
+    "noAlerts": "Tout est en ordre!",
+    "unpaidExpenses": "Dépenses Impayées",
+    "totalOutstanding": "Total Impayé",
+    "allExpensesPaid": "Toutes les dépenses sont payées!",
+    "inventoryValue": "Valeur d'Inventaire"
   },
   "editor": {
     "title": "Espace Éditeur",
@@ -135,7 +139,10 @@
     "adjustStock": "Ajuster le stock",
     "stockLevels": "Niveaux de stock",
     "itemDetails": "Détails de l'article",
-    "viewItem": "Voir l'article"
+    "viewItem": "Voir l'article",
+    "inventoryValue": "Valeur d'Inventaire",
+    "totalValue": "Valeur totale de l'inventaire",
+    "value": "Valeur"
   },
   "production": {
     "title": "Production",
@@ -260,6 +267,8 @@
     "awaitingReview": "en attente de révision",
     "allCategories": "Toutes les catégories",
     "allStatuses": "Tous les statuts",
+    "allPaymentStatuses": "Tous les paiements",
+    "unpaidOrPartial": "Impayé + Partiel",
     "searchPlaceholder": "Rechercher des dépenses...",
     "category": "Catégorie",
     "supplier": "Fournisseur",
@@ -305,7 +314,34 @@
     "other": "Autres",
     "periodTotal": "Total de la période",
     "expenseTrend": "Tendance des dépenses",
-    "categoryDistribution": "Par catégorie"
+    "categoryDistribution": "Par catégorie",
+    "totalAmount": "Montant Total",
+    "payment": {
+      "status": "Statut de Paiement",
+      "unpaid": "Impayé",
+      "partial": "Partiel",
+      "partiallyPaid": "Partiellement Payé",
+      "paid": "Payé",
+      "history": "Historique des Paiements",
+      "recordPayment": "Enregistrer Paiement",
+      "remaining": "Restant",
+      "amount": "Montant du Paiement",
+      "method": "Mode de Paiement",
+      "notes": "Notes",
+      "notesPlaceholder": "Notes optionnelles sur ce paiement...",
+      "amountRequired": "Le montant doit être supérieur à 0",
+      "amountExceedsRemaining": "Le montant dépasse le solde restant",
+      "paymentRecorded": "Paiement enregistré avec succès",
+      "totalPaid": "Total Payé",
+      "noPayments": "Aucun paiement enregistré",
+      "runningTotal": "Total cumulé",
+      "maxAmount": "Max",
+      "addReceipt": "Ajouter un Reçu",
+      "receiptUrl": "Lien du Reçu",
+      "receiptUrlPlaceholder": "https://drive.google.com/...",
+      "receiptUrlHint": "Collez un lien vers votre image de reçu (Google Drive, Dropbox, etc.)",
+      "viewReceipt": "Voir le Reçu"
+    }
   },
   "bank": {
     "title": "Banque & Caisse",
@@ -324,7 +360,49 @@
     "recordDeposit": "Enregistrer un dépôt",
     "withdrawal": "Retrait",
     "withdrawalDescription": "Retirer des fonds de votre compte",
-    "recordWithdrawal": "Enregistrer un retrait"
+    "recordWithdrawal": "Enregistrer un retrait",
+    "mobileWallet": "Portefeuille Mobile",
+    "orangeMoney": "Orange Money",
+    "card": "Carte",
+    "cardBalance": "Solde Carte",
+    "amount": "Montant",
+    "date": "Date",
+    "type": "Type",
+    "method": "Méthode",
+    "reason": "Raison",
+    "description": "Description",
+    "descriptionPlaceholder": "Notes supplémentaires sur cette transaction...",
+    "status": "Statut",
+    "pending": "En attente",
+    "confirmed": "Confirmé",
+    "confirm": "Confirmer",
+    "confirmTransaction": "Confirmer la transaction",
+    "confirmTransactionMessage": "Êtes-vous sûr de vouloir confirmer cette transaction ? Cette action est irréversible.",
+    "transactionConfirmed": "Transaction confirmée",
+    "depositCreated": "Dépôt enregistré avec succès",
+    "withdrawalCreated": "Retrait enregistré avec succès",
+    "bankRef": "Référence bancaire",
+    "bankRefPlaceholder": "Numéro de référence bancaire",
+    "selectType": "Sélectionner le type",
+    "selectMethod": "Sélectionner le mode de paiement",
+    "selectReason": "Sélectionner la raison",
+    "reasons": {
+      "SalesDeposit": "Dépôt de ventes",
+      "DebtCollection": "Recouvrement de créance",
+      "ExpensePayment": "Paiement de dépense",
+      "OwnerWithdrawal": "Retrait propriétaire",
+      "CapitalInjection": "Injection de capital",
+      "Other": "Autre"
+    },
+    "methods": {
+      "Cash": "Espèces",
+      "OrangeMoney": "Orange Money",
+      "Card": "Carte"
+    },
+    "types": {
+      "Deposit": "Dépôt",
+      "Withdrawal": "Retrait"
+    }
   },
   "projection": {
     "title": "Projections",

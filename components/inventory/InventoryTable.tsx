@@ -35,7 +35,7 @@ interface InventoryTableProps {
   onViewHistory: (item: InventoryItem) => void
 }
 
-type SortField = 'name' | 'category' | 'currentStock' | 'minStock' | 'unitCostGNF'
+type SortField = 'name' | 'category' | 'currentStock' | 'minStock' | 'unitCostGNF' | 'itemValue'
 type SortDirection = 'asc' | 'desc'
 
 export function InventoryTable({
@@ -58,8 +58,17 @@ export function InventoryTable({
 
   // Sort items
   const sortedItems = [...items].sort((a, b) => {
-    let aVal: string | number = a[sortField]
-    let bVal: string | number = b[sortField]
+    let aVal: string | number
+    let bVal: string | number
+
+    // Handle computed itemValue field
+    if (sortField === 'itemValue') {
+      aVal = a.currentStock * a.unitCostGNF
+      bVal = b.currentStock * b.unitCostGNF
+    } else {
+      aVal = a[sortField]
+      bVal = b[sortField]
+    }
 
     // Handle string comparison
     if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -157,6 +166,13 @@ export function InventoryTable({
                 {t('inventory.unitCost')}
                 <SortIcon field="unitCostGNF" />
               </th>
+              <th
+                onClick={() => handleSort('itemValue')}
+                className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 hidden lg:table-cell"
+              >
+                {t('inventory.value') || 'Value'}
+                <SortIcon field="itemValue" />
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {t('common.actions')}
               </th>
@@ -191,6 +207,9 @@ export function InventoryTable({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100 hidden sm:table-cell">
                   {formatCurrency(item.unitCostGNF)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-emerald-600 dark:text-emerald-400 hidden lg:table-cell">
+                  {formatCurrency(item.currentStock * item.unitCostGNF)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                   <div className="flex items-center justify-end gap-1">

@@ -18,6 +18,8 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { RevenueChart } from '@/components/dashboard/RevenueChart'
 import { ExpensesPieChart } from '@/components/dashboard/ExpensesPieChart'
+import { UnpaidExpensesWidget } from '@/components/dashboard/UnpaidExpensesWidget'
+import { InventoryValueCard } from '@/components/dashboard/InventoryValueCard'
 
 interface DashboardData {
   kpis: {
@@ -26,6 +28,7 @@ interface DashboardData {
     profit: number
     profitMargin: number
     balance: number
+    inventoryValue: number
   }
   revenueByDay: Array<{ date: string; amount: number }>
   expensesByCategory: Array<{ name: string; nameFr: string; amount: number; color: string }>
@@ -41,6 +44,27 @@ interface DashboardData {
   pendingApprovals: {
     sales: number
     expenses: number
+  }
+  unpaidExpenses?: {
+    expenses: Array<{
+      id: string
+      categoryName: string
+      amountGNF: number
+      totalPaidAmount: number
+      date: string
+      supplier?: { name: string } | null
+    }>
+    totalOutstanding: number
+    count: number
+  }
+  inventoryValuation?: {
+    totalValue: number
+    byCategory: Array<{
+      category: string
+      value: number
+      itemCount: number
+      percentOfTotal: number
+    }>
   }
 }
 
@@ -244,8 +268,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Alerts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Alerts & Widgets Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
           {/* Low Stock Alerts */}
           <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -373,6 +397,20 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+
+          {/* Unpaid Expenses Widget */}
+          <UnpaidExpensesWidget
+            expenses={dashboardData?.unpaidExpenses?.expenses || []}
+            totalOutstanding={dashboardData?.unpaidExpenses?.totalOutstanding || 0}
+            loading={loading}
+          />
+
+          {/* Inventory Value Widget */}
+          <InventoryValueCard
+            totalValue={dashboardData?.inventoryValuation?.totalValue || 0}
+            byCategory={dashboardData?.inventoryValuation?.byCategory || []}
+            loading={loading}
+          />
         </div>
 
         {/* Charts */}

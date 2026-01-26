@@ -75,7 +75,11 @@
     "period30Days": "30 Days",
     "period90Days": "90 Days",
     "viewAll": "View All",
-    "noAlerts": "All clear!"
+    "noAlerts": "All clear!",
+    "unpaidExpenses": "Unpaid Expenses",
+    "totalOutstanding": "Total Outstanding",
+    "allExpensesPaid": "All expenses paid!",
+    "inventoryValue": "Inventory Value"
   },
   "editor": {
     "title": "Editor Dashboard",
@@ -135,7 +139,10 @@
     "adjustStock": "Adjust Stock",
     "stockLevels": "Stock Levels",
     "itemDetails": "Item Details",
-    "viewItem": "View Item"
+    "viewItem": "View Item",
+    "inventoryValue": "Inventory Value",
+    "totalValue": "Total inventory value",
+    "value": "Value"
   },
   "production": {
     "title": "Production",
@@ -260,6 +267,8 @@
     "awaitingReview": "awaiting review",
     "allCategories": "All Categories",
     "allStatuses": "All Statuses",
+    "allPaymentStatuses": "All Payment Status",
+    "unpaidOrPartial": "Unpaid + Partial",
     "searchPlaceholder": "Search expenses...",
     "category": "Category",
     "supplier": "Supplier",
@@ -305,7 +314,34 @@
     "other": "Other",
     "periodTotal": "Period Total",
     "expenseTrend": "Expense Trend",
-    "categoryDistribution": "By Category"
+    "categoryDistribution": "By Category",
+    "totalAmount": "Total Amount",
+    "payment": {
+      "status": "Payment Status",
+      "unpaid": "Unpaid",
+      "partial": "Partial",
+      "partiallyPaid": "Partially Paid",
+      "paid": "Paid",
+      "history": "Payment History",
+      "recordPayment": "Record Payment",
+      "remaining": "Remaining",
+      "amount": "Payment Amount",
+      "method": "Payment Method",
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes about this payment...",
+      "amountRequired": "Amount must be greater than 0",
+      "amountExceedsRemaining": "Amount exceeds remaining balance",
+      "paymentRecorded": "Payment recorded successfully",
+      "totalPaid": "Total Paid",
+      "noPayments": "No payments recorded yet",
+      "runningTotal": "Running total",
+      "maxAmount": "Max",
+      "addReceipt": "Add Receipt",
+      "receiptUrl": "Receipt URL",
+      "receiptUrlPlaceholder": "https://drive.google.com/...",
+      "receiptUrlHint": "Paste a link to your receipt image (Google Drive, Dropbox, etc.)",
+      "viewReceipt": "View Receipt"
+    }
   },
   "bank": {
     "title": "Bank & Cash",
@@ -324,7 +360,49 @@
     "recordDeposit": "Record Deposit",
     "withdrawal": "Withdrawal",
     "withdrawalDescription": "Remove funds from your account",
-    "recordWithdrawal": "Record Withdrawal"
+    "recordWithdrawal": "Record Withdrawal",
+    "mobileWallet": "Mobile Wallet",
+    "orangeMoney": "Orange Money",
+    "card": "Card",
+    "cardBalance": "Card Balance",
+    "amount": "Amount",
+    "date": "Date",
+    "type": "Type",
+    "method": "Method",
+    "reason": "Reason",
+    "description": "Description",
+    "descriptionPlaceholder": "Additional notes about this transaction...",
+    "status": "Status",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "confirm": "Confirm",
+    "confirmTransaction": "Confirm Transaction",
+    "confirmTransactionMessage": "Are you sure you want to confirm this transaction? This action cannot be undone.",
+    "transactionConfirmed": "Transaction confirmed",
+    "depositCreated": "Deposit recorded successfully",
+    "withdrawalCreated": "Withdrawal recorded successfully",
+    "bankRef": "Bank Reference",
+    "bankRefPlaceholder": "Bank reference number",
+    "selectType": "Select type",
+    "selectMethod": "Select payment method",
+    "selectReason": "Select reason",
+    "reasons": {
+      "SalesDeposit": "Sales Deposit",
+      "DebtCollection": "Debt Collection",
+      "ExpensePayment": "Expense Payment",
+      "OwnerWithdrawal": "Owner Withdrawal",
+      "CapitalInjection": "Capital Injection",
+      "Other": "Other"
+    },
+    "methods": {
+      "Cash": "Cash",
+      "OrangeMoney": "Orange Money",
+      "Card": "Card"
+    },
+    "types": {
+      "Deposit": "Deposit",
+      "Withdrawal": "Withdrawal"
+    }
   },
   "projection": {
     "title": "Projections",

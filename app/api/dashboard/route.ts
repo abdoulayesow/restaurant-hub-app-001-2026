@@ -49,6 +49,8 @@ export async function GET(request: NextRequest) {
       pendingExpensesCount,
       lowStockItems,
       restaurant,
+      unpaidExpenses,
+      inventoryItems,
     ] = await Promise.all([
       // Approved sales in period
       prisma.sale.findMany({
@@ -107,6 +109,39 @@ export async function GET(request: NextRequest) {
           initialCashBalance: true,
           initialOrangeBalance: true,
           initialCardBalance: true,
+        },
+      }),
+      // Unpaid/Partially paid expenses (approved but not fully paid)
+      prisma.expense.findMany({
+        where: {
+          restaurantId,
+          status: 'Approved',
+          paymentStatus: { in: ['Unpaid', 'PartiallyPaid'] },
+        },
+        select: {
+          id: true,
+          categoryName: true,
+          amountGNF: true,
+          totalPaidAmount: true,
+          date: true,
+          supplier: {
+            select: { name: true },
+          },
+        },
+        orderBy: { date: 'asc' },
+        take: 10,
+      }),
+      // Inventory items for valuation
+      prisma.inventoryItem.findMany({
+        where: {
+          restaurantId,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          category: true,
+          currentStock: true,
+          unitCostGNF: true,
         },
       }),
     ])
@@ -192,6 +227,44 @@ export async function GET(request: NextRequest) {
       })
       .slice(0, 5) // Top 5 most critical
 
+    // Calculate total outstanding (unpaid expense amounts)
+    const totalOutstanding = unpaidExpenses.reduce(
+      (sum, e) => sum + (e.amountGNF - (e.totalPaidAmount || 0)),
+      0
+    )
+
+    // Calculate total inventory value
+    const inventoryValue = inventoryItems.reduce(
+      (sum, item) => sum + (item.currentStock * item.unitCostGNF),
+      0
+    )
+
+    // Calculate category breakdown for inventory value (top 3 categories)
+    const categoryValueMap = new Map<string, { category: string, value: number, itemCount: number }>()
+    inventoryItems.forEach((item) => {
+      const category = item.category || 'Other'
+      const itemValue = item.currentStock * item.unitCostGNF
+      const existing = categoryValueMap.get(category)
+      if (existing) {
+        existing.value += itemValue
+        existing.itemCount++
+      } else {
+        categoryValueMap.set(category, {
+          category,
+          value: itemValue,
+          itemCount: 1,
+        })
+      }
+    })
+
+    const inventoryByCategory = Array.from(categoryValueMap.values())
+      .map((item) => ({
+        ...item,
+        percentOfTotal: inventoryValue > 0 ? Math.round((item.value / inventoryValue) * 100) : 0,
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 3)
+
     return NextResponse.json({
       kpis: {
         totalRevenue,
@@ -199,6 +272,7 @@ export async function GET(request: NextRequest) {
         profit,
         profitMargin,
         balance,
+        inventoryValue,
       },
       revenueByDay,
       expensesByCategory,
@@ -206,6 +280,22 @@ export async function GET(request: NextRequest) {
       pendingApprovals: {
         sales: pendingSalesCount,
         expenses: pendingExpensesCount,
+      },
+      unpaidExpenses: {
+        expenses: unpaidExpenses.map(e => ({
+          id: e.id,
+          categoryName: e.categoryName,
+          amountGNF: e.amountGNF,
+          totalPaidAmount: e.totalPaidAmount || 0,
+          date: e.date.toISOString(),
+          supplier: e.supplier,
+        })),
+        totalOutstanding,
+        count: unpaidExpenses.length,
+      },
+      inventoryValuation: {
+        totalValue: inventoryValue,
+        byCategory: inventoryByCategory,
       },
     })
   } catch (error) {
