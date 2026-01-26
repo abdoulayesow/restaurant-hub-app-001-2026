@@ -43,9 +43,14 @@ export default function LoginPage() {
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-stone-900">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-gray-500 animate-spin" />
-          <span className="text-gray-600 dark:text-stone-300">Loading...</span>
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <BlissLogo size="xl" variant="full" animate />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="w-12 h-12 text-plum-500 animate-spin" style={{ marginTop: '80px' }} />
+            </div>
+          </div>
+          <span className="text-gray-600 dark:text-stone-300 font-medium">Loading your workspace...</span>
         </div>
       </div>
     )

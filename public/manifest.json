@@ -1,11 +1,11 @@
 {
-  "name": "Bakery Hub",
-  "short_name": "Bakery Hub",
-  "description": "Bakery inventory and management system",
+  "name": "Bliss Patisserie",
+  "short_name": "Bliss",
+  "description": "Luxury patisserie management - PATISSERIE • BOULANGERIE • CREAMERIE",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#C45C26",
+  "background_color": "#FFFFFF",
+  "theme_color": "#3D1B4D",
   "orientation": "portrait-primary",
   "icons": [
     {
