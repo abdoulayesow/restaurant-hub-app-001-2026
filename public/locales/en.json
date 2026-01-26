@@ -79,7 +79,11 @@
     "unpaidExpenses": "Unpaid Expenses",
     "totalOutstanding": "Total Outstanding",
     "allExpensesPaid": "All expenses paid!",
-    "inventoryValue": "Inventory Value"
+    "inventoryValue": "Inventory Value",
+    "expiringItems": "Expiring Items",
+    "expired": "Expired",
+    "expiringSoon": "Expiring Soon",
+    "allItemsFresh": "All items are fresh!"
   },
   "editor": {
     "title": "Editor Dashboard",
@@ -142,7 +146,25 @@
     "viewItem": "View Item",
     "inventoryValue": "Inventory Value",
     "totalValue": "Total inventory value",
-    "value": "Value"
+    "value": "Value",
+    "expiry": "Expiry",
+    "expiryTracking": "Expiry Tracking",
+    "expiry": {
+      "expired": "Expired",
+      "expiringSoon": "Expiring Soon",
+      "fresh": "Fresh",
+      "nonPerishable": "Non-Perishable",
+      "daysLeft": "d",
+      "daysAgo": "d ago",
+      "today": "Today",
+      "expiresOn": "Expires on",
+      "expiredOn": "Expired on",
+      "lastPurchase": "Last Purchase",
+      "noPurchaseYet": "No purchase yet",
+      "perishableItem": "Perishable Item",
+      "expiryDate": "Expiry Date",
+      "calculated": "Calculated from last purchase date"
+    }
   },
   "production": {
     "title": "Production",

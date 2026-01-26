@@ -20,6 +20,8 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart'
 import { ExpensesPieChart } from '@/components/dashboard/ExpensesPieChart'
 import { UnpaidExpensesWidget } from '@/components/dashboard/UnpaidExpensesWidget'
 import { InventoryValueCard } from '@/components/dashboard/InventoryValueCard'
+import { ExpiringItemsWidget } from '@/components/dashboard/ExpiringItemsWidget'
+import { ExpiryStatus } from '@/lib/inventory-helpers'
 
 interface DashboardData {
   kpis: {
@@ -65,6 +67,21 @@ interface DashboardData {
       itemCount: number
       percentOfTotal: number
     }>
+  }
+  expiringItems?: {
+    items: Array<{
+      id: string
+      name: string
+      nameFr: string
+      category: string | null
+      currentStock: number
+      unit: string
+      expiryDate: string | null
+      status: ExpiryStatus
+      daysUntilExpiry: number | null
+    }>
+    expiredCount: number
+    warningCount: number
   }
 }
 
@@ -402,6 +419,14 @@ export default function DashboardPage() {
           <UnpaidExpensesWidget
             expenses={dashboardData?.unpaidExpenses?.expenses || []}
             totalOutstanding={dashboardData?.unpaidExpenses?.totalOutstanding || 0}
+            loading={loading}
+          />
+
+          {/* Expiring Items Widget */}
+          <ExpiringItemsWidget
+            items={dashboardData?.expiringItems?.items || []}
+            expiredCount={dashboardData?.expiringItems?.expiredCount || 0}
+            warningCount={dashboardData?.expiringItems?.warningCount || 0}
             loading={loading}
           />
 

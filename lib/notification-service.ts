@@ -4,7 +4,8 @@ import { sendSMS } from '@/lib/sms'
 import { smsTemplates } from '@/lib/sms-templates'
 
 type NotificationType = 'low_stock' | 'critical_stock' | 'expense_approved' | 'expense_rejected' |
-        'sale_approved' | 'sale_rejected' | 'pending_approval' | 'daily_summary' | 'large_expense'
+        'sale_approved' | 'sale_rejected' | 'pending_approval' | 'daily_summary' | 'large_expense' |
+        'expiry_warning' | 'expiry_critical'
 
 interface NotificationOptions {
   restaurantId: string
@@ -74,6 +75,10 @@ async function shouldSendNotification(
       break
     case 'daily_summary':
       shouldSend = prefs.dailySummary
+      break
+    case 'expiry_warning':
+    case 'expiry_critical':
+      shouldSend = prefs.expiryAlerts
       break
   }
 
@@ -223,6 +228,26 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
       )
       break
 
+    case 'expiry_warning':
+      message = smsTemplates.expiryWarning(
+        data.itemName as string,
+        data.daysUntilExpiry as number,
+        data.currentStock as number,
+        data.unit as string,
+        ctx
+      )
+      break
+
+    case 'expiry_critical':
+      message = smsTemplates.itemExpired(
+        data.itemName as string,
+        Math.abs(data.daysUntilExpiry as number),
+        data.currentStock as number,
+        data.unit as string,
+        ctx
+      )
+      break
+
     default:
       console.error(`Unknown notification type: ${type}`)
       return
@@ -283,6 +308,12 @@ export async function sendNotification(options: NotificationOptions): Promise<vo
       case 'large_expense':
         userMessage = smsTemplates.largeExpense(data.amount as number, data.category as string, data.submitter as string, userCtx)
         break
+      case 'expiry_warning':
+        userMessage = smsTemplates.expiryWarning(data.itemName as string, data.daysUntilExpiry as number, data.currentStock as number, data.unit as string, userCtx)
+        break
+      case 'expiry_critical':
+        userMessage = smsTemplates.itemExpired(data.itemName as string, Math.abs(data.daysUntilExpiry as number), data.currentStock as number, data.unit as string, userCtx)
+        break
       default:
         userMessage = message
     }
@@ -322,5 +353,106 @@ export async function checkAndNotifyLowStock(restaurantId: string): Promise<void
         unit: item.unit,
       },
     })
+  }
+}
+
+/**
+ * Check and send expiry alerts
+ * Run this as a scheduled job (e.g., daily via Vercel Cron)
+ */
+export async function checkAndNotifyExpiringItems(restaurantId: string): Promise<void> {
+  // Import the helper functions at runtime
+  const { getExpiryInfo } = await import('@/lib/inventory-helpers')
+
+  // Get user preferences to get warning threshold
+  const prefs = await prisma.notificationPreference.findFirst({
+    where: {
+      user: {
+        restaurants: {
+          some: { restaurantId },
+        },
+      },
+    },
+  })
+
+  const warningDays = prefs?.expiryWarningDays || 7
+
+  // Get all perishable items
+  const perishableItems = await prisma.inventoryItem.findMany({
+    where: {
+      restaurantId,
+      isActive: true,
+      expiryDays: { gt: 0 },
+    },
+    select: {
+      id: true,
+      name: true,
+      currentStock: true,
+      unit: true,
+      expiryDays: true,
+    },
+  })
+
+  if (perishableItems.length === 0) {
+    return
+  }
+
+  // Get last purchase date for each item
+  const perishableItemIds = perishableItems.map((item) => item.id)
+  const purchaseMovements = await prisma.stockMovement.findMany({
+    where: {
+      itemId: { in: perishableItemIds },
+      type: 'Purchase',
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      itemId: true,
+      createdAt: true,
+    },
+  })
+
+  // Build map of last purchase dates
+  const lastPurchaseMap = new Map<string, Date>()
+  purchaseMovements.forEach((movement) => {
+    if (!lastPurchaseMap.has(movement.itemId)) {
+      lastPurchaseMap.set(movement.itemId, movement.createdAt)
+    }
+  })
+
+  // Check each perishable item
+  for (const item of perishableItems) {
+    const lastPurchaseDate = lastPurchaseMap.get(item.id)
+    if (!lastPurchaseDate) {
+      continue // No purchase history, can't calculate expiry
+    }
+
+    const expiryInfo = getExpiryInfo(item, lastPurchaseDate, warningDays)
+
+    // Send notification if item is expired or expiring soon
+    if (expiryInfo.status === 'expired') {
+      await sendNotification({
+        restaurantId,
+        type: 'expiry_critical',
+        data: {
+          itemName: item.name,
+          daysUntilExpiry: expiryInfo.daysUntilExpiry,
+          currentStock: item.currentStock,
+          unit: item.unit,
+        },
+      })
+    } else if (expiryInfo.status === 'warning') {
+      await sendNotification({
+        restaurantId,
+        type: 'expiry_warning',
+        data: {
+          itemName: item.name,
+          daysUntilExpiry: expiryInfo.daysUntilExpiry,
+          currentStock: item.currentStock,
+          unit: item.unit,
+        },
+      })
+    }
   }
 }

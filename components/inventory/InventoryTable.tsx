@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Edit2, Trash2, Plus, History, ChevronUp, ChevronDown, Eye } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StockStatusBadge, StockStatus } from './StockStatusBadge'
+import { ExpiryStatusBadge } from './ExpiryStatusBadge'
 import { getCategoryLabel } from './CategoryFilter'
+import { ExpiryStatus } from '@/lib/inventory-helpers'
 
 export interface InventoryItem {
   id: string
@@ -22,6 +24,10 @@ export interface InventoryItem {
   expiryDays: number | null
   isActive: boolean
   stockStatus: StockStatus
+  expiryStatus?: ExpiryStatus | null
+  expiryDate?: string | null
+  daysUntilExpiry?: number | null
+  lastPurchaseDate?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -159,6 +165,9 @@ export function InventoryTable({
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {t('common.status')}
               </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
+                {t('inventory.expiry') || 'Expiry'}
+              </th>
               <th
                 onClick={() => handleSort('unitCostGNF')}
                 className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 hidden sm:table-cell"
@@ -204,6 +213,17 @@ export function InventoryTable({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <StockStatusBadge status={item.stockStatus} />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center hidden md:table-cell">
+                  {item.expiryStatus && item.expiryStatus !== 'non-perishable' ? (
+                    <ExpiryStatusBadge
+                      status={item.expiryStatus}
+                      daysUntilExpiry={item.daysUntilExpiry}
+                      showDays={true}
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100 hidden sm:table-cell">
                   {formatCurrency(item.unitCostGNF)}

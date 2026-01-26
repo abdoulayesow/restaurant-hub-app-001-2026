@@ -79,7 +79,11 @@
     "unpaidExpenses": "Dépenses Impayées",
     "totalOutstanding": "Total Impayé",
     "allExpensesPaid": "Toutes les dépenses sont payées!",
-    "inventoryValue": "Valeur d'Inventaire"
+    "inventoryValue": "Valeur d'Inventaire",
+    "expiringItems": "Articles Expirants",
+    "expired": "Expiré",
+    "expiringSoon": "Expire Bientôt",
+    "allItemsFresh": "Tous les articles sont frais!"
   },
   "editor": {
     "title": "Espace Éditeur",
@@ -142,7 +146,25 @@
     "viewItem": "Voir l'article",
     "inventoryValue": "Valeur d'Inventaire",
     "totalValue": "Valeur totale de l'inventaire",
-    "value": "Valeur"
+    "value": "Valeur",
+    "expiry": "Expiration",
+    "expiryTracking": "Suivi d'Expiration",
+    "expiry": {
+      "expired": "Expiré",
+      "expiringSoon": "Expire Bientôt",
+      "fresh": "Frais",
+      "nonPerishable": "Non-Périssable",
+      "daysLeft": "j",
+      "daysAgo": "j passé",
+      "today": "Aujourd'hui",
+      "expiresOn": "Expire le",
+      "expiredOn": "Expiré le",
+      "lastPurchase": "Dernier Achat",
+      "noPurchaseYet": "Aucun achat encore",
+      "perishableItem": "Article Périssable",
+      "expiryDate": "Date d'Expiration",
+      "calculated": "Calculé à partir de la date du dernier achat"
+    }
   },
   "production": {
     "title": "Production",

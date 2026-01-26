@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
+import { getExpiryInfo } from '@/lib/inventory-helpers'
 
 // GET /api/inventory - List inventory items
 export async function GET(request: NextRequest) {
@@ -80,11 +81,52 @@ export async function GET(request: NextRequest) {
       filteredItems = items.filter((item) => item.currentStock < item.minStock)
     }
 
-    // Add stock status to each item
-    const itemsWithStatus = filteredItems.map((item) => ({
-      ...item,
-      stockStatus: getStockStatus(item.currentStock, item.minStock),
-    }))
+    // Fetch last purchase dates for perishable items
+    const perishableItemIds = filteredItems
+      .filter(item => item.expiryDays && item.expiryDays > 0)
+      .map(item => item.id)
+
+    const lastPurchaseMap = new Map<string, Date>()
+
+    if (perishableItemIds.length > 0) {
+      const purchaseMovements = await prisma.stockMovement.findMany({
+        where: {
+          itemId: { in: perishableItemIds },
+          type: 'Purchase',
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          itemId: true,
+          createdAt: true,
+        },
+      })
+
+      // Map itemId to most recent purchase date
+      purchaseMovements.forEach(movement => {
+        if (!lastPurchaseMap.has(movement.itemId)) {
+          lastPurchaseMap.set(movement.itemId, movement.createdAt)
+        }
+      })
+    }
+
+    // Add stock status and expiry info to each item
+    const itemsWithStatus = filteredItems.map((item) => {
+      const lastPurchaseDate = lastPurchaseMap.get(item.id) || null
+      const expiryInfo = item.expiryDays && item.expiryDays > 0
+        ? getExpiryInfo(item, lastPurchaseDate)
+        : null
+
+      return {
+        ...item,
+        stockStatus: getStockStatus(item.currentStock, item.minStock),
+        expiryStatus: expiryInfo?.status || null,
+        expiryDate: expiryInfo?.expiryDate || null,
+        daysUntilExpiry: expiryInfo?.daysUntilExpiry || null,
+        lastPurchaseDate,
+      }
+    })
 
     return NextResponse.json({ items: itemsWithStatus })
   } catch (error) {

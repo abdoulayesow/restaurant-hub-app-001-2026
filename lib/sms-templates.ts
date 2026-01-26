@@ -78,4 +78,18 @@ export const smsTemplates = {
     }
     return `[${ctx.restaurantName}] ALERTE: Dépense importante de ${amount.toLocaleString()} GNF (${category}) soumise par ${submitter}. Vérification requise.`
   },
+
+  expiryWarning: (itemName: string, daysUntilExpiry: number, currentStock: number, unit: string, ctx: NotificationContext) => {
+    if (ctx.locale === 'en') {
+      return `[${ctx.restaurantName}] EXPIRY WARNING: ${itemName} expires in ${daysUntilExpiry} day(s). ${currentStock} ${unit} in stock.`
+    }
+    return `[${ctx.restaurantName}] ALERTE EXPIRATION: ${itemName} expire dans ${daysUntilExpiry} jour(s). ${currentStock} ${unit} en stock.`
+  },
+
+  itemExpired: (itemName: string, daysExpired: number, currentStock: number, unit: string, ctx: NotificationContext) => {
+    if (ctx.locale === 'en') {
+      return `[${ctx.restaurantName}] EXPIRED: ${itemName} expired ${daysExpired} day(s) ago! ${currentStock} ${unit} should be discarded.`
+    }
+    return `[${ctx.restaurantName}] EXPIRÉ: ${itemName} a expiré il y a ${daysExpired} jour(s)! ${currentStock} ${unit} doivent être jetés.`
+  },
 }

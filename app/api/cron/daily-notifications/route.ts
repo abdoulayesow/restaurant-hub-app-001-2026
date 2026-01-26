@@ -1,7 +1,7 @@
 // app/api/cron/daily-notifications/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { checkAndNotifyLowStock, sendNotification } from '@/lib/notification-service'
+import { checkAndNotifyLowStock, checkAndNotifyExpiringItems, sendNotification } from '@/lib/notification-service'
 
 // This endpoint should be called by Vercel Cron daily
 // See vercel.json configuration
@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
     for (const restaurant of restaurants) {
       // Check low stock
       await checkAndNotifyLowStock(restaurant.id)
+
+      // Check expiring items
+      await checkAndNotifyExpiringItems(restaurant.id)
 
       // Send daily summary
       const today = new Date()

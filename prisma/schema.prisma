@@ -125,7 +125,8 @@ model Restaurant {
   productionLogs       ProductionLog[]
   sales                Sale[]
   expenses             Expense[]
-  cashDeposits         CashDeposit[]
+  cashDeposits         CashDeposit[]    // Deprecated: use bankTransactions
+  bankTransactions     BankTransaction[]
   dailySummaries       DailySummary[]
   paymentMethods       PaymentMethod[]
   notificationLogs     NotificationLog[]
@@ -190,6 +191,8 @@ model StockMovement {
   @@index([itemId])
   @@index([type])
   @@index([createdAt])
+  @@index([itemId, createdAt])
+  @@index([restaurantId, type, createdAt])
 }
 
 enum MovementType {
@@ -268,7 +271,8 @@ model Sale {
   lastModifiedByName String?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
-  cashDeposit        CashDeposit?
+  cashDeposit        CashDeposit?     // Deprecated: use bankTransaction
+  bankTransaction    BankTransaction? @relation("BankTransactionSale")
   debts              Debt[]
 
   @@unique([restaurantId, date]) // One sale per restaurant per day
@@ -378,6 +382,9 @@ model DebtPayment {
   receivedByName  String?
   createdAt       DateTime      @default(now())
 
+  // Link to bank transaction (for DebtCollection deposits)
+  bankTransaction BankTransaction?
+
   @@index([restaurantId])
   @@index([debtId])
   @@index([customerId])
@@ -420,11 +427,20 @@ model Expense {
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 
+  // Payment tracking (supports partial payments)
+  paymentStatus       PaymentStatus    @default(Unpaid)
+  totalPaidAmount     Float            @default(0)  // Sum of all payments
+  fullyPaidAt         DateTime?        // When fully paid
+
+  // Relation to payment records (multiple payments allowed)
+  expensePayments     ExpensePayment[]
+
   @@index([restaurantId])
   @@index([date])
   @@index([status])
   @@index([categoryId])
   @@index([supplierId])
+  @@index([paymentStatus])
 }
 
 // Junction table for Expense <-> InventoryItem (many-to-many for inventory purchases)
@@ -550,6 +566,115 @@ enum CashDepositStatus {
 }
 
 // ============================================================================
+// BANK TRANSACTIONS (Replaces CashDeposit for comprehensive tracking)
+// ============================================================================
+
+model BankTransaction {
+  id              String                  @id @default(uuid())
+  restaurantId    String
+  restaurant      Restaurant              @relation(fields: [restaurantId], references: [id])
+
+  // Transaction details
+  date            DateTime
+  amount          Float                   // Always positive
+  type            BankTransactionType     // Deposit | Withdrawal
+  method          BankPaymentMethod       // Cash | OrangeMoney | Card
+
+  // Categorization
+  reason          TransactionReason       // SalesDeposit | DebtCollection | ExpensePayment | OwnerWithdrawal | CapitalInjection | Other
+  description     String?
+
+  // Status tracking
+  status          BankTransactionStatus   @default(Pending)
+  confirmedAt     DateTime?
+  bankRef         String?                 // Bank reference number
+  receiptUrl      String?
+
+  // Links to source records (optional, mutually exclusive)
+  saleId          String?                 @unique // For SalesDeposit
+  sale            Sale?                   @relation("BankTransactionSale", fields: [saleId], references: [id])
+  debtPaymentId   String?                 @unique // For DebtCollection
+  debtPayment     DebtPayment?            @relation(fields: [debtPaymentId], references: [id])
+
+  // Back-reference from ExpensePayment (for ExpensePayment reason)
+  expensePayment  ExpensePayment?
+
+  // Audit
+  createdBy       String?
+  createdByName   String?
+  comments        String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([restaurantId])
+  @@index([date])
+  @@index([type])
+  @@index([status])
+  @@index([reason])
+  @@index([method])
+}
+
+enum BankTransactionType {
+  Deposit
+  Withdrawal
+}
+
+enum BankPaymentMethod {
+  Cash
+  OrangeMoney
+  Card
+}
+
+enum TransactionReason {
+  SalesDeposit      // Cash from daily sales deposited
+  DebtCollection    // Customer paid off debt
+  ExpensePayment    // Withdrew cash to pay supplier
+  OwnerWithdrawal   // Owner took money out
+  CapitalInjection  // Owner added money
+  Other             // Miscellaneous
+}
+
+enum BankTransactionStatus {
+  Pending           // Created but not confirmed
+  Confirmed         // Verified/completed
+}
+
+// ============================================================================
+// EXPENSE PAYMENTS (Track individual payments against an expense)
+// ============================================================================
+
+model ExpensePayment {
+  id                  String              @id @default(uuid())
+  expenseId           String
+  expense             Expense             @relation(fields: [expenseId], references: [id])
+
+  // Payment details
+  amount              Float               // Amount paid in this installment
+  paymentMethod       BankPaymentMethod   // Cash | OrangeMoney | Card
+  paidAt              DateTime            @default(now())
+
+  // Link to bank transaction (for withdrawal tracking)
+  bankTransactionId   String?             @unique
+  bankTransaction     BankTransaction?    @relation(fields: [bankTransactionId], references: [id])
+
+  // Audit
+  paidBy              String?
+  paidByName          String?
+  notes               String?
+  receiptUrl          String?
+  createdAt           DateTime            @default(now())
+
+  @@index([expenseId])
+  @@index([paidAt])
+}
+
+enum PaymentStatus {
+  Unpaid              // totalPaidAmount = 0
+  PartiallyPaid       // 0 < totalPaidAmount < amountGNF
+  Paid                // totalPaidAmount >= amountGNF
+}
+
+// ============================================================================
 // DAILY SUMMARY (Per Restaurant)
 // ============================================================================
 
@@ -593,9 +718,11 @@ model NotificationPreference {
   expenseAlerts         Boolean  @default(true)
   approvalAlerts        Boolean  @default(true)
   dailySummary          Boolean  @default(true)
+  expiryAlerts          Boolean  @default(true)
 
   // Thresholds
   largeExpenseThreshold Float?   @default(500000) // GNF threshold for alerts
+  expiryWarningDays     Int      @default(7)      // Days before expiry to trigger alerts
 
   // Preferences
   preferredLocale       String   @default("fr") // 'fr' | 'en'

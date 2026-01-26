@@ -4,6 +4,7 @@ import { Edit2, Trash2, Plus, History, Eye } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StockStatusBadge, StockStatus, getStockStatus } from './StockStatusBadge'
 import { getCategoryLabel } from './CategoryFilter'
+import { ExpiryStatus } from '@/lib/inventory-helpers'
 
 export interface InventoryItem {
   id: string
@@ -20,6 +21,10 @@ export interface InventoryItem {
   expiryDays: number | null
   isActive: boolean
   stockStatus: StockStatus
+  expiryStatus?: ExpiryStatus | null
+  expiryDate?: string | null
+  daysUntilExpiry?: number | null
+  lastPurchaseDate?: string | null
   createdAt: string
   updatedAt: string
 }
