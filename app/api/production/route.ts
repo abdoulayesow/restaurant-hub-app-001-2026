@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { ProductionStatus, SubmissionStatus, MovementType, Prisma } from '@prisma/client'
+import { ProductionStatus, SubmissionStatus, MovementType, Prisma, ProductCategory } from '@prisma/client'
+import { isValidProductCategory } from '@/lib/constants/product-categories'
 
 interface IngredientDetail {
   itemId: string
@@ -10,6 +11,11 @@ interface IngredientDetail {
   quantity: number
   unit: string
   unitCostGNF: number
+}
+
+interface ProductionItemInput {
+  productId: string
+  quantity: number
 }
 
 // GET /api/production - List production logs
@@ -27,6 +33,7 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get('dateTo')
     const status = searchParams.get('status') as SubmissionStatus | null
     const preparationStatus = searchParams.get('preparationStatus') as ProductionStatus | null
+    const productionType = searchParams.get('productionType') as ProductCategory | null
 
     if (!restaurantId) {
       return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
@@ -52,6 +59,7 @@ export async function GET(request: NextRequest) {
       date?: { gte?: Date; lte?: Date }
       status?: SubmissionStatus
       preparationStatus?: ProductionStatus
+      productionType?: ProductCategory
     } = {
       restaurantId,
     }
@@ -74,6 +82,10 @@ export async function GET(request: NextRequest) {
       where.preparationStatus = preparationStatus
     }
 
+    if (productionType && isValidProductCategory(productionType)) {
+      where.productionType = productionType
+    }
+
     const productionLogs = await prisma.productionLog.findMany({
       where,
       orderBy: { date: 'desc' },
@@ -84,6 +96,19 @@ export async function GET(request: NextRequest) {
               select: {
                 id: true,
                 name: true,
+                unit: true,
+              },
+            },
+          },
+        },
+        productionItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                nameFr: true,
+                category: true,
                 unit: true,
               },
             },
@@ -112,6 +137,8 @@ export async function POST(request: NextRequest) {
     const {
       restaurantId,
       date,
+      productionType,
+      productionItems,
       productName,
       productNameFr,
       quantity,
@@ -122,21 +149,79 @@ export async function POST(request: NextRequest) {
     } = body as {
       restaurantId: string
       date: string
-      productName: string
+      productionType?: string
+      productionItems?: ProductionItemInput[]
+      productName?: string
       productNameFr?: string
-      quantity: number
-      ingredients: string[]
-      ingredientDetails: IngredientDetail[]
+      quantity?: number
+      ingredients?: string[]
+      ingredientDetails?: IngredientDetail[]
       notes?: string
       deductStock?: boolean
     }
 
     // Validate required fields
-    if (!restaurantId || !date || !productName || !quantity) {
+    if (!restaurantId || !date) {
       return NextResponse.json(
-        { error: 'Missing required fields: restaurantId, date, productName, quantity' },
+        { error: 'Missing required fields: restaurantId, date' },
         { status: 400 }
       )
+    }
+
+    // Validate productionType if provided
+    if (productionType && !isValidProductCategory(productionType)) {
+      return NextResponse.json(
+        { error: 'Invalid productionType. Must be Patisserie or Boulangerie' },
+        { status: 400 }
+      )
+    }
+
+    // If using new multi-product format, validate productionItems
+    const useMultiProduct = productionItems && productionItems.length > 0
+
+    if (useMultiProduct) {
+      // New format: productionType and productionItems required
+      if (!productionType) {
+        return NextResponse.json(
+          { error: 'productionType is required when using productionItems' },
+          { status: 400 }
+        )
+      }
+
+      // Validate all products exist and are active
+      const productIds = productionItems.map(item => item.productId)
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          restaurantId,
+          isActive: true,
+        },
+      })
+
+      if (products.length !== productIds.length) {
+        return NextResponse.json(
+          { error: 'One or more products not found or inactive' },
+          { status: 400 }
+        )
+      }
+
+      // Validate quantities
+      for (const item of productionItems) {
+        if (item.quantity < 1) {
+          return NextResponse.json(
+            { error: 'Product quantities must be at least 1' },
+            { status: 400 }
+          )
+        }
+      }
+    } else {
+      // Legacy format: productName and quantity required
+      if (!productName || !quantity) {
+        return NextResponse.json(
+          { error: 'Missing required fields: productName, quantity (or use productionItems)' },
+          { status: 400 }
+        )
+      }
     }
 
     // Validate user has access to this bakery
@@ -209,6 +294,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Determine productName for display (first product name if multi-product)
+    let displayProductName = productName || ''
+    let displayQuantity = quantity || 0
+
+    if (useMultiProduct && productionItems) {
+      // Fetch first product name for legacy display
+      const firstProduct = await prisma.product.findUnique({
+        where: { id: productionItems[0].productId },
+        select: { name: true, nameFr: true },
+      })
+      displayProductName = firstProduct?.name || 'Multiple Products'
+      displayQuantity = productionItems.reduce((sum, item) => sum + item.quantity, 0)
+    }
+
     // Create production log with stock deduction in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create the production log
@@ -216,9 +315,10 @@ export async function POST(request: NextRequest) {
         data: {
           restaurantId,
           date: new Date(date),
-          productName,
+          productionType: productionType ? (productionType as ProductCategory) : null,
+          productName: displayProductName,
           productNameFr: productNameFr || null,
-          quantity,
+          quantity: displayQuantity,
           ingredients: (ingredients || []) as Prisma.InputJsonValue,
           ingredientDetails: ingredientDetails
             ? (ingredientDetails as unknown as Prisma.InputJsonValue)
@@ -234,6 +334,19 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      // Create ProductionItem records for multi-product support
+      if (useMultiProduct && productionItems) {
+        for (const item of productionItems) {
+          await tx.productionItem.create({
+            data: {
+              productionLogId: productionLog.id,
+              productId: item.productId,
+              quantity: item.quantity,
+            },
+          })
+        }
+      }
+
       // If shouldDeductNow is true and we have ingredient details, create stock movements
       if (shouldDeductNow && ingredientDetails && ingredientDetails.length > 0) {
         for (const ingredient of ingredientDetails) {
@@ -245,7 +358,7 @@ export async function POST(request: NextRequest) {
               type: MovementType.Usage,
               quantity: -ingredient.quantity, // Negative for usage
               unitCost: ingredient.unitCostGNF,
-              reason: `Production: ${productName} (qty: ${quantity})`,
+              reason: `Production: ${displayProductName} (qty: ${displayQuantity})`,
               productionLogId: productionLog.id,
               createdBy: session.user.id,
               createdByName: session.user.name || session.user.email || undefined,
@@ -267,7 +380,7 @@ export async function POST(request: NextRequest) {
       return productionLog
     })
 
-    // Fetch the complete production log with stock movements
+    // Fetch the complete production log with stock movements and production items
     const productionLog = await prisma.productionLog.findUnique({
       where: { id: result.id },
       include: {
@@ -277,6 +390,19 @@ export async function POST(request: NextRequest) {
               select: {
                 id: true,
                 name: true,
+                unit: true,
+              },
+            },
+          },
+        },
+        productionItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                nameFr: true,
+                category: true,
                 unit: true,
               },
             },

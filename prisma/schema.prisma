@@ -123,6 +123,7 @@ model Restaurant {
   inventoryItems       InventoryItem[]
   stockMovements       StockMovement[]
   productionLogs       ProductionLog[]
+  products             Product[]        // Product catalog for production
   sales                Sale[]
   expenses             Expense[]
   cashDeposits         CashDeposit[]    // Deprecated: use bankTransactions
@@ -211,9 +212,10 @@ model ProductionLog {
   restaurantId        String
   restaurant          Restaurant        @relation(fields: [restaurantId], references: [id])
   date                DateTime
-  productName         String
+  productionType      ProductCategory?  // Patisserie or Boulangerie
+  productName         String            // Legacy: single product name (kept for backward compatibility)
   productNameFr       String?
-  quantity            Int
+  quantity            Int               // Legacy: single product quantity
   ingredients         Json              // Basic recipe ingredients list
   ingredientDetails   Json?             // Detailed breakdown: [{itemId, itemName, plannedQty, actualQty, unit}]
   estimatedCostGNF    Float?            // Calculated cost from ingredients
@@ -227,11 +229,13 @@ model ProductionLog {
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   stockMovements      StockMovement[]
+  productionItems     ProductionItem[]  // Multi-product support
 
   @@index([restaurantId])
   @@index([date])
   @@index([status])
   @@index([preparationStatus])
+  @@index([productionType])
 }
 
 enum ProductionStatus {
@@ -239,6 +243,47 @@ enum ProductionStatus {
   Ready       // All ingredients available, ready to start
   InProgress  // Production is underway
   Complete    // Production finished
+}
+
+enum ProductCategory {
+  Patisserie  // Pastry products (croissants, pain au chocolat, etc.)
+  Boulangerie // Bread products (baguettes, etc.)
+}
+
+// Product catalog for production tracking
+model Product {
+  id             String          @id @default(uuid())
+  restaurantId   String
+  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name           String
+  nameFr         String?
+  category       ProductCategory
+  unit           String          @default("piece") // piece, loaf, dozen
+  standardRecipe Json?           // [{ itemId, quantity, unit }]
+  isActive       Boolean         @default(true)
+  sortOrder      Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  productionItems ProductionItem[]
+
+  @@index([restaurantId])
+  @@index([category])
+  @@index([isActive])
+  @@index([restaurantId, category, isActive])
+}
+
+// Junction table for ProductionLog <-> Product (multi-product production)
+model ProductionItem {
+  id              String        @id @default(uuid())
+  productionLogId String
+  productionLog   ProductionLog @relation(fields: [productionLogId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  quantity        Int
+
+  @@index([productionLogId])
+  @@index([productId])
 }
 
 // ============================================================================

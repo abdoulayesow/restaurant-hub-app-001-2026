@@ -11,9 +11,15 @@ import {
   ChefHat,
   FileText,
   Sparkles,
+  Croissant,
+  Wheat,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import {
+  ProductCategoryValue,
+  PRODUCT_CATEGORY_COLORS,
+} from '@/lib/constants/product-categories'
 
 interface InventoryItem {
   id: string
@@ -24,6 +30,23 @@ interface InventoryItem {
   currentStock: number
   minStock: number
   unitCostGNF: number
+}
+
+interface Product {
+  id: string
+  name: string
+  nameFr?: string | null
+  category: ProductCategoryValue
+  unit: string
+  isActive: boolean
+}
+
+interface ProductionItemRow {
+  productId: string
+  productName: string
+  productNameFr?: string | null
+  quantity: number
+  unit: string
 }
 
 interface IngredientRow {
@@ -65,10 +88,13 @@ export function ProductionLogger({
   const { t, locale } = useLocale()
   const { currentRestaurant } = useRestaurant()
 
+  // Production type and products state
+  const [productionType, setProductionType] = useState<ProductCategoryValue | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [productionItems, setProductionItems] = useState<ProductionItemRow[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(false)
+
   // Form state
-  const [productName, setProductName] = useState('')
-  const [productNameFr, setProductNameFr] = useState('')
-  const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
   const [ingredients, setIngredients] = useState<IngredientRow[]>([])
 
@@ -101,6 +127,35 @@ export function ProductionLogger({
 
     fetchItems()
   }, [currentRestaurant])
+
+  // Fetch products when production type changes
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!currentRestaurant || !productionType) {
+        setProducts([])
+        return
+      }
+
+      setLoadingProducts(true)
+      try {
+        const response = await fetch(
+          `/api/products?restaurantId=${currentRestaurant.id}&category=${productionType}&activeOnly=true`
+        )
+        if (response.ok) {
+          const data = await response.json()
+          setProducts(data.products || [])
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err)
+      } finally {
+        setLoadingProducts(false)
+      }
+    }
+
+    fetchProducts()
+    // Clear selected products when type changes
+    setProductionItems([])
+  }, [currentRestaurant, productionType])
 
   // Check availability when ingredients change
   const checkAvailability = useCallback(async () => {
@@ -188,6 +243,40 @@ export function ProductionLogger({
     setIngredients((prev) => prev.filter((_, i) => i !== index))
   }
 
+  // Add product to production items
+  const addProductionItem = (productId: string) => {
+    const product = products.find((p) => p.id === productId)
+    if (!product) return
+
+    // Check if already added
+    if (productionItems.some((item) => item.productId === productId)) return
+
+    setProductionItems([
+      ...productionItems,
+      {
+        productId: product.id,
+        productName: product.name,
+        productNameFr: product.nameFr,
+        quantity: 1,
+        unit: product.unit,
+      },
+    ])
+  }
+
+  // Update production item quantity
+  const updateProductionItemQuantity = (productId: string, quantity: number) => {
+    setProductionItems((prev) =>
+      prev.map((item) =>
+        item.productId === productId ? { ...item, quantity: Math.max(1, quantity) } : item
+      )
+    )
+  }
+
+  // Remove product from production items
+  const removeProductionItem = (productId: string) => {
+    setProductionItems((prev) => prev.filter((item) => item.productId !== productId))
+  }
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN', {
@@ -208,13 +297,13 @@ export function ProductionLogger({
     setError(null)
 
     // Validation
-    if (!productName.trim()) {
-      setError(t('validation.required') || 'Product name is required')
+    if (!productionType) {
+      setError(t('production.selectProductionType') || 'Please select a production type')
       return
     }
 
-    if (quantity < 1) {
-      setError(t('production.quantityRequired') || 'Quantity must be at least 1')
+    if (productionItems.length === 0) {
+      setError(t('production.productsRequired') || 'Please select at least one product')
       return
     }
 
@@ -246,28 +335,32 @@ export function ProductionLogger({
 
     setSubmitting(true)
     try {
+      const requestBody = {
+        restaurantId: currentRestaurant?.id,
+        date: date || new Date().toISOString(),
+        productionType,
+        productionItems: productionItems.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        ingredients: ingredients.map((ing) => ing.itemName),
+        ingredientDetails: ingredients.map((ing) => ({
+          itemId: ing.itemId,
+          itemName: ing.itemName,
+          quantity: ing.quantity,
+          unit: ing.unit,
+          unitCostGNF: ing.unitCostGNF,
+        })),
+        notes: notes || null,
+        deductStock: true,
+      }
+
       const response = await fetch('/api/production', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          restaurantId: currentRestaurant?.id,
-          date: date || new Date().toISOString(),
-          productName,
-          productNameFr: productNameFr || null,
-          quantity,
-          ingredients: ingredients.map((ing) => ing.itemName),
-          ingredientDetails: ingredients.map((ing) => ({
-            itemId: ing.itemId,
-            itemName: ing.itemName,
-            quantity: ing.quantity,
-            unit: ing.unit,
-            unitCostGNF: ing.unitCostGNF,
-          })),
-          notes: notes || null,
-          deductStock: true,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (response.ok) {
@@ -321,9 +414,17 @@ export function ProductionLogger({
     }
   }
 
+  // Get available products not yet added
+  const availableProducts = products.filter(
+    (p) => !productionItems.some((item) => item.productId === p.id)
+  )
+
+  // Total quantity of all production items
+  const totalProductionQuantity = productionItems.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
     <div className="space-y-8">
-      {/* Section 1: Product Info */}
+      {/* Section 1: Production Type */}
       <div className="space-y-4">
         {/* Section Header with number indicator */}
         <div className="flex items-center gap-3">
@@ -331,94 +432,260 @@ export function ProductionLogger({
             1
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
-            {t('production.productInfo') || 'Product Info'}
+            {t('production.productionType') || 'Production Type'}
           </h3>
           <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent dark:from-stone-700" />
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          {/* Product Name */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
-              {t('production.productName') || 'Product Name'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              placeholder={t('production.productNamePlaceholder') || 'e.g., Croissants'}
-              className="
-                w-full px-4 py-3 rounded-lg
-                border border-gray-300 dark:border-stone-600
-                bg-white dark:bg-stone-700
-                text-gray-900 dark:text-stone-100
-                focus:ring-2 focus:ring-gray-500 focus:border-gray-500
-                placeholder:text-gray-400 dark:placeholder:text-stone-500
-                transition-all duration-200
-                hover:border-gray-400 dark:hover:border-stone-500
-              "
-            />
-          </div>
+        {/* Production Type Toggle */}
+        <div className="flex gap-3">
+          {/* Patisserie Button */}
+          <button
+            onClick={() => setProductionType('Patisserie')}
+            className={`
+              flex-1 p-4 rounded-xl border-2 transition-all duration-200
+              flex flex-col items-center gap-2
+              ${
+                productionType === 'Patisserie'
+                  ? `border-${PRODUCT_CATEGORY_COLORS.Patisserie.border} bg-${PRODUCT_CATEGORY_COLORS.Patisserie.bg} ring-2 ring-amber-500/20`
+                  : 'border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 bg-white dark:bg-stone-800'
+              }
+            `}
+          >
+            <div
+              className={`
+                w-12 h-12 rounded-full flex items-center justify-center
+                ${
+                  productionType === 'Patisserie'
+                    ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                    : 'bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400'
+                }
+              `}
+            >
+              <Croissant className="w-6 h-6" />
+            </div>
+            <div className="text-center">
+              <p
+                className={`font-semibold ${
+                  productionType === 'Patisserie'
+                    ? 'text-amber-700 dark:text-amber-300'
+                    : 'text-gray-700 dark:text-stone-300'
+                }`}
+              >
+                {t('production.patisserie') || 'Patisserie'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-stone-400">
+                {t('production.patisserieDesc') || 'Pastries, croissants, cakes'}
+              </p>
+            </div>
+          </button>
 
-          {/* Product Name (French) */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
-              {t('production.productNameFr') || 'French Name'}{' '}
-              <span className="text-gray-400 dark:text-stone-500 normal-case font-normal">({t('common.optional') || 'optional'})</span>
-            </label>
-            <input
-              type="text"
-              value={productNameFr}
-              onChange={(e) => setProductNameFr(e.target.value)}
-              placeholder={t('production.productNameFrPlaceholder') || 'e.g., Croissants'}
-              className="
-                w-full px-4 py-3 rounded-lg
-                border border-gray-300 dark:border-stone-600
-                bg-white dark:bg-stone-700
-                text-gray-900 dark:text-stone-100
-                focus:ring-2 focus:ring-gray-500 focus:border-gray-500
-                placeholder:text-gray-400 dark:placeholder:text-stone-500
-                transition-all duration-200
-                hover:border-gray-400 dark:hover:border-stone-500
-              "
-            />
-          </div>
-        </div>
-
-        {/* Quantity */}
-        <div className="w-40">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
-            {t('production.quantity') || 'Quantity'} <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-              min={1}
-              className="
-                w-full px-4 py-3 pr-16 rounded-lg
-                border border-gray-300 dark:border-stone-600
-                bg-white dark:bg-stone-700
-                text-gray-900 dark:text-stone-100 font-semibold text-lg
-                focus:ring-2 focus:ring-gray-500 focus:border-gray-500
-                transition-all duration-200
-                hover:border-gray-400 dark:hover:border-stone-500
-              "
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-gray-100 dark:bg-stone-600 text-xs font-medium text-gray-600 dark:text-stone-300">
-              {t('production.units') || 'units'}
-            </span>
-          </div>
+          {/* Boulangerie Button */}
+          <button
+            onClick={() => setProductionType('Boulangerie')}
+            className={`
+              flex-1 p-4 rounded-xl border-2 transition-all duration-200
+              flex flex-col items-center gap-2
+              ${
+                productionType === 'Boulangerie'
+                  ? `border-${PRODUCT_CATEGORY_COLORS.Boulangerie.border} bg-${PRODUCT_CATEGORY_COLORS.Boulangerie.bg} ring-2 ring-orange-500/20`
+                  : 'border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 bg-white dark:bg-stone-800'
+              }
+            `}
+          >
+            <div
+              className={`
+                w-12 h-12 rounded-full flex items-center justify-center
+                ${
+                  productionType === 'Boulangerie'
+                    ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                    : 'bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400'
+                }
+              `}
+            >
+              <Wheat className="w-6 h-6" />
+            </div>
+            <div className="text-center">
+              <p
+                className={`font-semibold ${
+                  productionType === 'Boulangerie'
+                    ? 'text-orange-700 dark:text-orange-300'
+                    : 'text-gray-700 dark:text-stone-300'
+                }`}
+              >
+                {t('production.boulangerie') || 'Boulangerie'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-stone-400">
+                {t('production.boulangerieDesc') || 'Breads, baguettes'}
+              </p>
+            </div>
+          </button>
         </div>
       </div>
 
-      {/* Section 2: Ingredients */}
+      {/* Section 2: Products Produced (shown when type is selected) */}
+      {productionType && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
+              2
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
+              {t('production.productsProduced') || 'Products Produced'}
+            </h3>
+            <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent dark:from-stone-700" />
+          </div>
+
+          {/* Product Selector */}
+          {loadingProducts ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : products.length === 0 ? (
+            <div className="py-8 text-center rounded-xl bg-gray-50 dark:bg-stone-800/50 border-2 border-dashed border-gray-300 dark:border-stone-600">
+              <p className="text-sm text-gray-500 dark:text-stone-400">
+                {t('production.noProductsInCategory') || 'No products found in this category'}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Add Product Dropdown */}
+              {availableProducts.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-stone-400 mb-2">
+                    {t('production.selectProduct') || 'Add Product'}
+                  </label>
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) addProductionItem(e.target.value)
+                    }}
+                    className="
+                      w-full px-4 py-3 rounded-lg
+                      border border-gray-300 dark:border-stone-600
+                      bg-white dark:bg-stone-700
+                      text-gray-900 dark:text-stone-100
+                      focus:ring-2 focus:ring-gray-500
+                      transition-all duration-200
+                      hover:border-gray-400 dark:hover:border-stone-500
+                      cursor-pointer
+                    "
+                  >
+                    <option value="">{t('production.selectProductPlaceholder') || 'Select a product to add...'}</option>
+                    {availableProducts.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {locale === 'fr' && product.nameFr ? product.nameFr : product.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Selected Products List */}
+              {productionItems.length > 0 && (
+                <div className="space-y-3">
+                  {productionItems.map((item) => (
+                    <div
+                      key={item.productId}
+                      className="group flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-stone-800/50 border border-gray-200 dark:border-stone-700"
+                    >
+                      {/* Product Icon */}
+                      <div
+                        className={`
+                          w-10 h-10 rounded-full flex items-center justify-center
+                          ${
+                            productionType === 'Patisserie'
+                              ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                              : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                          }
+                        `}
+                      >
+                        {productionType === 'Patisserie' ? (
+                          <Croissant className="w-5 h-5" />
+                        ) : (
+                          <Wheat className="w-5 h-5" />
+                        )}
+                      </div>
+
+                      {/* Product Name */}
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-stone-100">
+                          {locale === 'fr' && item.productNameFr ? item.productNameFr : item.productName}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-stone-400">{item.unit}</p>
+                      </div>
+
+                      {/* Quantity Input */}
+                      <div className="relative w-28">
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateProductionItemQuantity(item.productId, parseInt(e.target.value) || 1)
+                          }
+                          min={1}
+                          className="
+                            w-full px-3 py-2 pr-12 rounded-lg text-center
+                            border border-gray-300 dark:border-stone-600
+                            bg-white dark:bg-stone-700
+                            text-gray-900 dark:text-stone-100 font-semibold
+                            focus:ring-2 focus:ring-gray-500
+                            transition-all duration-200
+                          "
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-stone-400">
+                          {item.unit}
+                        </span>
+                      </div>
+
+                      {/* Remove Button */}
+                      <button
+                        onClick={() => removeProductionItem(item.productId)}
+                        className="
+                          p-2 rounded-lg
+                          text-gray-400 hover:text-red-500
+                          hover:bg-red-50 dark:hover:bg-red-900/20
+                          transition-all duration-200
+                          sm:opacity-0 sm:group-hover:opacity-100
+                        "
+                        aria-label={t('common.remove') || 'Remove'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Total */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-stone-700">
+                    <span className="text-sm font-medium text-gray-600 dark:text-stone-400">
+                      {t('production.totalProducts') || 'Total Products'}
+                    </span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-stone-100">
+                      {totalProductionQuantity} {t('production.units') || 'units'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {productionItems.length === 0 && availableProducts.length > 0 && (
+                <div className="py-6 text-center rounded-xl bg-gray-50 dark:bg-stone-800/50 border-2 border-dashed border-gray-300 dark:border-stone-600">
+                  <p className="text-sm text-gray-500 dark:text-stone-400">
+                    {t('production.selectProductsHint') || 'Select products from the dropdown above'}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Section 3: Ingredients */}
       <div className="space-y-4">
         {/* Section Header */}
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
-            2
+            {productionType ? '3' : '2'}
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
             {t('production.ingredients') || 'Ingredients'}
@@ -627,12 +894,12 @@ export function ProductionLogger({
         )}
       </div>
 
-      {/* Section 3: Notes */}
+      {/* Section 4: Notes */}
       <div className="space-y-4">
         {/* Section Header */}
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
-            3
+            {productionType ? '4' : '3'}
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
             {t('production.notes') || 'Notes'}
