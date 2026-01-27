@@ -238,7 +238,11 @@ export async function POST(request: NextRequest) {
 
     if (existingSale) {
       return NextResponse.json(
-        { error: 'A sale already exists for this date. Please edit the existing record.' },
+        {
+          error: 'A sale already exists for this date. Please edit the existing record.',
+          code: 'SALE_DUPLICATE_DATE',
+          existingSaleId: existingSale.id
+        },
         { status: 409 }
       )
     }

@@ -511,7 +511,9 @@
     "restaurantNameRequired": "Restaurant name is required",
     "mustBePositive": "Must be a positive number",
     "failedToLoad": "Failed to load data",
-    "failedToSave": "Failed to save changes"
+    "failedToSave": "Failed to save changes",
+    "saleDuplicateDate": "A sale already exists for this date. Please edit the existing record instead.",
+    "saleDuplicateDateShort": "Sale already exists for this date"
   },
   "notifications": {
     "success": "Success!",

@@ -511,7 +511,9 @@
     "restaurantNameRequired": "Le nom du restaurant est requis",
     "mustBePositive": "Doit être un nombre positif",
     "failedToLoad": "Échec du chargement des données",
-    "failedToSave": "Échec de l'enregistrement"
+    "failedToSave": "Échec de l'enregistrement",
+    "saleDuplicateDate": "Une vente existe déjà pour cette date. Veuillez modifier l'enregistrement existant.",
+    "saleDuplicateDateShort": "Une vente existe déjà pour cette date"
   },
   "notifications": {
     "success": "Succès!",

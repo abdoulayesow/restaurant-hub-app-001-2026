@@ -44,6 +44,7 @@ interface AddEditSaleModalProps {
   onSave: (sale: Partial<Sale>) => void
   sale?: Sale | null
   loading?: boolean
+  error?: string | null
 }
 
 export function AddEditSaleModal({
@@ -52,6 +53,7 @@ export function AddEditSaleModal({
   onSave,
   sale,
   loading = false,
+  error = null,
 }: AddEditSaleModalProps) {
   const { t, locale } = useLocale()
   const { currentRestaurant } = useRestaurant()
@@ -666,6 +668,13 @@ export function AddEditSaleModal({
                 />
               </div>
             </div>
+
+            {/* Error Alert */}
+            {error && (
+              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">
