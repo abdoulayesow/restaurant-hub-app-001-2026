@@ -106,9 +106,9 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
         onClick={handleClose}
-        style={{ animation: 'fadeIn 0.2s ease-out' }}
+        aria-hidden="true"
       />
 
       {/* Modal */}
@@ -116,40 +116,26 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
         <div
           className="
             w-full max-w-2xl max-h-[90vh] overflow-y-auto
-            bg-white dark:bg-stone-800
-            rounded-3xl shadow-2xl
+            bg-white dark:bg-gray-800
+            rounded-xl shadow-xl
             pointer-events-auto
           "
-          style={{
-            animation: 'modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-            border: `1px solid ${accentColor}20`,
-          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div
-            className="sticky top-0 z-10 px-8 py-6 border-b border-gray-200 dark:border-stone-700 backdrop-blur-xl"
-            style={{
-              background: `linear-gradient(135deg, ${accentColor}10 0%, transparent 100%)`,
-            }}
-          >
+          <div className="sticky top-0 z-10 px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <div className="flex items-start justify-between">
               <div>
-                <h2
-                  className="text-2xl font-bold text-gray-900 dark:text-stone-100 flex items-center gap-3"
-                  style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-                >
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                   <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                    style={{
-                      backgroundColor: `${accentColor}15`,
-                    }}
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${accentColor}20` }}
                   >
-                    <User className="w-6 h-6" style={{ color: accentColor }} strokeWidth={2.5} />
+                    <User className="w-5 h-5" style={{ color: accentColor }} />
                   </div>
                   {locale === 'fr' ? 'Nouveau Client' : 'New Customer'}
                 </h2>
-                <p className="text-sm text-gray-600/70 dark:text-stone-300/70 mt-2 ml-[60px]">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {locale === 'fr'
                     ? 'Créer un client pour les ventes à crédit'
                     : 'Create a customer for credit sales'}
@@ -159,22 +145,22 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 onClick={handleClose}
                 disabled={loading}
                 className="
-                  w-10 h-10 rounded-full flex items-center justify-center
-                  hover:bg-gray-100 dark:hover:bg-stone-700
+                  p-2 rounded-lg flex items-center justify-center
+                  hover:bg-gray-100 dark:hover:bg-gray-700
                   transition-colors
                   disabled:opacity-50
                 "
               >
-                <X className="w-5 h-5 text-gray-600 dark:text-stone-400" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {locale === 'fr' ? 'Nom' : 'Name'} <span style={{ color: accentColor }}>*</span>
               </label>
               <input
@@ -182,22 +168,17 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 required
                 value={formData.name}
                 onChange={(e) => updateField('name', e.target.value)}
-                className="
-                  w-full px-4 py-3 rounded-xl
-                  bg-gray-50/50 dark:bg-stone-700
-                  border-2 border-gray-300 dark:border-stone-600
-                  text-gray-900 dark:text-stone-100
-                  placeholder:text-gray-400/50 dark:placeholder:text-stone-500
-                  focus:outline-none focus:border-opacity-100 transition-colors
-                "
-                style={{ borderColor: `${accentColor}40` }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                style={{
+                  '--tw-ring-color': accentColor,
+                } as React.CSSProperties}
                 placeholder={locale === 'fr' ? 'Ex: Aminata Sylla' : 'e.g., Aminata Sylla'}
               />
             </div>
 
             {/* Customer Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {locale === 'fr' ? 'Type de Client' : 'Customer Type'} <span style={{ color: accentColor }}>*</span>
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -207,11 +188,11 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                     type="button"
                     onClick={() => updateField('customerType', type)}
                     className={`
-                      px-4 py-3 rounded-xl font-medium text-sm
-                      transition-all duration-300
+                      px-4 py-2 rounded-lg font-medium text-sm
+                      transition-colors
                       ${formData.customerType === type
-                        ? 'text-white shadow-lg scale-105'
-                        : 'bg-gray-50 dark:bg-stone-700 text-gray-700 dark:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-600'
+                        ? 'text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }
                     `}
                     style={
@@ -231,7 +212,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
             {/* Phone & Email */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   <Phone className="w-4 h-4 inline mr-1" />
                   {locale === 'fr' ? 'Téléphone' : 'Phone'}
                 </label>
@@ -239,20 +220,15 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => updateField('phone', e.target.value)}
-                  className="
-                    w-full px-4 py-3 rounded-xl
-                    bg-gray-50/50 dark:bg-stone-700
-                    border-2 border-gray-300 dark:border-stone-600
-                    text-gray-900 dark:text-stone-100
-                    placeholder:text-gray-400/50 dark:placeholder:text-stone-500
-                    focus:outline-none transition-colors
-                  "
-                  style={{ borderColor: `${accentColor}20` }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  style={{
+                    '--tw-ring-color': accentColor,
+                  } as React.CSSProperties}
                   placeholder="+224 621 00 00 00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   <Mail className="w-4 h-4 inline mr-1" />
                   {locale === 'fr' ? 'Email' : 'Email'}
                 </label>
@@ -260,15 +236,10 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                   type="email"
                   value={formData.email}
                   onChange={(e) => updateField('email', e.target.value)}
-                  className="
-                    w-full px-4 py-3 rounded-xl
-                    bg-gray-50/50 dark:bg-stone-700
-                    border-2 border-gray-300 dark:border-stone-600
-                    text-gray-900 dark:text-stone-100
-                    placeholder:text-gray-400/50 dark:placeholder:text-stone-500
-                    focus:outline-none transition-colors
-                  "
-                  style={{ borderColor: `${accentColor}20` }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  style={{
+                    '--tw-ring-color': accentColor,
+                  } as React.CSSProperties}
                   placeholder="exemple@email.com"
                 />
               </div>
@@ -277,7 +248,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
             {/* Company (conditional) */}
             {formData.customerType !== 'Individual' && (
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   <Building2 className="w-4 h-4 inline mr-1" />
                   {locale === 'fr' ? 'Entreprise' : 'Company'}
                 </label>
@@ -285,15 +256,10 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                   type="text"
                   value={formData.company}
                   onChange={(e) => updateField('company', e.target.value)}
-                  className="
-                    w-full px-4 py-3 rounded-xl
-                    bg-gray-50/50 dark:bg-stone-700
-                    border-2 border-gray-300 dark:border-stone-600
-                    text-gray-900 dark:text-stone-100
-                    placeholder:text-gray-400/50 dark:placeholder:text-stone-500
-                    focus:outline-none transition-colors
-                  "
-                  style={{ borderColor: `${accentColor}20` }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  style={{
+                    '--tw-ring-color': accentColor,
+                  } as React.CSSProperties}
                   placeholder={locale === 'fr' ? 'Nom de l\'entreprise' : 'Company name'}
                 />
               </div>
@@ -301,7 +267,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
 
             {/* Credit Limit */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <CreditCard className="w-4 h-4 inline mr-1" />
                 {locale === 'fr' ? 'Limite de Crédit (GNF)' : 'Credit Limit (GNF)'}
               </label>
@@ -311,18 +277,13 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 step="1000"
                 value={formData.creditLimit}
                 onChange={(e) => updateField('creditLimit', e.target.value)}
-                className="
-                  w-full px-4 py-3 rounded-xl
-                  bg-gray-50/50 dark:bg-stone-700
-                  border-2 border-gray-300 dark:border-stone-600
-                  text-gray-900 dark:text-stone-100
-                  placeholder:text-gray-400/50 dark:placeholder:text-stone-500
-                  focus:outline-none transition-colors
-                "
-                style={{ borderColor: `${accentColor}20` }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                style={{
+                  '--tw-ring-color': accentColor,
+                } as React.CSSProperties}
                 placeholder="5000000"
               />
-              <p className="text-xs text-gray-600/60 dark:text-stone-300/60 mt-1.5">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5">
                 {locale === 'fr'
                   ? 'Montant maximum pouvant être dû'
                   : 'Maximum amount that can be owed'}
@@ -331,7 +292,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-stone-100 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <FileText className="w-4 h-4 inline mr-1" />
                 {locale === 'fr' ? 'Notes' : 'Notes'}
               </label>
@@ -339,26 +300,17 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
                 rows={3}
                 value={formData.notes}
                 onChange={(e) => updateField('notes', e.target.value)}
-                className="
-                  w-full px-4 py-3 rounded-xl
-                  bg-gray-50/50 dark:bg-stone-700
-                  border-2 border-gray-300 dark:border-stone-600
-                  text-gray-900 dark:text-stone-100
-                  placeholder:text-gray-400/50 dark:placeholder:text-stone-500
-                  focus:outline-none transition-colors
-                  resize-none
-                "
-                style={{ borderColor: `${accentColor}20` }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
+                style={{
+                  '--tw-ring-color': accentColor,
+                } as React.CSSProperties}
                 placeholder={locale === 'fr' ? 'Notes additionnelles (optionnel)' : 'Additional notes (optional)'}
               />
             </div>
 
             {/* Error Message */}
             {error && (
-              <div
-                className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-800"
-                style={{ animation: 'shake 0.5s ease-out' }}
-              >
+              <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800">
                 <p className="text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4" />
                   {error}
@@ -368,10 +320,7 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
 
             {/* Success Message */}
             {success && (
-              <div
-                className="p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border-2 border-green-200 dark:border-green-800"
-                style={{ animation: 'fadeIn 0.3s ease-out' }}
-              >
+              <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-800">
                 <p className="text-sm text-green-700 dark:text-green-400 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
                   {locale === 'fr' ? 'Client créé avec succès!' : 'Customer created successfully!'}
@@ -380,34 +329,23 @@ export function CustomerQuickCreate({ isOpen, onClose }: CustomerQuickCreateProp
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={loading}
-                className="
-                  flex-1 px-6 py-3.5 rounded-xl font-semibold
-                  bg-gray-100 dark:bg-stone-700
-                  text-gray-700 dark:text-stone-200
-                  hover:bg-gray-200 dark:hover:bg-stone-600
-                  transition-colors
-                  disabled:opacity-50
-                "
+                className="flex-1 px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
               >
                 {locale === 'fr' ? 'Annuler' : 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={loading || success}
-                className="
-                  flex-1 px-6 py-3.5 rounded-xl font-semibold
-                  text-white shadow-lg
-                  hover:shadow-xl hover:scale-105
-                  transition-all duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  flex items-center justify-center gap-2
-                "
-                style={{ backgroundColor: accentColor }}
+                className="flex-1 px-4 py-2 rounded-lg text-white font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: accentColor,
+                  filter: loading || success ? 'brightness(0.9)' : 'none'
+                }}
               >
                 {loading && <Loader2 className="w-5 h-5 animate-spin" />}
                 {locale === 'fr' ? 'Créer Client' : 'Create Customer'}

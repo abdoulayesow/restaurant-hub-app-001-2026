@@ -107,7 +107,7 @@ export default function RecordPaymentModal({
     }
   }
 
-  const paymentMethods = ['Cash', 'Bank Transfer', 'Mobile Money', 'Check', 'Card']
+  const paymentMethods = ['Cash', 'Orange Money', 'Card']
 
   return (
     <>

@@ -272,6 +272,14 @@
     "immediatePayment": "Immediate Payment",
     "creditSales": "Credit Sales",
     "addCreditSale": "Add Credit Sale",
+    "addAnotherCreditSale": "Add Another Credit Sale",
+    "creditItem": "Credit Item",
+    "customer": "Customer",
+    "selectCustomer": "Select customer",
+    "dueDate": "Due Date",
+    "description": "Description",
+    "optionalNote": "Optional note",
+    "creditTotal": "Credit Total",
     "grandTotal": "Grand Total"
   },
   "expenses": {
@@ -580,7 +588,8 @@
     "notificationLanguageDesc": "Language for SMS notifications"
   },
   "debts": {
-    "title": "Debts Management",
+    "title": "Credit Management",
+    "subtitle": "Tracking & Collection",
     "debts": "Debts",
     "debt": "Debt",
     "debtDetails": "Debt Details",
@@ -590,6 +599,13 @@
     "totalOverdue": "Total Overdue",
     "fullyPaid": "Fully Paid",
     "writtenOff": "Written Off",
+    "customers": "customers",
+    "debtsCleared": "debts cleared",
+    "badDebt": "bad debt",
+    "searchPlaceholder": "Search by customer, phone, email...",
+    "allStatuses": "All Statuses",
+    "active": "Active",
+    "overdueOnly": "Overdue Only",
     "principalAmount": "Principal Amount",
     "paidAmount": "Paid Amount",
     "remainingAmount": "Remaining Amount",

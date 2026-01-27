@@ -87,7 +87,7 @@ interface DebtsSummary {
 export default function DebtsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { locale } = useLocale()
+  const { t, locale } = useLocale()
   const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
 
   const [loading, setLoading] = useState(true)
@@ -280,10 +280,10 @@ export default function DebtsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
-              {locale === 'fr' ? 'Gestion des Crédits' : 'Credit Management'}
+              {t('debts.title')}
             </h1>
             <p className="text-gray-600 dark:text-stone-400 mt-1">
-              {locale === 'fr' ? 'Suivi et recouvrement' : 'Tracking & Collection'}
+              {t('debts.subtitle')}
             </p>
           </div>
         </div>
@@ -298,7 +298,7 @@ export default function DebtsPage() {
                   <DollarSign className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
-                  {locale === 'fr' ? 'Total Dû' : 'Total Outstanding'}
+                  {t('debts.totalOutstanding')}
                 </h3>
               </div>
               <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">
@@ -306,7 +306,7 @@ export default function DebtsPage() {
               </p>
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
                 <Users className="w-3.5 h-3.5" />
-                <span>{summary.customersWithDebt} {locale === 'fr' ? 'clients' : 'customers'}</span>
+                <span>{summary.customersWithDebt} {t('debts.customers')}</span>
               </div>
             </div>
 
@@ -317,7 +317,7 @@ export default function DebtsPage() {
                   <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
-                  {locale === 'fr' ? 'En Retard' : 'Overdue'}
+                  {t('debts.Overdue')}
                 </h3>
               </div>
               <p className="text-2xl font-bold text-rose-600 dark:text-rose-400 mb-2">
@@ -325,7 +325,7 @@ export default function DebtsPage() {
               </p>
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{summary.overdueCount} {locale === 'fr' ? 'dettes' : 'debts'}</span>
+                <span>{summary.overdueCount} {t('debts.debts')}</span>
               </div>
             </div>
 
@@ -336,7 +336,7 @@ export default function DebtsPage() {
                   <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
-                  {locale === 'fr' ? 'Payé' : 'Fully Paid'}
+                  {t('debts.fullyPaid')}
                 </h3>
               </div>
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
@@ -344,7 +344,7 @@ export default function DebtsPage() {
               </p>
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
                 <FileText className="w-3.5 h-3.5" />
-                <span>{locale === 'fr' ? 'dettes soldées' : 'debts cleared'}</span>
+                <span>{t('debts.debtsCleared')}</span>
               </div>
             </div>
 
@@ -355,7 +355,7 @@ export default function DebtsPage() {
                   <TrendingDown className="w-5 h-5 text-gray-600 dark:text-stone-400" />
                 </div>
                 <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
-                  {locale === 'fr' ? 'Irrécouvrable' : 'Written Off'}
+                  {t('debts.writtenOff')}
                 </h3>
               </div>
               <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-2">
@@ -363,7 +363,7 @@ export default function DebtsPage() {
               </p>
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-stone-400">
                 <FileText className="w-3.5 h-3.5" />
-                <span>{locale === 'fr' ? 'créances perdues' : 'bad debt'}</span>
+                <span>{t('debts.badDebt')}</span>
               </div>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function DebtsPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                <span>{locale === 'fr' ? 'Créer une Dette' : 'Create Debt'}</span>
+                <span>{t('debts.createDebt')}</span>
               </button>
             </div>
           )}
@@ -391,7 +391,7 @@ export default function DebtsPage() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder={locale === 'fr' ? 'Rechercher par client, téléphone, email...' : 'Search by customer, phone, email...'}
+                  placeholder={t('debts.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-stone-700 border border-gray-300 dark:border-stone-600 rounded-lg text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
@@ -405,13 +405,13 @@ export default function DebtsPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2.5 bg-white dark:bg-stone-700 border border-gray-300 dark:border-stone-600 rounded-lg text-gray-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
             >
-              <option value="all">{locale === 'fr' ? 'Tous les statuts' : 'All Statuses'}</option>
-              <option value="active">{locale === 'fr' ? 'Actifs' : 'Active'}</option>
-              <option value="Outstanding">{locale === 'fr' ? 'En cours' : 'Outstanding'}</option>
-              <option value="PartiallyPaid">{locale === 'fr' ? 'Partiellement payé' : 'Partially Paid'}</option>
-              <option value="Overdue">{locale === 'fr' ? 'En retard' : 'Overdue'}</option>
-              <option value="FullyPaid">{locale === 'fr' ? 'Payé' : 'Fully Paid'}</option>
-              <option value="WrittenOff">{locale === 'fr' ? 'Irrécouvrable' : 'Written Off'}</option>
+              <option value="all">{t('debts.allStatuses')}</option>
+              <option value="active">{t('debts.active')}</option>
+              <option value="Outstanding">{t('debts.Outstanding')}</option>
+              <option value="PartiallyPaid">{t('debts.PartiallyPaid')}</option>
+              <option value="Overdue">{t('debts.Overdue')}</option>
+              <option value="FullyPaid">{t('debts.FullyPaid')}</option>
+              <option value="WrittenOff">{t('debts.WrittenOff')}</option>
             </select>
 
             {/* Overdue Toggle */}
@@ -423,7 +423,7 @@ export default function DebtsPage() {
                 className="w-4 h-4 rounded text-gray-600 focus:ring-gray-500 border-gray-300 dark:border-stone-600"
               />
               <span className="text-sm font-medium text-gray-900 dark:text-stone-100">
-                {locale === 'fr' ? 'En retard uniquement' : 'Overdue Only'}
+                {t('debts.overdueOnly')}
               </span>
             </label>
 

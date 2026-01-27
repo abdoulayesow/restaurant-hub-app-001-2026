@@ -377,7 +377,7 @@ export function AddEditItemModal({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
-                  {t('inventory.expiryDays')} <span className="text-gray-400 font-normal">({t('common.optional') || 'optional'})</span>
+                  {t('inventory.expiryDays')}
                 </label>
                 <input
                   type="number"

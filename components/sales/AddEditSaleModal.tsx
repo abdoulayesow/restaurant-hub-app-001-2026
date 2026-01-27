@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Calendar, DollarSign, Smartphone, CreditCard, Clock, Users, ShoppingBag, FileText, Plus, Trash2, UserCheck } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
 
 interface Customer {
   id: string
@@ -98,7 +99,7 @@ export function AddEditSaleModal({
   useEffect(() => {
     if (sale) {
       setFormData({
-        date: sale.date.split('T')[0],
+        date: formatDateForInput(sale.date), // Use timezone-aware date formatting
         cashGNF: sale.cashGNF,
         orangeMoneyGNF: sale.orangeMoneyGNF,
         cardGNF: sale.cardGNF,
@@ -115,7 +116,7 @@ export function AddEditSaleModal({
     } else {
       // Default to today for new sales
       setFormData({
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayDateString(), // Use timezone-aware today's date
         cashGNF: 0,
         orangeMoneyGNF: 0,
         cardGNF: 0,
@@ -309,14 +310,12 @@ export function AddEditSaleModal({
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleChange('date', e.target.value)}
-                disabled={isEditMode}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
                   border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
                   bg-white dark:bg-stone-900
                   text-gray-900 dark:text-stone-100
                   focus:ring-2 focus:ring-gray-500 focus:border-gray-500
-                  disabled:opacity-60 disabled:cursor-not-allowed
                 `}
               />
               {errors.date && (
@@ -421,13 +420,13 @@ export function AddEditSaleModal({
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-700 dark:text-stone-200">
-                            Credit Item {index + 1}
+                            {t('sales.creditItem')} {index + 1}
                           </span>
                           <button
                             type="button"
                             onClick={() => removeDebtItem(index)}
                             className="p-1 text-red-600 hover:bg-red-500/10 rounded transition-colors"
-                            title="Remove"
+                            title={t('common.remove') || 'Remove'}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -438,7 +437,7 @@ export function AddEditSaleModal({
                           <div>
                             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <UserCheck className="w-4 h-4" />
-                              Customer *
+                              {t('sales.customer')} *
                             </label>
                             <select
                               value={item.customerId}
@@ -449,7 +448,7 @@ export function AddEditSaleModal({
                                   : 'border-gray-300 dark:border-stone-600'
                               } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500`}
                             >
-                              <option value="">Select customer</option>
+                              <option value="">{t('sales.selectCustomer')}</option>
                               {customers.map((c) => (
                                 <option key={c.id} value={c.id}>
                                   {c.name} {c.company ? `(${c.company})` : ''}
@@ -470,7 +469,7 @@ export function AddEditSaleModal({
                           <div>
                             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <DollarSign className="w-4 h-4" />
-                              Amount (GNF) *
+                              {t('sales.amount')} (GNF) *
                             </label>
                             <input
                               type="number"
@@ -494,7 +493,7 @@ export function AddEditSaleModal({
                           <div>
                             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <Calendar className="w-4 h-4" />
-                              Due Date
+                              {t('sales.dueDate')}
                             </label>
                             <input
                               type="date"
@@ -508,13 +507,13 @@ export function AddEditSaleModal({
                           <div>
                             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                               <FileText className="w-4 h-4" />
-                              Description
+                              {t('sales.description')}
                             </label>
                             <input
                               type="text"
                               value={item.description}
                               onChange={(e) => updateDebtItem(index, 'description', e.target.value)}
-                              placeholder="Optional note"
+                              placeholder={t('sales.optionalNote')}
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
                             />
                           </div>
@@ -555,7 +554,7 @@ export function AddEditSaleModal({
                 {creditTotalGNF > 0 && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-700 dark:text-stone-200">
-                      Immediate Payment
+                      {t('sales.immediatePayment')}
                     </span>
                     <span className="font-medium text-gray-800 dark:text-stone-100">
                       {formatCurrency(immediatePaymentGNF)}
@@ -565,7 +564,7 @@ export function AddEditSaleModal({
                 {creditTotalGNF > 0 && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-amber-700 dark:text-amber-300">
-                      Credit Sales
+                      {t('sales.creditSales')}
                     </span>
                     <span className="font-medium text-amber-800 dark:text-amber-200">
                       {formatCurrency(creditTotalGNF)}

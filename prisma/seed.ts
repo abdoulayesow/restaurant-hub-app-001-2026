@@ -149,6 +149,38 @@ async function main() {
   })
   console.log('✅ Set default bakery for user')
 
+  // Create default payment methods for all restaurants
+  const restaurants = [restaurant1, restaurant2, restaurant3]
+  const paymentMethods = [
+    { name: 'Cash', nameFr: 'Espèces', type: 'cash', icon: 'Banknote', color: '#10B981', sortOrder: 1 },
+    { name: 'Orange Money', nameFr: 'Orange Money', type: 'mobile_money', icon: 'Smartphone', color: '#FF6600', sortOrder: 2 },
+    { name: 'Card', nameFr: 'Carte', type: 'card', icon: 'CreditCard', color: '#3B82F6', sortOrder: 3 },
+  ]
+
+  for (const restaurant of restaurants) {
+    for (const pm of paymentMethods) {
+      await prisma.paymentMethod.upsert({
+        where: {
+          restaurantId_name: {
+            restaurantId: restaurant.id,
+            name: pm.name,
+          },
+        },
+        update: {},
+        create: {
+          restaurantId: restaurant.id,
+          name: pm.name,
+          nameFr: pm.nameFr,
+          type: pm.type,
+          icon: pm.icon,
+          color: pm.color,
+          sortOrder: pm.sortOrder,
+        },
+      })
+    }
+  }
+  console.log('✅ Created payment methods for all restaurants')
+
   // Create sample inventory items
   const inventoryItems = [
     {
@@ -857,6 +889,304 @@ async function main() {
   }
   console.log(`✅ Created ${expenseItems.length} expense items`)
 
+  // Create sample customers
+  const customers = [
+    {
+      id: 'cust-001',
+      restaurantId: restaurant.id,
+      name: 'Hotel Noom',
+      phone: '+224 620 99 99 99',
+      email: 'manager@hotelnoom.gn',
+      company: 'Hotel Noom',
+      customerType: 'Corporate',
+      creditLimit: 5000000,
+      isActive: true,
+    },
+    {
+      id: 'cust-002',
+      restaurantId: restaurant.id,
+      name: 'Restaurant Le Damier',
+      phone: '+224 620 88 88 88',
+      company: 'Le Damier',
+      customerType: 'Wholesale',
+      creditLimit: 3000000,
+      isActive: true,
+    },
+    {
+      id: 'cust-003',
+      restaurantId: restaurant.id,
+      name: 'Mariama Diallo',
+      phone: '+224 620 77 77 77',
+      customerType: 'Individual',
+      creditLimit: 500000,
+      isActive: true,
+    },
+  ]
+
+  for (const customer of customers) {
+    await prisma.customer.upsert({
+      where: { id: customer.id },
+      update: {},
+      create: customer as any,
+    })
+  }
+  console.log(`✅ Created ${customers.length} customers`)
+
+  // Create sample debts
+  const debts = [
+    {
+      id: 'debt-001',
+      restaurantId: restaurant.id,
+      customerId: 'cust-001',
+      saleId: 'sale-004', // Link to pending sale
+      principalAmount: 1500000,
+      paidAmount: 500000,
+      remainingAmount: 1000000,
+      status: 'PartiallyPaid',
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      description: 'Daily bread delivery for Hotel Noom',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    {
+      id: 'debt-002',
+      restaurantId: restaurant.id,
+      customerId: 'cust-002',
+      principalAmount: 800000,
+      paidAmount: 800000,
+      remainingAmount: 0,
+      status: 'FullyPaid',
+      dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      description: 'Pastries for event',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    {
+      id: 'debt-003',
+      restaurantId: restaurant.id,
+      customerId: 'cust-003',
+      principalAmount: 150000,
+      paidAmount: 0,
+      remainingAmount: 150000,
+      status: 'Outstanding',
+      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+      description: 'Wedding cake deposit',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    {
+      id: 'debt-004',
+      restaurantId: restaurant.id,
+      customerId: 'cust-001',
+      principalAmount: 600000,
+      paidAmount: 0,
+      remainingAmount: 600000,
+      status: 'Overdue',
+      dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days overdue
+      description: 'Catering order',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+  ]
+
+  for (const debt of debts) {
+    await prisma.debt.upsert({
+      where: { id: debt.id },
+      update: {},
+      create: debt as any,
+    })
+  }
+  console.log(`✅ Created ${debts.length} debts`)
+
+  // Create debt payments
+  const debtPayments = [
+    {
+      id: 'debt-pay-001',
+      restaurantId: restaurant.id,
+      debtId: 'debt-001',
+      customerId: 'cust-001',
+      amount: 500000,
+      paymentMethod: 'Orange Money',
+      paymentDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      receiptNumber: 'REC-2026-001',
+      notes: 'Partial payment',
+      receivedBy: user.id,
+      receivedByName: user.name,
+    },
+    {
+      id: 'debt-pay-002',
+      restaurantId: restaurant.id,
+      debtId: 'debt-002',
+      customerId: 'cust-002',
+      amount: 800000,
+      paymentMethod: 'Cash',
+      paymentDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      receiptNumber: 'REC-2026-002',
+      notes: 'Full payment',
+      receivedBy: user.id,
+      receivedByName: user.name,
+    },
+  ]
+
+  for (const payment of debtPayments) {
+    await prisma.debtPayment.upsert({
+      where: { id: payment.id },
+      update: {},
+      create: payment,
+    })
+  }
+  console.log(`✅ Created ${debtPayments.length} debt payments`)
+
+  // Create bank transactions
+  const bankTransactions = [
+    // Sales deposits
+    {
+      id: 'bank-001',
+      restaurantId: restaurant.id,
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      amount: 1500000,
+      type: 'Deposit',
+      method: 'Cash',
+      reason: 'SalesDeposit',
+      saleId: 'sale-001',
+      description: 'Daily sales deposit',
+      status: 'Confirmed',
+      confirmedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      bankRef: 'DEP-2026-001',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    {
+      id: 'bank-002',
+      restaurantId: restaurant.id,
+      date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      amount: 1800000,
+      type: 'Deposit',
+      method: 'Cash',
+      reason: 'SalesDeposit',
+      saleId: 'sale-002',
+      description: 'Daily sales deposit',
+      status: 'Confirmed',
+      confirmedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      bankRef: 'DEP-2026-002',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    // Debt collection
+    {
+      id: 'bank-003',
+      restaurantId: restaurant.id,
+      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      amount: 800000,
+      type: 'Deposit',
+      method: 'Cash',
+      reason: 'DebtCollection',
+      debtPaymentId: 'debt-pay-002',
+      description: 'Customer debt payment from Le Damier',
+      status: 'Confirmed',
+      confirmedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      bankRef: 'DEP-2026-003',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    // Expense payment (withdrawal)
+    {
+      id: 'bank-004',
+      restaurantId: restaurant.id,
+      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      amount: 2250000,
+      type: 'Withdrawal',
+      method: 'Cash',
+      reason: 'ExpensePayment',
+      description: 'Flour purchase from Moulin de Conakry',
+      status: 'Confirmed',
+      confirmedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      bankRef: 'WTH-2026-001',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    // Owner withdrawal
+    {
+      id: 'bank-005',
+      restaurantId: restaurant.id,
+      date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      amount: 3000000,
+      type: 'Withdrawal',
+      method: 'Cash',
+      reason: 'OwnerWithdrawal',
+      description: 'Owner personal withdrawal',
+      status: 'Confirmed',
+      confirmedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      bankRef: 'WTH-2026-002',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    // Capital injection
+    {
+      id: 'bank-006',
+      restaurantId: restaurant.id,
+      date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      amount: 10000000,
+      type: 'Deposit',
+      method: 'Cash',
+      reason: 'CapitalInjection',
+      description: 'Owner capital injection',
+      status: 'Confirmed',
+      confirmedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      bankRef: 'DEP-2026-004',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+    // Pending transaction
+    {
+      id: 'bank-007',
+      restaurantId: restaurant.id,
+      date: new Date(),
+      amount: 1400000,
+      type: 'Deposit',
+      method: 'Cash',
+      reason: 'SalesDeposit',
+      saleId: 'sale-003',
+      description: 'Daily sales deposit - pending confirmation',
+      status: 'Pending',
+      createdBy: user.id,
+      createdByName: user.name,
+    },
+  ]
+
+  for (const transaction of bankTransactions) {
+    await prisma.bankTransaction.upsert({
+      where: { id: transaction.id },
+      update: {},
+      create: transaction as any,
+    })
+  }
+  console.log(`✅ Created ${bankTransactions.length} bank transactions`)
+
+  // Link expense payment to bank transaction
+  await prisma.expensePayment.create({
+    data: {
+      expenseId: 'exp-001',
+      amount: 2250000,
+      paymentMethod: 'Cash',
+      bankTransactionId: 'bank-004',
+      paidBy: user.id,
+      paidByName: user.name,
+    },
+  })
+  console.log('✅ Created expense payment record')
+
+  // Update expense payment status
+  await prisma.expense.update({
+    where: { id: 'exp-001' },
+    data: {
+      paymentStatus: 'Paid',
+      totalPaidAmount: 2250000,
+      fullyPaidAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    },
+  })
+  console.log('✅ Updated expense payment status')
+
   console.log('')
   console.log('🎉 Seed completed successfully!')
   console.log('')
@@ -866,6 +1196,11 @@ async function main() {
   console.log(`     • ${restaurant2.name} (${restaurant2.location})`)
   console.log(`     • ${restaurant3.name} (${restaurant3.location})`)
   console.log(`   - User: ${user.email} (${user.role})`)
+  console.log(`   - Payment Methods: 9 (3 per restaurant)`)
+  console.log(`   - Customers: 3`)
+  console.log(`   - Debts: 4 (Outstanding, PartiallyPaid, FullyPaid, Overdue)`)
+  console.log(`   - Debt Payments: 2`)
+  console.log(`   - Bank Transactions: 7 (Deposits, Withdrawals, Pending)`)
   console.log(`   - Inventory Items: ${inventoryItems.length}`)
   console.log(`   - Production Logs: ${productionLogs.length}`)
   console.log(`   - Stock Movements: ${productionMovements.length + 1}`)
@@ -875,7 +1210,9 @@ async function main() {
   console.log('')
   console.log('🚀 You can now login and access the app!')
   console.log('💡 Test bakery switching by clicking the logo!')
-  console.log('📊 Dashboard now has real data for visualization!')
+  console.log('📊 Dashboard has real data: sales, inventory, debts, bank transactions!')
+  console.log('💰 Check Finances > Debts to see customer accounts')
+  console.log('🏦 Check Finances > Bank to see deposit/withdrawal history')
 }
 
 main()
