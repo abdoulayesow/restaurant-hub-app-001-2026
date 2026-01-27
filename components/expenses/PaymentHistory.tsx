@@ -1,9 +1,10 @@
 'use client'
 
-import { Banknote, Smartphone, CreditCard, Clock, User, ExternalLink } from 'lucide-react'
+import { Clock, User, ExternalLink } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { PAYMENT_METHODS, PaymentMethodValue } from '@/lib/constants/payment-methods'
 
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
+type PaymentMethod = PaymentMethodValue
 
 interface ExpensePayment {
   id: string
@@ -26,17 +27,16 @@ interface PaymentHistoryProps {
   loading?: boolean
 }
 
-const METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
-  Cash: Banknote,
-  OrangeMoney: Smartphone,
-  Card: CreditCard,
-}
+// Build config from centralized payment methods constants
+const METHOD_ICONS = PAYMENT_METHODS.reduce((acc, pm) => {
+  acc[pm.value] = pm.icon
+  return acc
+}, {} as Record<PaymentMethod, React.ElementType>)
 
-const METHOD_COLORS: Record<PaymentMethod, string> = {
-  Cash: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
-  OrangeMoney: 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
-  Card: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-}
+const METHOD_COLORS = PAYMENT_METHODS.reduce((acc, pm) => {
+  acc[pm.value] = `${pm.bgColor} ${pm.textColor}`
+  return acc
+}, {} as Record<PaymentMethod, string>)
 
 export function PaymentHistory({ payments, totalAmount, loading }: PaymentHistoryProps) {
   const { t, locale } = useLocale()

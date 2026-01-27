@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ArrowUpRight, ArrowDownRight, Banknote, Smartphone, CreditCard } from 'lucide-react'
+import { X, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { PAYMENT_METHODS as PAYMENT_METHODS_CONFIG, PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 interface Sale {
   id: string
@@ -14,7 +15,7 @@ interface Sale {
 }
 
 type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
+type PaymentMethod = PaymentMethodValue
 type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
 
 interface TransactionFormModalProps {
@@ -47,11 +48,13 @@ const WITHDRAWAL_REASONS: { value: TransactionReason; labelKey: string; label: s
   { value: 'Other', labelKey: 'bank.reasons.other', label: 'Other' },
 ]
 
-const PAYMENT_METHODS: { value: PaymentMethod; labelKey: string; label: string; icon: React.ElementType }[] = [
-  { value: 'Cash', labelKey: 'bank.methods.cash', label: 'Cash', icon: Banknote },
-  { value: 'OrangeMoney', labelKey: 'bank.methods.orangeMoney', label: 'Orange Money', icon: Smartphone },
-  { value: 'Card', labelKey: 'bank.methods.card', label: 'Card', icon: CreditCard },
-]
+// Build payment methods config from centralized constants
+const PAYMENT_METHODS = PAYMENT_METHODS_CONFIG.map(pm => ({
+  value: pm.value as PaymentMethod,
+  labelKey: pm.value === 'OrangeMoney' ? 'bank.methods.OrangeMoney' : `bank.methods.${pm.value}`,
+  label: pm.displayName,
+  icon: pm.icon,
+}))
 
 export function TransactionFormModal({
   isOpen,

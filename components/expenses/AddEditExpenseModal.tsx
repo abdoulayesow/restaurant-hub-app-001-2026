@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Calendar, DollarSign, Smartphone, CreditCard, FileText, Tag, Building2, Package, Plus, Trash2, History } from 'lucide-react'
+import { X, Calendar, FileText, Tag, Building2, Package, Plus, Trash2, History, CreditCard, DollarSign } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PaymentHistory } from './PaymentHistory'
+import { PAYMENT_METHODS, PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 interface Category {
   id: string
@@ -500,28 +501,28 @@ export function AddEditExpenseModal({
                 {t('expenses.paymentMethod') || 'Payment Method'} *
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { value: 'Cash', label: t('expenses.cash') || 'Cash', icon: DollarSign, color: 'green' },
-                  { value: 'Orange Money', label: t('expenses.orangeMoney') || 'Orange', icon: Smartphone, color: 'orange' },
-                  { value: 'Card', label: t('expenses.card') || 'Card', icon: CreditCard, color: 'blue' },
-                ].map(method => {
+                {PAYMENT_METHODS.map(method => {
                   const Icon = method.icon
                   const isSelected = formData.paymentMethod === method.value
+                  const translationKey = method.value === 'OrangeMoney' ? 'expenses.orangeMoney' : `expenses.${method.value.toLowerCase()}`
+                  const label = t(translationKey) || method.displayName
+                  // Derive color class from the payment method config
+                  const colorClass = method.value === 'Cash' ? 'green' : method.value === 'OrangeMoney' ? 'orange' : 'blue'
                   return (
                     <button
                       key={method.value}
                       type="button"
-                      onClick={() => handleChange('paymentMethod', method.value)}
+                      onClick={() => handleChange('paymentMethod', method.value as PaymentMethodValue)}
                       className={`
                         flex flex-col items-center gap-1 p-3 rounded-xl border transition-all
                         ${isSelected
-                          ? `border-${method.color}-500 bg-${method.color}-500/10 text-${method.color}-700 dark:text-${method.color}-400`
+                          ? `border-${colorClass}-500 bg-${colorClass}-500/10 text-${colorClass}-700 dark:text-${colorClass}-400`
                           : 'border-gray-300 dark:border-stone-600 text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700'
                         }
                       `}
                     >
                       <Icon className="w-5 h-5" />
-                      <span className="text-xs font-medium">{method.label}</span>
+                      <span className="text-xs font-medium">{label}</span>
                     </button>
                   )
                 })}
@@ -571,7 +572,7 @@ export function AddEditExpenseModal({
               </div>
 
               {/* Transaction Ref */}
-              {(formData.paymentMethod === 'Orange Money' || formData.paymentMethod === 'Card') && (
+              {(formData.paymentMethod === 'OrangeMoney' || formData.paymentMethod === 'Card') && (
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                     <FileText className="w-4 h-4" />
