@@ -28,8 +28,6 @@ import {
   Moon,
   Sun,
   User,
-  LogOut,
-  Settings,
   Check
 } from 'lucide-react'
 
@@ -37,6 +35,8 @@ import {
 // DESIGN TOKENS - Brand-aligned color system
 // ============================================================================
 
+// Design tokens for reference - documented for design system consistency
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const colors = {
   // Primary palette (terracotta family)
   terracotta: {

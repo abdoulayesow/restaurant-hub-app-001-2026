@@ -104,8 +104,8 @@ export function IconSelector({ value, onChange, label }: IconSelectorProps) {
 
       {/* Current Icon Preview */}
       {SelectedIconComponent && (
-        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-dark-700 rounded-lg border border-gray-200 dark:border-dark-600">
-          <SelectedIconComponent className="w-8 h-8 text-terracotta-500" />
+        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-stone-700 rounded-lg border border-gray-200 dark:border-stone-600">
+          <SelectedIconComponent className="w-8 h-8 text-gray-700" />
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Selected Icon</p>
             <p className="text-sm font-medium text-gray-900 dark:text-white">{value}</p>
@@ -121,12 +121,12 @@ export function IconSelector({ value, onChange, label }: IconSelectorProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search icons..."
-          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-white"
+          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-white"
         />
       </div>
 
       {/* Icon Grid */}
-      <div className="max-h-64 overflow-y-auto border border-gray-200 dark:border-dark-600 rounded-lg p-2">
+      <div className="max-h-64 overflow-y-auto border border-gray-200 dark:border-stone-600 rounded-lg p-2">
         <div className="grid grid-cols-6 gap-2">
           {filteredIcons.map((icon) => {
             const IconComponent = icon.component
@@ -137,17 +137,17 @@ export function IconSelector({ value, onChange, label }: IconSelectorProps) {
                 key={icon.name}
                 type="button"
                 onClick={() => onChange(icon.name)}
-                className={`p-3 rounded-lg border-2 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-terracotta-500 ${
+                className={`p-3 rounded-lg border-2 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-gray-500 ${
                   isSelected
-                    ? 'border-terracotta-500 bg-terracotta-50 dark:bg-terracotta-900/30'
-                    : 'border-gray-200 dark:border-dark-600 hover:border-terracotta-300'
+                    ? 'border-gray-900 bg-gray-100 dark:bg-stone-700'
+                    : 'border-gray-200 dark:border-stone-600 hover:border-gray-400'
                 }`}
                 title={icon.name}
               >
                 <IconComponent
                   className={`w-6 h-6 ${
                     isSelected
-                      ? 'text-terracotta-600 dark:text-terracotta-400'
+                      ? 'text-gray-900 dark:text-stone-100'
                       : 'text-gray-600 dark:text-gray-400'
                   }`}
                 />

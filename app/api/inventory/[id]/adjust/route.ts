@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { MovementType } from '@prisma/client'
+import { sendNotification } from '@/lib/notification-service'
 
 // POST /api/inventory/[id]/adjust - Create stock adjustment
 export async function POST(
@@ -115,6 +116,22 @@ export async function POST(
         },
       }),
     ])
+
+    // Send SMS notification if stock is low or critical
+    if (updatedItem.currentStock <= updatedItem.minStock) {
+      const isCritical = updatedItem.currentStock <= updatedItem.minStock * 0.1
+
+      await sendNotification({
+        restaurantId: updatedItem.restaurantId,
+        type: isCritical ? 'critical_stock' : 'low_stock',
+        recipientType: 'manager',
+        data: {
+          itemName: updatedItem.name,
+          currentStock: updatedItem.currentStock,
+          unit: updatedItem.unit,
+        },
+      }).catch(err => console.error('Failed to send stock alert SMS:', err))
+    }
 
     return NextResponse.json({
       movement,

@@ -18,6 +18,10 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { RevenueChart } from '@/components/dashboard/RevenueChart'
 import { ExpensesPieChart } from '@/components/dashboard/ExpensesPieChart'
+import { UnpaidExpensesWidget } from '@/components/dashboard/UnpaidExpensesWidget'
+import { InventoryValueCard } from '@/components/dashboard/InventoryValueCard'
+import { ExpiringItemsWidget } from '@/components/dashboard/ExpiringItemsWidget'
+import { ExpiryStatus } from '@/lib/inventory-helpers'
 
 interface DashboardData {
   kpis: {
@@ -26,6 +30,7 @@ interface DashboardData {
     profit: number
     profitMargin: number
     balance: number
+    inventoryValue: number
   }
   revenueByDay: Array<{ date: string; amount: number }>
   expensesByCategory: Array<{ name: string; nameFr: string; amount: number; color: string }>
@@ -41,6 +46,42 @@ interface DashboardData {
   pendingApprovals: {
     sales: number
     expenses: number
+  }
+  unpaidExpenses?: {
+    expenses: Array<{
+      id: string
+      categoryName: string
+      amountGNF: number
+      totalPaidAmount: number
+      date: string
+      supplier?: { name: string } | null
+    }>
+    totalOutstanding: number
+    count: number
+  }
+  inventoryValuation?: {
+    totalValue: number
+    byCategory: Array<{
+      category: string
+      value: number
+      itemCount: number
+      percentOfTotal: number
+    }>
+  }
+  expiringItems?: {
+    items: Array<{
+      id: string
+      name: string
+      nameFr: string
+      category: string | null
+      currentStock: number
+      unit: string
+      expiryDate: string | null
+      status: ExpiryStatus
+      daysUntilExpiry: number | null
+    }>
+    expiredCount: number
+    warningCount: number
   }
 }
 
@@ -103,14 +144,14 @@ export default function DashboardPage() {
 
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+      <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-cream-200 dark:bg-dark-800 rounded w-1/4"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-cream-200 dark:bg-dark-800 rounded-2xl"></div>
+                <div key={i} className="h-32 bg-gray-200 dark:bg-stone-800 rounded-xl"></div>
               ))}
             </div>
           </div>
@@ -123,35 +164,32 @@ export default function DashboardPage() {
   const lowStockCount = dashboardData?.lowStockItems.length || 0
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header with Period Toggle */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1
-              className="text-3xl font-bold text-terracotta-900 dark:text-cream-100"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {t('dashboard.title')}
             </h1>
-            <p className="text-terracotta-600/70 dark:text-cream-300/70 mt-1">
+            <p className="text-gray-600 dark:text-stone-400 mt-1">
               {currentRestaurant?.name || 'Loading...'}
-              {currentRestaurant?.location && ` - ${currentRestaurant.location}`}
+              {currentRestaurant?.location && ` • ${currentRestaurant.location}`}
             </p>
           </div>
 
           {/* Period Toggle */}
-          <div className="flex bg-cream-200 dark:bg-dark-700 rounded-lg p-1">
+          <div className="flex bg-white dark:bg-stone-800 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-stone-700">
             {([7, 30, 90] as PeriodDays[]).map((days) => (
               <button
                 key={days}
                 onClick={() => setPeriod(days)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                   period === days
-                    ? 'bg-terracotta-500 text-white'
-                    : 'text-terracotta-700 dark:text-cream-300 hover:bg-cream-300 dark:hover:bg-dark-600'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                    : 'text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700'
                 }`}
               >
                 {t(`dashboard.period${days}Days`)}
@@ -163,106 +201,103 @@ export default function DashboardPage() {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Balance */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
-                  <Wallet className="w-6 h-6 text-terracotta-500 dark:text-terracotta-400" />
+                <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                  <Wallet className="w-5 h-5 text-gray-700 dark:text-stone-300" />
                 </div>
-                <h3 className="text-sm font-medium text-terracotta-600/80 dark:text-cream-300/80">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
                   {t('dashboard.totalBalance')}
                 </h3>
               </div>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {loading ? '...' : `${formatGNF(dashboardData?.kpis.balance || 0)} GNF`}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60 mt-2">
+            <p className="text-sm text-gray-500 dark:text-stone-400 mt-2">
               {loading ? '--' : `${t('dashboard.period' + period + 'Days')}`}
             </p>
           </div>
 
           {/* Total Revenue */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl bg-green-500/10 dark:bg-green-400/10">
-                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                  <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h3 className="text-sm font-medium text-terracotta-600/80 dark:text-cream-300/80">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
                   {t('dashboard.totalRevenue')}
                 </h3>
               </div>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {loading ? '...' : `${formatGNF(dashboardData?.kpis.totalRevenue || 0)} GNF`}
             </p>
-            <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+            <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
               {loading ? '--' : `+${formatGNF(dashboardData?.kpis.totalRevenue || 0)} GNF`}
             </p>
           </div>
 
           {/* Total Expenses */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl bg-red-500/10 dark:bg-red-400/10">
-                  <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
+                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-900/30">
+                  <TrendingDown className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                 </div>
-                <h3 className="text-sm font-medium text-terracotta-600/80 dark:text-cream-300/80">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
                   {t('dashboard.totalExpenses')}
                 </h3>
               </div>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {loading ? '...' : `${formatGNF(dashboardData?.kpis.totalExpenses || 0)} GNF`}
             </p>
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+            <p className="text-sm text-rose-600 dark:text-rose-400 mt-2">
               {loading ? '--' : `-${formatGNF(dashboardData?.kpis.totalExpenses || 0)} GNF`}
             </p>
           </div>
 
           {/* Profit Margin */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl bg-blue-500/10 dark:bg-blue-400/10">
-                  <Percent className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+                  <Percent className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h3 className="text-sm font-medium text-terracotta-600/80 dark:text-cream-300/80">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-stone-400">
                   {t('dashboard.profitMargin')}
                 </h3>
               </div>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {loading ? '...' : `${dashboardData?.kpis.profitMargin || 0}%`}
             </p>
             <p className={`text-sm mt-2 ${
               (dashboardData?.kpis.profit || 0) >= 0
-                ? 'text-green-600 dark:text-green-400'
-                : 'text-red-600 dark:text-red-400'
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-rose-600 dark:text-rose-400'
             }`}>
               {loading ? '--' : `${(dashboardData?.kpis.profit || 0) >= 0 ? '+' : ''}${formatGNF(dashboardData?.kpis.profit || 0)} GNF`}
             </p>
           </div>
         </div>
 
-        {/* Alerts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Alerts & Widgets Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
           {/* Low Stock Alerts */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 flex items-center gap-2"
-                style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-              >
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-500" />
                 {t('dashboard.lowStockAlerts')}
               </h3>
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 lowStockCount > 0
-                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                  : 'bg-green-500/10 text-green-700 dark:text-green-400'
+                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                  : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
               }`}>
                 {lowStockCount}
               </span>
@@ -271,7 +306,7 @@ export default function DashboardPage() {
             {loading ? (
               <div className="space-y-3">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-12 bg-cream-200 dark:bg-dark-700 rounded-lg animate-pulse"></div>
+                  <div key={i} className="h-12 bg-gray-100 dark:bg-stone-700 rounded-lg animate-pulse"></div>
                 ))}
               </div>
             ) : lowStockCount > 0 ? (
@@ -279,36 +314,36 @@ export default function DashboardPage() {
                 {dashboardData?.lowStockItems.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-cream-50 dark:bg-dark-700 hover:bg-cream-200 dark:hover:bg-dark-600 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-stone-700/50 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors cursor-pointer group"
                     onClick={() => router.push('/inventory')}
                   >
                     <div className="flex items-center gap-3">
                       <span className={`w-2 h-2 rounded-full ${
-                        item.status === 'critical' ? 'bg-red-500' : 'bg-amber-500'
+                        item.status === 'critical' ? 'bg-rose-500' : 'bg-amber-500'
                       }`}></span>
                       <div>
-                        <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100">
+                        <p className="text-sm font-medium text-gray-900 dark:text-stone-100">
                           {getLocalizedName(item)}
                         </p>
-                        <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+                        <p className="text-xs text-gray-500 dark:text-stone-400">
                           {item.currentStock} / {item.minStock} {item.unit}
                         </p>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-terracotta-400 dark:text-cream-500" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-stone-300 transition-colors" />
                   </div>
                 ))}
                 {lowStockCount > 5 && (
                   <button
                     onClick={() => router.push('/inventory?lowStock=true')}
-                    className="w-full text-center text-sm text-terracotta-500 hover:text-terracotta-600 dark:text-terracotta-400 py-2"
+                    className="w-full text-center text-sm text-gray-500 hover:text-gray-700 dark:text-stone-400 dark:hover:text-gray-300 py-2 transition-colors"
                   >
                     {t('dashboard.viewAll')} ({lowStockCount})
                   </button>
                 )}
               </div>
             ) : (
-              <div className="text-center py-8 text-terracotta-600/60 dark:text-cream-300/60">
+              <div className="text-center py-8 text-gray-400 dark:text-stone-500">
                 <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>{t('dashboard.noAlerts')}</p>
               </div>
@@ -316,19 +351,16 @@ export default function DashboardPage() {
           </div>
 
           {/* Pending Approvals */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 flex items-center gap-2"
-                style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-              >
-                <Clock className="w-5 h-5 text-terracotta-500" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-gray-500" />
                 {t('dashboard.pendingApprovals')}
               </h3>
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 totalPending > 0
-                  ? 'bg-terracotta-500/10 text-terracotta-700 dark:text-terracotta-400'
-                  : 'bg-green-500/10 text-green-700 dark:text-green-400'
+                  ? 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300'
+                  : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
               }`}>
                 {totalPending}
               </span>
@@ -337,78 +369,94 @@ export default function DashboardPage() {
             {loading ? (
               <div className="space-y-3">
                 {[...Array(2)].map((_, i) => (
-                  <div key={i} className="h-16 bg-cream-200 dark:bg-dark-700 rounded-lg animate-pulse"></div>
+                  <div key={i} className="h-16 bg-gray-100 dark:bg-stone-700 rounded-lg animate-pulse"></div>
                 ))}
               </div>
             ) : totalPending > 0 ? (
               <div className="space-y-3">
                 {(dashboardData?.pendingApprovals.sales || 0) > 0 && (
                   <div
-                    className="flex items-center justify-between p-4 rounded-lg bg-cream-50 dark:bg-dark-700 hover:bg-cream-200 dark:hover:bg-dark-600 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-stone-700/50 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors cursor-pointer group"
                     onClick={() => router.push('/finances/sales?status=Pending')}
                   >
                     <div>
-                      <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100">
+                      <p className="text-sm font-medium text-gray-900 dark:text-stone-100">
                         {t('nav.sales')}
                       </p>
-                      <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+                      <p className="text-xs text-gray-500 dark:text-stone-400">
                         {dashboardData?.pendingApprovals.sales} {t('common.pending').toLowerCase()}
                       </p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-terracotta-400 dark:text-cream-500" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-stone-300 transition-colors" />
                   </div>
                 )}
                 {(dashboardData?.pendingApprovals.expenses || 0) > 0 && (
                   <div
-                    className="flex items-center justify-between p-4 rounded-lg bg-cream-50 dark:bg-dark-700 hover:bg-cream-200 dark:hover:bg-dark-600 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-stone-700/50 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors cursor-pointer group"
                     onClick={() => router.push('/finances/expenses?status=Pending')}
                   >
                     <div>
-                      <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100">
+                      <p className="text-sm font-medium text-gray-900 dark:text-stone-100">
                         {t('nav.expenses')}
                       </p>
-                      <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+                      <p className="text-xs text-gray-500 dark:text-stone-400">
                         {dashboardData?.pendingApprovals.expenses} {t('common.pending').toLowerCase()}
                       </p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-terracotta-400 dark:text-cream-500" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-stone-300 transition-colors" />
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-8 text-terracotta-600/60 dark:text-cream-300/60">
+              <div className="text-center py-8 text-gray-400 dark:text-stone-500">
                 <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>{t('dashboard.noAlerts')}</p>
               </div>
             )}
           </div>
+
+          {/* Unpaid Expenses Widget */}
+          <UnpaidExpensesWidget
+            expenses={dashboardData?.unpaidExpenses?.expenses || []}
+            totalOutstanding={dashboardData?.unpaidExpenses?.totalOutstanding || 0}
+            loading={loading}
+          />
+
+          {/* Expiring Items Widget */}
+          <ExpiringItemsWidget
+            items={dashboardData?.expiringItems?.items || []}
+            expiredCount={dashboardData?.expiringItems?.expiredCount || 0}
+            warningCount={dashboardData?.expiringItems?.warningCount || 0}
+            loading={loading}
+          />
+
+          {/* Inventory Value Widget */}
+          <InventoryValueCard
+            totalValue={dashboardData?.inventoryValuation?.totalValue || 0}
+            byCategory={dashboardData?.inventoryValuation?.byCategory || []}
+            loading={loading}
+          />
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <h3
-              className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 mb-4"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 mb-4">
               {t('dashboard.revenueOverTime')}
             </h3>
             {loading ? (
-              <div className="h-64 bg-cream-200 dark:bg-dark-700 rounded-lg animate-pulse"></div>
+              <div className="h-64 bg-gray-100 dark:bg-stone-700 rounded-lg animate-pulse"></div>
             ) : (
               <RevenueChart data={dashboardData?.revenueByDay || []} />
             )}
           </div>
 
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <h3
-              className="text-lg font-semibold text-terracotta-900 dark:text-cream-100 mb-4"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 mb-4">
               {t('dashboard.expensesByCategory')}
             </h3>
             {loading ? (
-              <div className="h-64 bg-cream-200 dark:bg-dark-700 rounded-lg animate-pulse"></div>
+              <div className="h-64 bg-gray-100 dark:bg-stone-700 rounded-lg animate-pulse"></div>
             ) : (
               <ExpensesPieChart data={dashboardData?.expensesByCategory || []} />
             )}

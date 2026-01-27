@@ -104,13 +104,12 @@ export function BottomSheet({
         aria-labelledby={title ? 'bottom-sheet-title' : undefined}
         className="
           fixed bottom-0 left-0 right-0 z-50
-          bg-cream-50 dark:bg-dark-900
+          bg-white dark:bg-stone-800
           rounded-t-3xl
           shadow-[0_-8px_30px_rgba(0,0,0,0.12)]
           dark:shadow-[0_-8px_30px_rgba(0,0,0,0.4)]
           animate-[slideUp_300ms_cubic-bezier(0.32,0.72,0,1)]
-          grain-overlay
-        "
+                  "
         style={{ maxHeight }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -121,7 +120,7 @@ export function BottomSheet({
           <div
             className="
               w-10 h-1.5 rounded-full
-              bg-terracotta-300/50 dark:bg-cream-600/30
+              bg-gray-300/50 dark:bg-stone-500/30
             "
             aria-hidden="true"
           />
@@ -132,14 +131,14 @@ export function BottomSheet({
           <div className="
             flex items-center justify-between
             px-6 pb-4
-            border-b border-terracotta-500/10 dark:border-terracotta-400/10
+            border-b border-gray-200 dark:border-stone-700
           ">
             {title && (
               <h2
                 id="bottom-sheet-title"
                 className="
                   text-lg font-bold tracking-tight
-                  text-terracotta-900 dark:text-cream-100
+                  text-gray-900 dark:text-stone-100
                 "
                 style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
               >
@@ -151,12 +150,12 @@ export function BottomSheet({
                 onClick={onClose}
                 className="
                   p-2 -mr-2 rounded-full
-                  hover:bg-cream-200 dark:hover:bg-dark-700
+                  hover:bg-gray-200 dark:hover:bg-stone-700
                   transition-colors
                 "
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-terracotta-600 dark:text-cream-300" />
+                <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
               </button>
             )}
           </div>

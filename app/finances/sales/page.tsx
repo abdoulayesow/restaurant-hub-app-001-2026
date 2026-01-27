@@ -3,12 +3,28 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Plus, Search, TrendingUp, RefreshCw, Calendar, Filter } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { Plus, Search, TrendingUp, RefreshCw, Calendar, Filter, Wallet, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
+import { QuickActionsMenu } from '@/components/layout/QuickActionsMenu'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { SalesTable } from '@/components/sales/SalesTable'
-import { AddEditSaleModal } from '@/components/sales/AddEditSaleModal'
+import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
+
+// Dynamic imports for heavy components to reduce initial bundle size
+const AddEditSaleModal = dynamic(
+  () => import('@/components/sales/AddEditSaleModal').then(mod => ({ default: mod.AddEditSaleModal })),
+  { ssr: false }
+)
+const SalesTrendChart = dynamic(
+  () => import('@/components/sales/SalesTrendChart').then(mod => ({ default: mod.SalesTrendChart })),
+  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-gray-200 dark:bg-stone-700 rounded-xl"></div> }
+)
+const PaymentMethodChart = dynamic(
+  () => import('@/components/sales/PaymentMethodChart').then(mod => ({ default: mod.PaymentMethodChart })),
+  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-gray-200 dark:bg-stone-700 rounded-xl"></div> }
+)
 
 interface Sale {
   id: string
@@ -25,6 +41,14 @@ interface Sale {
   openingTime?: string | null
   closingTime?: string | null
   comments?: string | null
+  activeDebtsCount?: number
+  outstandingDebtAmount?: number
+  debts?: Array<{
+    customerId: string
+    amountGNF: number
+    dueDate: string
+    description: string
+  }>
 }
 
 interface SalesSummary {
@@ -35,6 +59,13 @@ interface SalesSummary {
   totalCash: number
   totalOrangeMoney: number
   totalCard: number
+  previousPeriodRevenue: number
+  revenueChangePercent: number
+}
+
+interface SalesTrendDataPoint {
+  date: string
+  amount: number
 }
 
 export default function FinancesSalesPage() {
@@ -46,8 +77,10 @@ export default function FinancesSalesPage() {
   const [loading, setLoading] = useState(true)
   const [sales, setSales] = useState<Sale[]>([])
   const [summary, setSummary] = useState<SalesSummary | null>(null)
+  const [salesByDay, setSalesByDay] = useState<SalesTrendDataPoint[]>([])
   const [statusFilter, setStatusFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [dateRange, setDateRange] = useState<DateRangeValue>('30days')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -68,9 +101,13 @@ export default function FinancesSalesPage() {
 
     setLoading(true)
     try {
+      const { startDate, endDate } = getDateRangeFromFilter(dateRange)
+
       const params = new URLSearchParams({
         restaurantId: currentRestaurant.id,
         ...(statusFilter && { status: statusFilter }),
+        ...(startDate && { startDate: startDate.toISOString() }),
+        endDate: endDate.toISOString(),
       })
 
       const res = await fetch(`/api/sales?${params}`)
@@ -78,13 +115,14 @@ export default function FinancesSalesPage() {
         const data = await res.json()
         setSales(data.sales || [])
         setSummary(data.summary || null)
+        setSalesByDay(data.salesByDay || [])
       }
     } catch (error) {
       console.error('Error fetching sales:', error)
     } finally {
       setLoading(false)
     }
-  }, [currentRestaurant?.id, statusFilter])
+  }, [currentRestaurant?.id, statusFilter, dateRange])
 
   useEffect(() => {
     if (currentRestaurant?.id) {
@@ -197,12 +235,12 @@ export default function FinancesSalesPage() {
   // Loading state
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+      <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-cream-200 dark:bg-dark-800 rounded w-1/4"></div>
-            <div className="h-64 bg-cream-200 dark:bg-dark-800 rounded"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 dark:bg-stone-800 rounded"></div>
           </div>
         </main>
       </div>
@@ -210,20 +248,17 @@ export default function FinancesSalesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1
-              className="text-3xl font-bold text-terracotta-900 dark:text-cream-100"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {t('sales.title') || 'Sales'}
             </h1>
-            <p className="text-terracotta-600/70 dark:text-cream-300/70 mt-1">
+            <p className="text-gray-600 dark:text-stone-400 mt-1">
               {currentRestaurant?.name || 'Loading...'}
             </p>
           </div>
@@ -233,29 +268,34 @@ export default function FinancesSalesPage() {
               setSelectedSale(null)
               setIsModalOpen(true)
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('sales.addSale') || 'Add Sale'}
           </button>
         </div>
 
+        {/* Date Range Filter */}
+        <div className="mb-6">
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+        </div>
+
         {/* Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           {/* Today's Sales */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-green-500/10 dark:bg-green-400/10">
-                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
                 {t('sales.todaysSales') || "Today's Sales"}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(todaysTotal)}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="text-xs text-gray-500 dark:text-stone-400">
               {todaysSales.length > 0
                 ? `${todaysSales.length} ${t('sales.recordsToday') || 'records today'}`
                 : (t('sales.noSalesYet') || 'No sales recorded yet')
@@ -264,59 +304,135 @@ export default function FinancesSalesPage() {
           </div>
 
           {/* Total Revenue */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
-                <Calendar className="w-6 h-6 text-terracotta-500 dark:text-terracotta-400" />
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                <Calendar className="w-5 h-5 text-gray-700 dark:text-stone-300" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
                 {t('sales.totalRevenue') || 'Total Revenue'}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(summary?.totalRevenue || 0)}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
-              {summary?.totalSales || 0} {t('sales.salesRecorded') || 'sales recorded'}
-            </p>
+            {summary && dateRange !== 'all' && summary.revenueChangePercent !== 0 ? (
+              <p className={`text-xs flex items-center gap-1 ${
+                summary.revenueChangePercent > 0
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-600 dark:text-rose-400'
+              }`}>
+                {summary.revenueChangePercent > 0 ? (
+                  <ArrowUpRight className="w-3 h-3" />
+                ) : (
+                  <ArrowDownRight className="w-3 h-3" />
+                )}
+                {Math.abs(summary.revenueChangePercent)}% {t('sales.vsLastPeriod') || 'vs last period'}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500 dark:text-stone-400">
+                {summary?.totalSales || 0} {t('sales.salesRecorded') || 'sales recorded'}
+              </p>
+            )}
           </div>
 
           {/* Pending Approvals */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-amber-500/10 dark:bg-amber-400/10">
-                <Filter className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+                <Filter className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
                 {t('sales.pendingApprovals') || 'Pending Approvals'}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+            <p className="text-xl lg:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
               {summary?.pendingCount || 0}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="text-xs text-gray-500 dark:text-stone-400">
               {t('sales.awaitingReview') || 'awaiting review'}
             </p>
+          </div>
+
+          {/* Payment Breakdown */}
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                <Wallet className="w-5 h-5 text-gray-700 dark:text-stone-300" />
+              </div>
+              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
+                {t('sales.paymentBreakdown') || 'Payment Methods'}
+              </h3>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-700 dark:text-stone-300">{t('sales.cash') || 'Cash'}</span>
+                <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                  {summary && summary.totalRevenue > 0
+                    ? `${Math.round((summary.totalCash / summary.totalRevenue) * 100)}%`
+                    : '0%'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-700 dark:text-stone-300">{t('sales.orangeMoney') || 'Orange'}</span>
+                <span className="font-medium text-orange-600 dark:text-orange-400">
+                  {summary && summary.totalRevenue > 0
+                    ? `${Math.round((summary.totalOrangeMoney / summary.totalRevenue) * 100)}%`
+                    : '0%'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-700 dark:text-stone-300">{t('sales.card') || 'Card'}</span>
+                <span className="font-medium text-gray-600 dark:text-stone-400">
+                  {summary && summary.totalRevenue > 0
+                    ? `${Math.round((summary.totalCard / summary.totalRevenue) * 100)}%`
+                    : '0%'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          {/* Sales Trend Chart */}
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 mb-4">
+              {t('sales.salesTrend') || 'Sales Trend'}
+            </h3>
+            <SalesTrendChart data={salesByDay} />
+          </div>
+
+          {/* Payment Method Distribution */}
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100 mb-4">
+              {t('sales.paymentMethods') || 'Payment Methods'}
+            </h3>
+            <PaymentMethodChart
+              cash={summary?.totalCash || 0}
+              orangeMoney={summary?.totalOrangeMoney || 0}
+              card={summary?.totalCard || 0}
+            />
           </div>
         </div>
 
         {/* Filters Row */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-terracotta-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('sales.searchPlaceholder') || 'Search sales...'}
-              className="w-full pl-10 pr-4 py-2 border border-terracotta-200 dark:border-dark-600 rounded-xl focus:ring-2 focus:ring-terracotta-500 focus:border-terracotta-500 bg-cream-50 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-terracotta-200 dark:border-dark-600 rounded-xl bg-cream-50 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100"
+            className="px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100"
           >
             <option value="">{t('sales.allSales') || 'All Sales'}</option>
             <option value="Pending">{t('common.pending') || 'Pending'}</option>
@@ -326,7 +442,7 @@ export default function FinancesSalesPage() {
 
           <button
             onClick={fetchSales}
-            className="p-2 rounded-xl border border-terracotta-200 dark:border-dark-600 text-terracotta-700 dark:text-cream-300 hover:bg-cream-100 dark:hover:bg-dark-700"
+            className="p-2.5 rounded-lg border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -344,15 +460,12 @@ export default function FinancesSalesPage() {
             loading={loading}
           />
         ) : (
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-12 text-center grain-overlay">
-            <TrendingUp className="w-16 h-16 mx-auto mb-4 text-terracotta-300 dark:text-dark-600" />
-            <h3
-              className="text-lg font-medium text-terracotta-900 dark:text-cream-100 mb-2"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-12 text-center">
+            <TrendingUp className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-stone-600" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-stone-100 mb-2">
               {t('sales.noSales') || 'No Sales Recorded'}
             </h3>
-            <p className="text-terracotta-600/60 dark:text-cream-300/60 mb-6 max-w-md mx-auto">
+            <p className="text-gray-500 dark:text-stone-400 mb-6 max-w-md mx-auto">
               {t('sales.noSalesDescription') || 'Record your first daily sale to start tracking revenue and payment methods.'}
             </p>
             <button
@@ -360,7 +473,7 @@ export default function FinancesSalesPage() {
                 setSelectedSale(null)
                 setIsModalOpen(true)
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
             >
               <Plus className="w-5 h-5" />
               {t('sales.addFirstSale') || 'Add First Sale'}
@@ -380,6 +493,9 @@ export default function FinancesSalesPage() {
         sale={selectedSale}
         loading={isSaving}
       />
+
+      {/* Quick Actions Menu - Floating */}
+      <QuickActionsMenu />
     </div>
   )
 }

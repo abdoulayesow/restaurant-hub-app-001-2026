@@ -17,7 +17,8 @@ interface FloatingActionPickerProps {
   onClose: () => void
   items: FloatingActionItem[]
   onSelect: (item: FloatingActionItem) => void
-  position?: 'bottom' | 'bottom-left' | 'bottom-right'
+  position?: 'bottom' | 'bottom-left' | 'bottom-right' | 'top'
+  showCloseButton?: boolean
 }
 
 export function FloatingActionPicker({
@@ -25,7 +26,8 @@ export function FloatingActionPicker({
   onClose,
   items,
   onSelect,
-  position = 'bottom'
+  position = 'bottom',
+  showCloseButton = true
 }: FloatingActionPickerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -60,10 +62,13 @@ export function FloatingActionPicker({
   if (!isOpen) return null
 
   const positionClasses = {
-    'bottom': 'left-1/2 -translate-x-1/2',
-    'bottom-left': 'left-4',
-    'bottom-right': 'right-4'
+    'bottom': 'bottom-6 left-1/2 -translate-x-1/2',
+    'bottom-left': 'bottom-6 left-4',
+    'bottom-right': 'bottom-6 right-4',
+    'top': 'top-[88px] left-1/2 -translate-x-1/2'
   }
+
+  const animationClass = position === 'top' ? 'animate-slide-down' : 'animate-slide-up'
 
   return (
     <>
@@ -78,12 +83,12 @@ export function FloatingActionPicker({
       <div
         ref={containerRef}
         className={`
-          fixed bottom-6 z-50
+          fixed z-50
           ${positionClasses[position]}
           flex flex-row items-center gap-3
         `}
         role="menu"
-        aria-label="Select bakery"
+        aria-label="Select option"
       >
         {/* Action buttons - pill style matching nav buttons */}
         {items.map((item, index) => (
@@ -94,12 +99,12 @@ export function FloatingActionPicker({
               onClose()
             }}
             className={`
-              flex items-center gap-3 px-5 py-3 rounded-full
-              font-semibold text-base tracking-wide
+              flex items-center gap-2 px-4 py-2 rounded-full
+              font-medium text-sm tracking-wide
               text-white shadow-md
               transition-all duration-300 ease-out
               hover:shadow-lg hover:scale-105 active:scale-95
-              animate-slide-up
+              ${animationClass}
               ${item.isActive ? 'ring-2 ring-white/50' : ''}
             `}
             style={{
@@ -110,7 +115,7 @@ export function FloatingActionPicker({
           >
             {/* Icon */}
             {item.icon && (
-              <span className="w-5 h-5 flex items-center justify-center">
+              <span className="w-4 h-4 flex items-center justify-center">
                 {item.icon}
               </span>
             )}
@@ -120,29 +125,31 @@ export function FloatingActionPicker({
 
             {/* Active indicator */}
             {item.isActive && (
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             )}
           </button>
         ))}
 
-        {/* Close button on the right */}
-        <button
-          onClick={onClose}
-          className="
-            w-12 h-12 rounded-full
-            bg-gray-200 dark:bg-gray-700
-            text-gray-600 dark:text-gray-300
-            flex items-center justify-center
-            shadow-lg hover:shadow-xl
-            transform transition-all duration-300
-            hover:scale-105 active:scale-95
-            animate-slide-up
-          "
-          style={{ animationDelay: `${items.length * 50}ms` }}
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Close button on the right - optional */}
+        {showCloseButton && (
+          <button
+            onClick={onClose}
+            className={`
+              w-12 h-12 rounded-full
+              bg-gray-200 dark:bg-gray-700
+              text-gray-600 dark:text-gray-300
+              flex items-center justify-center
+              shadow-lg hover:shadow-xl
+              transform transition-all duration-300
+              hover:scale-105 active:scale-95
+              ${animationClass}
+            `}
+            style={{ animationDelay: `${items.length * 50}ms` }}
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
     </>

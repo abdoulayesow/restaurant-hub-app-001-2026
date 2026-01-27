@@ -46,10 +46,9 @@ export function RestaurantDrawer({
         className="
           animate-slide-in
           fixed left-0 top-0 bottom-0 w-80
-          bg-cream-50 dark:bg-dark-900
-          warm-shadow-lg
-          grain-overlay
-          z-50
+          bg-white dark:bg-stone-800
+          shadow-lg
+                    z-50
           flex flex-col
         "
         role="dialog"
@@ -57,43 +56,43 @@ export function RestaurantDrawer({
         aria-labelledby="restaurant-drawer-title"
       >
         {/* Header */}
-        <div className="p-6 border-b border-terracotta-500/15 dark:border-terracotta-400/20">
+        <div className="p-6 border-b border-gray-200 dark:border-stone-700">
           <div className="flex items-center justify-between mb-4">
             <h2
               id="restaurant-drawer-title"
-              className="text-xl font-serif text-terracotta-900 dark:text-cream-100"
+              className="text-xl font-serif text-gray-900 dark:text-stone-100"
               style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
               {t('restaurant.myRestaurants') || 'My Restaurants'}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-cream-200 dark:hover:bg-dark-700 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-stone-700 transition-colors"
               aria-label={t('common.close') || 'Close'}
             >
-              <X className="w-5 h-5 text-terracotta-600 dark:text-cream-300" />
+              <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
             </button>
           </div>
 
           {/* Current restaurant highlight */}
           {currentRestaurant && (
             <div
-              className="p-4 rounded-2xl bg-terracotta-500/10 dark:bg-terracotta-400/10"
+              className="p-4 rounded-2xl bg-gray-100 dark:bg-stone-700"
               style={{
                 borderLeft: `4px solid ${colorPalettes[paletteNames[restaurants.findIndex(r => r.id === currentRestaurantId) % 4]].primary}`
               }}
             >
-              <p className="text-xs uppercase tracking-wider text-terracotta-600/70 dark:text-cream-300/70 mb-1 font-medium">
+              <p className="text-xs uppercase tracking-wider text-gray-600/70 dark:text-stone-300/70 mb-1 font-medium">
                 {t('restaurant.currentlyActive') || 'Currently Active'}
               </p>
               <p
-                className="text-lg text-terracotta-900 dark:text-cream-100"
+                className="text-lg text-gray-900 dark:text-stone-100"
                 style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               >
                 {currentRestaurant.name}
               </p>
               {currentRestaurant.location && (
-                <p className="text-sm text-terracotta-600/80 dark:text-cream-300/80 flex items-center gap-1 mt-1">
+                <p className="text-sm text-gray-600/80 dark:text-stone-300/80 flex items-center gap-1 mt-1">
                   <MapPin className="w-3 h-3" />
                   {currentRestaurant.location}
                 </p>
@@ -104,7 +103,7 @@ export function RestaurantDrawer({
 
         {/* Restaurant list */}
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="text-xs uppercase tracking-wider text-terracotta-600/70 dark:text-cream-300/70 mb-3 px-2 font-medium">
+          <p className="text-xs uppercase tracking-wider text-gray-600/70 dark:text-stone-300/70 mb-3 px-2 font-medium">
             {t('restaurant.switchRestaurant') || 'Switch Restaurant'}
           </p>
 
@@ -124,8 +123,8 @@ export function RestaurantDrawer({
                     w-full p-4 rounded-xl text-left
                     transition-all duration-200
                     ${isSelected
-                      ? 'bg-cream-200 dark:bg-dark-700'
-                      : 'hover:bg-cream-100 dark:hover:bg-dark-800'
+                      ? 'bg-gray-200 dark:bg-stone-700'
+                      : 'hover:bg-gray-100 dark:hover:bg-stone-700'
                     }
                   `}
                 >
@@ -142,11 +141,11 @@ export function RestaurantDrawer({
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-terracotta-900 dark:text-cream-100 font-medium truncate">
+                      <p className="text-gray-900 dark:text-stone-100 font-medium truncate">
                         {restaurant.name}
                       </p>
                       {restaurant.location && (
-                        <p className="text-sm text-terracotta-600/70 dark:text-cream-300/70 truncate flex items-center gap-1">
+                        <p className="text-sm text-gray-600/70 dark:text-stone-300/70 truncate flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
                           {restaurant.location}
                         </p>
@@ -154,7 +153,7 @@ export function RestaurantDrawer({
                     </div>
 
                     {isSelected && (
-                      <Check className="w-5 h-5 text-terracotta-500 dark:text-terracotta-400 flex-shrink-0" />
+                      <Check className="w-5 h-5 text-gray-700 dark:text-stone-300 flex-shrink-0" />
                     )}
                   </div>
                 </button>
@@ -164,8 +163,8 @@ export function RestaurantDrawer({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-terracotta-500/15 dark:border-terracotta-400/20">
-          <div className="flex items-center justify-center gap-2 text-xs text-terracotta-600/60 dark:text-cream-300/60">
+        <div className="p-4 border-t border-gray-200 dark:border-stone-700">
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-600/60 dark:text-stone-300/60">
             <Store className="w-4 h-4" />
             <span>
               {restaurants.length} {restaurants.length === 1

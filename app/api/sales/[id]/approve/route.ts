@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
+import { sendNotification } from '@/lib/notification-service'
 
 // POST /api/sales/[id]/approve - Approve or reject a sale (Manager only)
 export async function POST(
@@ -104,6 +105,20 @@ export async function POST(
           dailyCardSales: sale.cardGNF,
         },
       })
+    }
+
+    // Send SMS notification to submitter
+    if (sale.submittedBy) {
+      const notificationType = action === 'approve' ? 'sale_approved' : 'sale_rejected'
+      await sendNotification({
+        restaurantId: sale.restaurantId,
+        type: notificationType,
+        recipientUserId: sale.submittedBy,
+        data: {
+          amount: sale.totalGNF,
+          reason: reason || '',
+        },
+      }).catch(err => console.error('Failed to send SMS notification:', err))
     }
 
     return NextResponse.json({

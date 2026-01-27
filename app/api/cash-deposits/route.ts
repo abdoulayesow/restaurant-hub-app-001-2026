@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 // GET /api/cash-deposits - List cash deposits for a bakery
 export async function GET(request: NextRequest) {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause
-    const whereClause: any = { restaurantId }
+    const whereClause: Prisma.CashDepositWhereInput = { restaurantId }
     if (status === 'Pending' || status === 'Deposited') {
       whereClause.status = status
     }

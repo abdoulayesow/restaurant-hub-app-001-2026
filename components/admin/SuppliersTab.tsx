@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Search, Loader2, X, Save, Check } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, Edit2, Trash2, Search, Loader2, X, Save } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 
 interface Supplier {
@@ -42,11 +42,7 @@ export function SuppliersTab() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    fetchSuppliers()
-  }, [showInactive])
-
-  const fetchSuppliers = async () => {
+  const fetchSuppliers = useCallback(async () => {
     try {
       setLoading(true)
       const url = `/api/suppliers${showInactive ? '?includeInactive=true' : ''}`
@@ -60,7 +56,11 @@ export function SuppliersTab() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [showInactive])
+
+  useEffect(() => {
+    fetchSuppliers()
+  }, [fetchSuppliers])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -172,7 +172,7 @@ export function SuppliersTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     )
   }
@@ -188,24 +188,24 @@ export function SuppliersTab() {
             placeholder={t('common.search') || 'Search suppliers...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
           />
         </div>
 
         <div className="flex gap-2">
-          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-dark-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors">
+          <label className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-stone-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors">
             <input
               type="checkbox"
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
-              className="rounded text-terracotta-500 focus:ring-terracotta-500"
+              className="rounded text-gray-500 focus:ring-gray-500"
             />
             Show Inactive
           </label>
 
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('admin.addSupplier') || 'Add Supplier'}
@@ -216,7 +216,7 @@ export function SuppliersTab() {
       {/* Suppliers Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-dark-700 border-b border-gray-200 dark:border-dark-600">
+          <thead className="bg-gray-50 dark:bg-stone-700 border-b border-gray-200 dark:border-stone-600">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Name
@@ -238,7 +238,7 @@ export function SuppliersTab() {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-dark-600">
+          <tbody className="divide-y divide-gray-200 dark:divide-stone-600">
             {filteredSuppliers.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
@@ -247,8 +247,8 @@ export function SuppliersTab() {
               </tr>
             ) : (
               filteredSuppliers.map((supplier) => (
-                <tr key={supplier.id} className="hover:bg-gray-50 dark:hover:bg-dark-700/50">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-cream-100">
+                <tr key={supplier.id} className="hover:bg-gray-50 dark:hover:bg-stone-700/50">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-stone-100">
                     {supplier.name}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
@@ -297,10 +297,10 @@ export function SuppliersTab() {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-cream-100">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
                 {editingSupplier ? (t('admin.editSupplier') || 'Edit Supplier') : (t('admin.addSupplier') || 'Add Supplier')}
               </h3>
               <button
@@ -321,8 +321,8 @@ export function SuppliersTab() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.name ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="Supplier name"
                 />
@@ -337,7 +337,7 @@ export function SuppliersTab() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   placeholder="+224 XXX XX XX XX"
                 />
               </div>
@@ -350,8 +350,8 @@ export function SuppliersTab() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100 ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
                   placeholder="supplier@example.com"
                 />
@@ -366,7 +366,7 @@ export function SuppliersTab() {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   placeholder="Street address, city, country"
                 />
               </div>
@@ -379,24 +379,24 @@ export function SuppliersTab() {
                   type="text"
                   value={formData.paymentTerms}
                   onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-cream-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-stone-100"
                   placeholder="e.g., Net 30, Cash on delivery"
                 />
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-dark-700">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-stone-700">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 {saving ? (
                   <>

@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const restaurantId = searchParams.get('restaurantId')
     const status = searchParams.get('status')
+    const paymentStatus = searchParams.get('paymentStatus') // Unpaid | PartiallyPaid | Paid (comma-separated for multiple)
     const categoryId = searchParams.get('categoryId')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
     const where: {
       restaurantId: string
       status?: 'Pending' | 'Approved' | 'Rejected'
+      paymentStatus?: { in: ('Unpaid' | 'PartiallyPaid' | 'Paid')[] }
       categoryId?: string
       date?: { gte?: Date; lte?: Date }
     } = {
@@ -49,6 +51,15 @@ export async function GET(request: NextRequest) {
 
     if (status && ['Pending', 'Approved', 'Rejected'].includes(status)) {
       where.status = status as 'Pending' | 'Approved' | 'Rejected'
+    }
+
+    // Payment status filter (supports comma-separated values)
+    if (paymentStatus) {
+      const validStatuses = ['Unpaid', 'PartiallyPaid', 'Paid']
+      const requestedStatuses = paymentStatus.split(',').filter(s => validStatuses.includes(s))
+      if (requestedStatuses.length > 0) {
+        where.paymentStatus = { in: requestedStatuses as ('Unpaid' | 'PartiallyPaid' | 'Paid')[] }
+      }
     }
 
     if (categoryId) {
@@ -96,6 +107,16 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        expensePayments: {
+          select: {
+            id: true,
+            amount: true,
+            paymentMethod: true,
+            paidAt: true,
+            paidByName: true,
+          },
+          orderBy: { paidAt: 'desc' },
+        },
       },
     })
 
@@ -117,20 +138,105 @@ export async function GET(request: NextRequest) {
       return expenseDate >= monthStart
     })
 
+    const totalAmount = expenses.reduce((sum, e) => sum + e.amountGNF, 0)
+
+    // Calculate previous period expenses for comparison
+    let previousPeriodTotal = 0
+    let expenseChangePercent = 0
+
+    if (startDate) {
+      const currentStart = new Date(startDate)
+      const currentEnd = endDate ? new Date(endDate) : new Date()
+      const periodDays = Math.ceil((currentEnd.getTime() - currentStart.getTime()) / (1000 * 60 * 60 * 24))
+
+      const previousEnd = new Date(currentStart)
+      previousEnd.setDate(previousEnd.getDate() - 1)
+      const previousStart = new Date(previousEnd)
+      previousStart.setDate(previousStart.getDate() - periodDays)
+
+      const previousExpenses = await prisma.expense.findMany({
+        where: {
+          restaurantId,
+          date: {
+            gte: previousStart,
+            lte: previousEnd,
+          },
+        },
+        select: { amountGNF: true },
+      })
+
+      previousPeriodTotal = previousExpenses.reduce((sum, e) => sum + e.amountGNF, 0)
+
+      if (previousPeriodTotal > 0) {
+        expenseChangePercent = ((totalAmount - previousPeriodTotal) / previousPeriodTotal) * 100
+      } else if (totalAmount > 0) {
+        expenseChangePercent = 100 // New expenses from zero
+      }
+    }
+
+    // Build expensesByDay for trend chart (sorted ascending for chart)
+    const expensesByDay = expenses
+      .reduce((acc: { date: string; amount: number }[], expense) => {
+        const dateStr = new Date(expense.date).toISOString().split('T')[0]
+        const existing = acc.find(d => d.date === dateStr)
+        if (existing) {
+          existing.amount += expense.amountGNF
+        } else {
+          acc.push({ date: dateStr, amount: expense.amountGNF })
+        }
+        return acc
+      }, [])
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+    // Build expensesByCategory for category chart
+    const expensesByCategory = expenses
+      .reduce((acc: { categoryName: string; categoryNameFr?: string | null; amount: number; color?: string | null }[], expense) => {
+        const existing = acc.find(c => c.categoryName === expense.categoryName)
+        if (existing) {
+          existing.amount += expense.amountGNF
+        } else {
+          acc.push({
+            categoryName: expense.categoryName,
+            categoryNameFr: expense.category?.nameFr,
+            amount: expense.amountGNF,
+            color: expense.category?.color,
+          })
+        }
+        return acc
+      }, [])
+
+    // Payment status calculations (only for approved expenses)
+    const approvedExpenses = expenses.filter(e => e.status === 'Approved')
+    const unpaidCount = approvedExpenses.filter(e => e.paymentStatus === 'Unpaid').length
+    const partiallyPaidCount = approvedExpenses.filter(e => e.paymentStatus === 'PartiallyPaid').length
+    const paidCount = approvedExpenses.filter(e => e.paymentStatus === 'Paid').length
+    const totalPaid = approvedExpenses.reduce((sum, e) => sum + e.totalPaidAmount, 0)
+    const totalUnpaid = approvedExpenses.reduce((sum, e) => sum + (e.amountGNF - e.totalPaidAmount), 0)
+
     const summary = {
       totalExpenses: expenses.length,
-      totalAmount: expenses.reduce((sum, e) => sum + e.amountGNF, 0),
+      totalAmount,
+      // Approval status counts
       pendingCount: expenses.filter(e => e.status === 'Pending').length,
       approvedCount: expenses.filter(e => e.status === 'Approved').length,
       rejectedCount: expenses.filter(e => e.status === 'Rejected').length,
+      // Payment status counts (for approved expenses)
+      unpaidCount,
+      partiallyPaidCount,
+      paidCount,
+      totalPaid,
+      totalUnpaid,
+      // Payment method totals
       totalCash: expenses.filter(e => e.paymentMethod === 'Cash').reduce((sum, e) => sum + e.amountGNF, 0),
       totalOrangeMoney: expenses.filter(e => e.paymentMethod === 'OrangeMoney').reduce((sum, e) => sum + e.amountGNF, 0),
       totalCard: expenses.filter(e => e.paymentMethod === 'Card').reduce((sum, e) => sum + e.amountGNF, 0),
       todayTotal: todayExpenses.reduce((sum, e) => sum + e.amountGNF, 0),
       monthTotal: monthExpenses.reduce((sum, e) => sum + e.amountGNF, 0),
+      previousPeriodTotal,
+      expenseChangePercent: Math.round(expenseChangePercent * 10) / 10,
     }
 
-    return NextResponse.json({ expenses, summary })
+    return NextResponse.json({ expenses, summary, expensesByDay, expensesByCategory })
   } catch (error) {
     console.error('Error fetching expenses:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

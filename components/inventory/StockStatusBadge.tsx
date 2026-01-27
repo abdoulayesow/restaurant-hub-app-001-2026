@@ -34,7 +34,7 @@ export function StockStatusBadge({ status, className = '' }: StockStatusBadgePro
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bgClass} ${config.textClass} ${className}`}
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${config.bgClass} ${config.textClass} ${className}`}
     >
       {config.label}
     </span>

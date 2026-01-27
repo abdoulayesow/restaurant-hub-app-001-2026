@@ -177,7 +177,7 @@ export async function PATCH(
 
     // If deferred deduction is needed, execute it in a transaction
     if (needsDeferredDeduction) {
-      const ingredientDetails = existingLog.ingredientDetails as any[]
+      const ingredientDetails = existingLog.ingredientDetails as Array<{ itemId: string; itemName: string; quantity: number; unit: string; unitCostGNF: number }>
 
       if (ingredientDetails && ingredientDetails.length > 0) {
         await prisma.$transaction(async (tx) => {
@@ -212,7 +212,7 @@ export async function PATCH(
               data: {
                 restaurantId: existingLog.restaurantId,
                 itemId: ingredient.itemId,
-                type: 'Usage' as any,
+                type: 'Usage' as const,
                 quantity: -ingredient.quantity,
                 unitCost: ingredient.unitCostGNF,
                 reason: `Production: ${existingLog.productName} (qty: ${existingLog.quantity})`,

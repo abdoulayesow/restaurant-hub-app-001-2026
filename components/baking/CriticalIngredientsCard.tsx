@@ -46,13 +46,13 @@ export function CriticalIngredientsCard({
 
   if (loading) {
     return (
-      <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+      <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
         <div className="animate-pulse">
-          <div className="h-5 bg-cream-200 dark:bg-dark-700 rounded w-1/2 mb-4" />
+          <div className="h-5 bg-gray-200 dark:bg-stone-700 rounded w-1/2 mb-4" />
           <div className="space-y-3">
-            <div className="h-12 bg-cream-200 dark:bg-dark-700 rounded" />
-            <div className="h-12 bg-cream-200 dark:bg-dark-700 rounded" />
-            <div className="h-12 bg-cream-200 dark:bg-dark-700 rounded" />
+            <div className="h-12 bg-gray-200 dark:bg-stone-700 rounded" />
+            <div className="h-12 bg-gray-200 dark:bg-stone-700 rounded" />
+            <div className="h-12 bg-gray-200 dark:bg-stone-700 rounded" />
           </div>
         </div>
       </div>
@@ -60,21 +60,18 @@ export function CriticalIngredientsCard({
   }
 
   return (
-    <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+    <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-amber-500/10 dark:bg-amber-400/10">
+          <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/30">
             <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <h3
-              className="font-semibold text-terracotta-900 dark:text-cream-100"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+            <h3 className="font-semibold text-gray-900 dark:text-stone-100">
               {t('production.lowStockAlerts') || 'Low Stock Alerts'}
             </h3>
-            <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="text-xs text-gray-500 dark:text-stone-400">
               {criticalCount > 0 && (
                 <span className="text-red-600 dark:text-red-400 font-medium">
                   {criticalCount} {t('production.critical') || 'critical'}
@@ -94,8 +91,8 @@ export function CriticalIngredientsCard({
       {/* Items List */}
       {sortedItems.length === 0 ? (
         <div className="py-8 text-center">
-          <Package className="w-10 h-10 mx-auto mb-3 text-green-500/40" />
-          <p className="text-sm text-terracotta-600/70 dark:text-cream-300/70">
+          <Package className="w-10 h-10 mx-auto mb-3 text-green-400 dark:text-green-500/40" />
+          <p className="text-sm text-gray-500 dark:text-stone-400">
             {t('production.allStockOk') || 'All ingredients are well stocked'}
           </p>
         </div>
@@ -105,7 +102,7 @@ export function CriticalIngredientsCard({
             <div
               key={item.id}
               className={`
-                flex items-center justify-between p-3 rounded-xl
+                flex items-center justify-between p-3 rounded-lg
                 transition-colors cursor-pointer
                 ${
                   item.stockStatus === 'critical'
@@ -123,10 +120,10 @@ export function CriticalIngredientsCard({
                   `}
                 />
                 <div>
-                  <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100">
+                  <p className="text-sm font-medium text-gray-900 dark:text-stone-100">
                     {locale === 'fr' && item.nameFr ? item.nameFr : item.name}
                   </p>
-                  <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70">
+                  <p className="text-xs text-gray-500 dark:text-stone-400">
                     {item.currentStock.toFixed(1)} / {item.minStock.toFixed(1)} {item.unit}
                   </p>
                 </div>
@@ -156,8 +153,8 @@ export function CriticalIngredientsCard({
           onClick={() => router.push('/baking/inventory?lowStock=true')}
           className="
             mt-4 w-full flex items-center justify-center gap-2 py-2
-            text-sm text-terracotta-600 dark:text-cream-300
-            hover:text-terracotta-800 dark:hover:text-cream-100
+            text-sm text-gray-600 dark:text-stone-300
+            hover:text-gray-900 dark:hover:text-stone-100
             transition-colors
           "
         >

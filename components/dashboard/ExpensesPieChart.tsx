@@ -46,14 +46,14 @@ export function ExpensesPieChart({ data }: ExpensesPieChartProps) {
       const item = payload[0].payload
       const percentage = total > 0 ? ((item.amount / total) * 100).toFixed(1) : '0'
       return (
-        <div className="bg-cream-100 dark:bg-dark-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3">
-          <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100 mb-1">
+        <div className="bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-lg shadow-lg p-3">
+          <p className="text-sm font-medium text-gray-900 dark:text-stone-100 mb-1">
             {getLocalizedName(item)}
           </p>
-          <p className="text-lg font-bold text-terracotta-900 dark:text-cream-100">
+          <p className="text-lg font-bold text-gray-900 dark:text-stone-100">
             {formatAmount(item.amount)} GNF
           </p>
-          <p className="text-sm text-terracotta-600 dark:text-cream-300">
+          <p className="text-sm text-gray-600 dark:text-stone-300">
             {percentage}%
           </p>
         </div>
@@ -76,7 +76,7 @@ export function ExpensesPieChart({ data }: ExpensesPieChartProps) {
                 className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="text-terracotta-700 dark:text-cream-200">
+              <span className="text-gray-700 dark:text-stone-200">
                 {getLocalizedName(item)} ({percentage}%)
               </span>
             </li>
@@ -88,7 +88,7 @@ export function ExpensesPieChart({ data }: ExpensesPieChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-terracotta-600/60 dark:text-cream-300/60">
+      <div className="h-64 flex items-center justify-center text-gray-500 dark:text-stone-400">
         <p>{t('common.noData')}</p>
       </div>
     )

@@ -123,10 +123,10 @@ export async function PATCH(
 
     const body = await request.json()
 
-    // Validate required fields
-    if (!body.name || !body.name.trim()) {
+    // Validate name only if provided (allow partial updates)
+    if (body.name !== undefined && !body.name.trim()) {
       return NextResponse.json(
-        { error: 'Restaurant name is required' },
+        { error: 'Restaurant name cannot be empty' },
         { status: 400 }
       )
     }
@@ -209,7 +209,7 @@ export async function PATCH(
     const updatedRestaurant = await prisma.restaurant.update({
       where: { id },
       data: {
-        name: body.name.trim(),
+        ...(body.name !== undefined && { name: body.name.trim() }),
         ...(body.location !== undefined && { location: body.location?.trim() || null }),
         ...(body.openingDate !== undefined && {
           openingDate: body.openingDate ? new Date(body.openingDate) : null
@@ -256,6 +256,73 @@ export async function PATCH(
     return NextResponse.json({ restaurant: updatedRestaurant })
   } catch (error) {
     console.error('Error updating restaurant:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/restaurants/[id] - Soft delete a restaurant
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { id } = await params
+
+    // Verify user has access to this restaurant AND check Manager role
+    const userRestaurant = await prisma.userRestaurant.findUnique({
+      where: {
+        userId_restaurantId: {
+          userId: session.user.id,
+          restaurantId: id
+        }
+      },
+      include: {
+        user: {
+          select: { role: true }
+        }
+      }
+    })
+
+    if (!userRestaurant) {
+      return NextResponse.json(
+        { error: 'You do not have access to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    if (userRestaurant.user.role !== 'Manager') {
+      return NextResponse.json(
+        { error: 'Only managers can delete restaurants' },
+        { status: 403 }
+      )
+    }
+
+    // Soft delete: set isActive to false
+    // Data is preserved and can be restored if needed
+    await prisma.restaurant.update({
+      where: { id },
+      data: {
+        isActive: false,
+      }
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Restaurant has been archived. Data is preserved and can be restored.'
+    })
+  } catch (error) {
+    console.error('Error deleting restaurant:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

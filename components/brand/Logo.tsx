@@ -61,6 +61,7 @@ interface LogoProps {
   variant?: 'full' | 'icon' | 'wordmark'
   palette?: PaletteName
   className?: string
+  appName?: string // Dynamic app name (e.g., "Cafe Hub", "Restaurant Hub")
 }
 
 const sizeMap = {
@@ -211,10 +212,17 @@ export function Logo({
   size = 'md',
   variant = 'full',
   palette = 'terracotta',
-  className = ''
+  className = '',
+  appName,
 }: LogoProps) {
   const dimensions = sizeMap[size]
   const colors = colorPalettes[palette]
+
+  // Parse app name into prefix and "Hub" suffix
+  // e.g., "Cafe Hub" -> prefix: "Cafe", suffix: "Hub"
+  const [prefix, suffix] = appName
+    ? [appName.replace(/\s*Hub$/i, ''), 'Hub']
+    : ['Bakery', 'Hub']
 
   if (variant === 'icon') {
     return (
@@ -236,8 +244,8 @@ export function Logo({
             letterSpacing: '-0.02em',
           }}
         >
-          Bakery
-          <span style={{ color: colors.accent, fontWeight: 800 }}>Hub</span>
+          {prefix}
+          <span style={{ color: colors.accent, fontWeight: 800 }}>{suffix}</span>
         </span>
       </div>
     )
@@ -264,8 +272,8 @@ export function Logo({
           lineHeight: 1,
         }}
       >
-        Bakery
-        <span style={{ color: colors.accent, fontWeight: 800 }}>Hub</span>
+        {prefix}
+        <span style={{ color: colors.accent, fontWeight: 800 }}>{suffix}</span>
       </span>
     </div>
   )

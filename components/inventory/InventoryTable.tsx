@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit2, Trash2, Plus, Minus, History, ChevronUp, ChevronDown, Eye } from 'lucide-react'
+import { Edit2, Trash2, Plus, History, ChevronUp, ChevronDown, Eye } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StockStatusBadge, StockStatus } from './StockStatusBadge'
+import { ExpiryStatusBadge } from './ExpiryStatusBadge'
 import { getCategoryLabel } from './CategoryFilter'
+import { ExpiryStatus } from '@/lib/inventory-helpers'
 
 export interface InventoryItem {
   id: string
@@ -22,6 +24,10 @@ export interface InventoryItem {
   expiryDays: number | null
   isActive: boolean
   stockStatus: StockStatus
+  expiryStatus?: ExpiryStatus | null
+  expiryDate?: string | null
+  daysUntilExpiry?: number | null
+  lastPurchaseDate?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -35,7 +41,7 @@ interface InventoryTableProps {
   onViewHistory: (item: InventoryItem) => void
 }
 
-type SortField = 'name' | 'category' | 'currentStock' | 'minStock' | 'unitCostGNF'
+type SortField = 'name' | 'category' | 'currentStock' | 'minStock' | 'unitCostGNF' | 'itemValue'
 type SortDirection = 'asc' | 'desc'
 
 export function InventoryTable({
@@ -58,8 +64,17 @@ export function InventoryTable({
 
   // Sort items
   const sortedItems = [...items].sort((a, b) => {
-    let aVal: string | number = a[sortField]
-    let bVal: string | number = b[sortField]
+    let aVal: string | number
+    let bVal: string | number
+
+    // Handle computed itemValue field
+    if (sortField === 'itemValue') {
+      aVal = a.currentStock * a.unitCostGNF
+      bVal = b.currentStock * b.unitCostGNF
+    } else {
+      aVal = a[sortField]
+      bVal = b[sortField]
+    }
 
     // Handle string comparison
     if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -150,12 +165,22 @@ export function InventoryTable({
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {t('common.status')}
               </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
+                {t('inventory.expiry') || 'Expiry'}
+              </th>
               <th
                 onClick={() => handleSort('unitCostGNF')}
                 className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 hidden sm:table-cell"
               >
                 {t('inventory.unitCost')}
                 <SortIcon field="unitCostGNF" />
+              </th>
+              <th
+                onClick={() => handleSort('itemValue')}
+                className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 hidden lg:table-cell"
+              >
+                {t('inventory.value') || 'Value'}
+                <SortIcon field="itemValue" />
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {t('common.actions')}
@@ -189,8 +214,22 @@ export function InventoryTable({
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <StockStatusBadge status={item.stockStatus} />
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center hidden md:table-cell">
+                  {item.expiryStatus && item.expiryStatus !== 'non-perishable' ? (
+                    <ExpiryStatusBadge
+                      status={item.expiryStatus}
+                      daysUntilExpiry={item.daysUntilExpiry}
+                      showDays={true}
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+                  )}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100 hidden sm:table-cell">
                   {formatCurrency(item.unitCostGNF)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-emerald-600 dark:text-emerald-400 hidden lg:table-cell">
+                  {formatCurrency(item.currentStock * item.unitCostGNF)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                   <div className="flex items-center justify-end gap-1">

@@ -72,7 +72,7 @@ export function DepositCard({ deposit, onMarkDeposited, canEdit }: DepositCardPr
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(deposit.date)}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-cream-100">{formatCurrency(deposit.amount)}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-stone-100">{formatCurrency(deposit.amount)}</p>
         </div>
         {getStatusBadge()}
       </div>
@@ -81,7 +81,7 @@ export function DepositCard({ deposit, onMarkDeposited, canEdit }: DepositCardPr
       {deposit.bankRef && (
         <div className="mb-2">
           <span className="text-xs text-gray-500 dark:text-gray-400">{t('bank.bankRef') || 'Bank Ref'}:</span>
-          <span className="text-sm font-medium text-gray-900 dark:text-cream-100 ml-2">{deposit.bankRef}</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-stone-100 ml-2">{deposit.bankRef}</span>
         </div>
       )}
 
@@ -100,7 +100,7 @@ export function DepositCard({ deposit, onMarkDeposited, canEdit }: DepositCardPr
 
       {/* Comments */}
       {deposit.comments && (
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 italic">"{deposit.comments}"</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 italic">&ldquo;{deposit.comments}&rdquo;</p>
       )}
 
       {/* Deposited Info */}

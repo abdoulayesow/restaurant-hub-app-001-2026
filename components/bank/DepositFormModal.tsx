@@ -10,6 +10,7 @@ interface Sale {
   date: string
   totalGNF: number
   cashGNF: number
+  cashDeposit?: unknown
 }
 
 interface DepositFormModalProps {
@@ -46,6 +47,28 @@ export function DepositFormModal({
 
   // Fetch available sales (approved sales without deposits)
   useEffect(() => {
+    const fetchAvailableSales = async () => {
+      if (!currentRestaurant) return
+
+      setLoadingSales(true)
+      try {
+        const response = await fetch(
+          `/api/sales?restaurantId=${currentRestaurant.id}&status=Approved`
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          // Filter out sales that already have deposits
+          const salesWithoutDeposits = data.sales.filter((sale: Sale) => !sale.cashDeposit)
+          setAvailableSales(salesWithoutDeposits)
+        }
+      } catch (error) {
+        console.error('Error fetching sales:', error)
+      } finally {
+        setLoadingSales(false)
+      }
+    }
+
     if (isOpen && currentRestaurant) {
       fetchAvailableSales()
     }
@@ -63,28 +86,6 @@ export function DepositFormModal({
       setErrors({})
     }
   }, [isOpen])
-
-  const fetchAvailableSales = async () => {
-    if (!currentRestaurant) return
-
-    setLoadingSales(true)
-    try {
-      const response = await fetch(
-        `/api/sales?restaurantId=${currentRestaurant.id}&status=Approved`
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        // Filter out sales that already have deposits
-        const salesWithoutDeposits = data.sales.filter((sale: any) => !sale.cashDeposit)
-        setAvailableSales(salesWithoutDeposits)
-      }
-    } catch (error) {
-      console.error('Error fetching sales:', error)
-    } finally {
-      setLoadingSales(false)
-    }
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN', {
@@ -149,148 +150,153 @@ export function DepositFormModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <>
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-backdrop-fade"
         onClick={onClose}
+        aria-hidden="true"
       />
-      <div
-        className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2
-            id="modal-title"
-            className="text-xl font-semibold text-gray-900 dark:text-cream-100"
-            style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-          >
-            {t('bank.newDeposit') || 'New Cash Deposit'}
-          </h2>
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('common.date') || 'Date'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => handleChange('date', e.target.value)}
-              disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500 disabled:opacity-50 ${
-                errors.date
-                  ? 'border-red-500'
-                  : 'border-gray-300 dark:border-gray-600'
-              }`}
-            />
-            {errors.date && (
-              <p className="text-sm text-red-500 mt-1">{errors.date}</p>
-            )}
-          </div>
-
-          {/* Amount */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('bank.amount') || 'Amount'} (GNF) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={formData.amount}
-              onChange={(e) => handleChange('amount', e.target.value)}
-              disabled={isLoading}
-              placeholder="0"
-              min="0"
-              step="1"
-              className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500 disabled:opacity-50 ${
-                errors.amount
-                  ? 'border-red-500'
-                  : 'border-gray-300 dark:border-gray-600'
-              }`}
-            />
-            {errors.amount && (
-              <p className="text-sm text-red-500 mt-1">{errors.amount}</p>
-            )}
-          </div>
-
-          {/* Linked Sale (Optional) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('bank.linkedSale') || 'Linked Sale'} ({t('common.optional') || 'Optional'})
-            </label>
-            <select
-              value={formData.saleId}
-              onChange={(e) => handleChange('saleId', e.target.value)}
-              disabled={isLoading || loadingSales}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500 disabled:opacity-50"
+      {/* Modal */}
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div
+          className="animate-modal-entrance w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-800 rounded-2xl shadow-lg"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
+            <h2
+              id="modal-title"
+              className="text-xl font-bold text-gray-900 dark:text-stone-100"
             >
-              <option value="">
-                {loadingSales
-                  ? (t('common.loading') || 'Loading...')
-                  : (t('bank.selectSale') || 'Select a sale (optional)')}
-              </option>
-              {availableSales.map((sale) => (
-                <option key={sale.id} value={sale.id}>
-                  {formatDate(sale.date)} - {formatCurrency(sale.cashGNF)} ({t('bank.cash') || 'Cash'})
-                </option>
-              ))}
-            </select>
-            {availableSales.length === 0 && !loadingSales && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {t('bank.noAvailableSales') || 'No approved sales without deposits'}
-              </p>
-            )}
-          </div>
-
-          {/* Comments */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('common.comments') || 'Comments'} ({t('common.optional') || 'Optional'})
-            </label>
-            <textarea
-              value={formData.comments}
-              onChange={(e) => handleChange('comments', e.target.value)}
-              disabled={isLoading}
-              rows={3}
-              placeholder={t('bank.commentsPlaceholder') || 'Add any notes about this deposit...'}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-cream-100 focus:ring-2 focus:ring-terracotta-500 disabled:opacity-50 resize-none"
-            />
-          </div>
-
-          {/* Footer */}
-          <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+              {t('bank.newDeposit') || 'New Cash Deposit'}
+            </h2>
             <button
-              type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+              className="p-2 rounded-xl text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 disabled:opacity-50"
             >
-              {t('common.cancel') || 'Cancel'}
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 disabled:opacity-50"
-            >
-              {isLoading
-                ? (t('common.saving') || 'Saving...')
-                : (t('bank.createDeposit') || 'Create Deposit')}
+              <X className="w-5 h-5" />
             </button>
           </div>
-        </form>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            {/* Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
+                {t('common.date') || 'Date'} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => handleChange('date', e.target.value)}
+                disabled={isLoading}
+                className={`w-full px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 disabled:opacity-50 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 ${
+                  errors.date
+                    ? 'border-red-500 border'
+                    : 'border border-gray-300 dark:border-stone-600'
+                }`}
+              />
+              {errors.date && (
+                <p className="text-sm text-red-500 mt-1">{errors.date}</p>
+              )}
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
+                {t('bank.amount') || 'Amount'} (GNF) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                value={formData.amount}
+                onChange={(e) => handleChange('amount', e.target.value)}
+                disabled={isLoading}
+                placeholder="0"
+                min="0"
+                step="1"
+                className={`w-full px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 disabled:opacity-50 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 ${
+                  errors.amount
+                    ? 'border-red-500 border'
+                    : 'border border-gray-300 dark:border-stone-600'
+                }`}
+              />
+              {errors.amount && (
+                <p className="text-sm text-red-500 mt-1">{errors.amount}</p>
+              )}
+            </div>
+
+            {/* Linked Sale (Optional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
+                {t('bank.linkedSale') || 'Linked Sale'} ({t('common.optional') || 'Optional'})
+              </label>
+              <select
+                value={formData.saleId}
+                onChange={(e) => handleChange('saleId', e.target.value)}
+                disabled={isLoading || loadingSales}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 disabled:opacity-50"
+              >
+                <option value="">
+                  {loadingSales
+                    ? (t('common.loading') || 'Loading...')
+                    : (t('bank.selectSale') || 'Select a sale (optional)')}
+                </option>
+                {availableSales.map((sale) => (
+                  <option key={sale.id} value={sale.id}>
+                    {formatDate(sale.date)} - {formatCurrency(sale.cashGNF)} ({t('bank.cash') || 'Cash'})
+                  </option>
+                ))}
+              </select>
+              {availableSales.length === 0 && !loadingSales && (
+                <p className="text-sm text-gray-500 dark:text-stone-400 mt-1">
+                  {t('bank.noAvailableSales') || 'No approved sales without deposits'}
+                </p>
+              )}
+            </div>
+
+            {/* Comments */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
+                {t('common.comments') || 'Comments'} ({t('common.optional') || 'Optional'})
+              </label>
+              <textarea
+                value={formData.comments}
+                onChange={(e) => handleChange('comments', e.target.value)}
+                disabled={isLoading}
+                rows={3}
+                placeholder={t('bank.commentsPlaceholder') || 'Add any notes about this deposit...'}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500 disabled:opacity-50 resize-none"
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-stone-700">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 disabled:opacity-50"
+              >
+                {t('common.cancel') || 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm disabled:opacity-50"
+              >
+                {isLoading
+                  ? (t('common.saving') || 'Saving...')
+                  : (t('bank.createDeposit') || 'Create Deposit')}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

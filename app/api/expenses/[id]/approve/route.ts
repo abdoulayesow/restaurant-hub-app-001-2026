@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
+import { sendNotification } from '@/lib/notification-service'
 
 // POST /api/expenses/[id]/approve - Approve or reject an expense (Manager only)
 export async function POST(
@@ -171,6 +172,35 @@ export async function POST(
           })
         }
       }
+    }
+
+    // Send SMS notification to submitter
+    if (expense.submittedBy) {
+      const notificationType = action === 'approve' ? 'expense_approved' : 'expense_rejected'
+      await sendNotification({
+        restaurantId: expense.restaurantId,
+        type: notificationType,
+        recipientUserId: expense.submittedBy,
+        data: {
+          amount: expense.amountGNF,
+          category: expense.categoryName || 'General',
+          reason: reason || '',
+        },
+      }).catch(err => console.error('Failed to send SMS notification:', err))
+    }
+
+    // Notify manager if large expense (threshold: 500,000 GNF)
+    if (expense.amountGNF >= 500000) {
+      await sendNotification({
+        restaurantId: expense.restaurantId,
+        type: 'large_expense',
+        recipientType: 'manager',
+        data: {
+          amount: expense.amountGNF,
+          category: expense.categoryName || 'General',
+          submitter: session.user.name || session.user.email,
+        },
+      }).catch(err => console.error('Failed to send large expense alert:', err))
     }
 
     return NextResponse.json({

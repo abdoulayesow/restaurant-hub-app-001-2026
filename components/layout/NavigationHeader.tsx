@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
@@ -14,6 +15,7 @@ import {
   Wallet,
   Receipt,
   Building2,
+  DollarSign,
   Sun,
   Moon,
   User,
@@ -22,16 +24,14 @@ import {
   ChevronDown,
   Menu,
   X,
-  MapPin,
-  Check,
-  Store,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { Logo, colorPalettes, type PaletteName } from '@/components/brand/Logo'
-import { BottomSheet } from '@/components/ui/BottomSheet'
+import { BlissLogoNav, blissPalettes } from '@/components/brand/BlissLogo'
 import { FloatingActionPicker, type FloatingActionItem } from '@/components/ui/FloatingActionPicker'
+import { useFilteredNavigation } from '@/hooks/useFilteredNavigation'
+import { getRestaurantTypeIcon } from '@/config/restaurantTypes'
 
 // Navigation configuration
 export interface NavSubItem {
@@ -78,6 +78,7 @@ const navigationItems: NavItemConfig[] = [
     icon: Wallet,
     subItems: [
       { id: 'sales', label: 'Sales', labelFr: 'Ventes', icon: TrendingUp, href: '/finances/sales' },
+      { id: 'debts', label: 'Debts', labelFr: 'Dettes', icon: DollarSign, href: '/finances/debts' },
       { id: 'expenses', label: 'Expenses', labelFr: 'Dépenses', icon: Receipt, href: '/finances/expenses' },
       { id: 'bank', label: 'Bank', labelFr: 'Banque', icon: Building2, href: '/finances/bank' },
     ]
@@ -94,14 +95,14 @@ const routeToSubItem: Record<string, string> = {
   '/inventory': 'inventory',
   '/production': 'production',
   '/finances/sales': 'sales',
+  '/finances/debts': 'debts',
   '/finances/expenses': 'expenses',
   '/finances/bank': 'bank',
   '/sales': 'sales',
+  '/debts': 'debts',
   '/expenses': 'expenses',
   '/bank': 'bank',
 }
-
-const paletteNames: PaletteName[] = ['terracotta', 'warmBrown', 'burntSienna', 'gold']
 
 export function NavigationHeader() {
   const { data: session } = useSession()
@@ -115,8 +116,23 @@ export function NavigationHeader() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const accentColor = colorPalettes[currentPalette].primary
+  // Use Bliss Patisserie colors - map old palette names to new
+  const blissPaletteMap: Record<string, keyof typeof blissPalettes> = {
+    terracotta: 'royalPlum',
+    warmBrown: 'cafeCreme',
+    burntSienna: 'rosePetal',
+    gold: 'pistache',
+  }
+  const currentBlissPalette = blissPaletteMap[currentPalette] || 'royalPlum'
+  const accentColor = blissPalettes[currentBlissPalette].primary
   const isManager = session?.user?.role === 'Manager'
+
+  // Theme-aware button color for floating pickers
+  // Light mode: gray-900 (#111827), Dark mode: stone-600 (#57534e)
+  const navButtonColor = theme === 'dark' ? '#57534e' : '#111827'
+
+  // Filter navigation based on restaurant's enabled features
+  const filteredNavigationItems = useFilteredNavigation(navigationItems)
 
   // Determine active sub-item based on current path
   const activeSubItemId = routeToSubItem[pathname] || ''
@@ -147,25 +163,28 @@ export function NavigationHeader() {
     }
   }
 
-  // Map restaurants to FloatingActionItems - same color for all, active gets current palette color
-  const restaurantPickerItems: FloatingActionItem[] = restaurants.map((restaurant, index) => ({
-    id: restaurant.id,
-    label: restaurant.name,
-    sublabel: restaurant.location || undefined,
-    color: restaurant.id === currentRestaurant?.id
-      ? accentColor
-      : colorPalettes.terracotta.primary, // All unselected use terracotta
-    icon: <Store className="w-5 h-5" strokeWidth={2.5} />,
-    isActive: restaurant.id === currentRestaurant?.id
-  }))
+  // Map restaurants to FloatingActionItems - use restaurant type icon, active gets current palette color
+  const restaurantPickerItems: FloatingActionItem[] = restaurants.map((restaurant) => {
+    const TypeIcon = getRestaurantTypeIcon((restaurant as { restaurantType?: string })?.restaurantType)
+    return {
+      id: restaurant.id,
+      label: restaurant.name,
+      sublabel: restaurant.location || undefined,
+      color: restaurant.id === currentRestaurant?.id
+        ? accentColor
+        : navButtonColor, // Use theme-aware color for unselected
+      icon: <TypeIcon className="w-5 h-5" strokeWidth={2.5} />,
+      isActive: restaurant.id === currentRestaurant?.id
+    }
+  })
 
   return (
     <>
       <header className="
         sticky top-0 z-40
-        bg-cream-50/95 dark:bg-dark-900/95 backdrop-blur-md
-        border-b border-terracotta-500/15 dark:border-terracotta-400/20
-        grain-overlay
+        bg-[rgb(223,216,227)] dark:bg-stone-800
+        border-b border-gray-200 dark:border-stone-700/40
+        dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)]
       ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -176,64 +195,32 @@ export function NavigationHeader() {
               className="
                 flex items-center gap-3
                 p-2 -ml-2 rounded-2xl
-                hover:bg-cream-100 dark:hover:bg-dark-800
+                hover:bg-gray-200 dark:hover:bg-stone-700/50
                 transition-all duration-300
                 group
               "
               aria-label={t('restaurant.switchRestaurant') || 'Switch restaurant'}
             >
-              <div className="relative">
-                <Logo size="lg" variant="icon" palette={currentPalette} />
-                {/* Steam animation on hover */}
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex gap-1">
-                    <div
-                      className="w-0.5 h-3 rounded-full"
-                      style={{
-                        backgroundColor: accentColor,
-                        animation: 'breadSteam 1.5s ease-in-out infinite'
-                      }}
-                    />
-                    <div
-                      className="w-0.5 h-4 rounded-full"
-                      style={{
-                        backgroundColor: accentColor,
-                        animation: 'breadSteam 1.5s ease-in-out infinite 0.2s'
-                      }}
-                    />
-                    <div
-                      className="w-0.5 h-3 rounded-full"
-                      style={{
-                        backgroundColor: accentColor,
-                        animation: 'breadSteam 1.5s ease-in-out infinite 0.4s'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Bliss Patisserie Logo */}
+              <BlissLogoNav palette={currentBlissPalette} />
 
-              <div className="hidden sm:block">
-                <h1
-                  className="text-xl font-bold text-terracotta-900 dark:text-cream-100 leading-tight tracking-tight"
-                  style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-                >
-                  Bakery<span style={{ color: accentColor }}>Hub</span>
-                </h1>
-                {currentRestaurant && (
-                  <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 flex items-center gap-1">
-                    <span
-                      className="w-2 h-2 rounded-full inline-block"
-                      style={{ backgroundColor: accentColor }}
-                    />
+              {/* Restaurant name indicator */}
+              {currentRestaurant && (
+                <div className="hidden sm:flex items-center gap-1.5 ml-2 pl-3 border-l border-gray-300 dark:border-stone-600/50">
+                  <span
+                    className="w-2 h-2 rounded-full inline-block animate-pulse"
+                    style={{ backgroundColor: accentColor }}
+                  />
+                  <span className="text-xs font-medium text-gray-600 dark:text-stone-300">
                     {currentRestaurant.name}
-                  </p>
-                )}
-              </div>
+                  </span>
+                </div>
+              )}
             </button>
 
             {/* CENTER: Navigation pills (Desktop) */}
             <nav className="hidden lg:flex items-center gap-2" aria-label="Main navigation">
-              {navigationItems.map(item => {
+              {filteredNavigationItems.map(item => {
                 const hasActiveSubItem = item.subItems.some(sub => sub.id === activeSubItemId)
                 const Icon = item.icon
 
@@ -244,15 +231,15 @@ export function NavigationHeader() {
                     aria-expanded={navSheetOpen === item.id}
                     aria-haspopup="true"
                     className={`
-                      flex items-center gap-2 px-4 py-2.5 rounded-full
-                      font-medium text-sm tracking-wide
+                      flex items-center justify-center gap-2
+                      min-w-[130px] px-4 py-2.5 rounded-full
+                      font-medium text-sm
                       transition-all duration-300 ease-out
                       ${hasActiveSubItem
-                        ? 'text-white shadow-md'
-                        : 'bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100 hover:bg-cream-200 dark:hover:bg-dark-700'
+                        ? 'bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 shadow-sm'
+                        : 'text-gray-600 dark:text-stone-400 hover:text-gray-900 dark:hover:text-stone-200 hover:bg-gray-200 dark:hover:bg-stone-700/50'
                       }
                     `}
-                    style={hasActiveSubItem ? { backgroundColor: accentColor } : undefined}
                   >
                     <Icon className="w-4 h-4" strokeWidth={2.5} />
                     <span>{locale === 'fr' ? item.labelFr : item.label}</span>
@@ -271,10 +258,10 @@ export function NavigationHeader() {
                   hidden sm:flex items-center justify-center
                   w-10 h-10 rounded-full
                   text-xs font-bold tracking-wider
-                  bg-cream-100 dark:bg-dark-800
-                  text-terracotta-900 dark:text-cream-100
-                  hover:bg-cream-200 dark:hover:bg-dark-700
-                  transition-colors
+                  text-gray-600 dark:text-stone-400
+                  hover:text-gray-900 dark:hover:text-stone-200
+                  hover:bg-gray-200 dark:hover:bg-stone-700/50
+                  transition-all duration-300
                 "
                 aria-label={locale === 'fr' ? 'Switch to English' : 'Passer en français'}
               >
@@ -286,8 +273,9 @@ export function NavigationHeader() {
                 onClick={toggleTheme}
                 className="
                   w-10 h-10 flex items-center justify-center rounded-full
-                  bg-cream-100 dark:bg-dark-800
-                  hover:bg-cream-200 dark:hover:bg-dark-700
+                  text-gray-600 dark:text-stone-400
+                  hover:text-gray-900 dark:hover:text-stone-200
+                  hover:bg-gray-200 dark:hover:bg-stone-700/50
                   transition-all duration-300
                 "
                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -295,7 +283,7 @@ export function NavigationHeader() {
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5 text-amber-400" />
                 ) : (
-                  <Moon className="w-5 h-5 text-terracotta-600" />
+                  <Moon className="w-5 h-5 text-gray-600" />
                 )}
               </button>
 
@@ -305,18 +293,20 @@ export function NavigationHeader() {
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className="
                     flex items-center gap-2 px-3 py-2 rounded-full
-                    bg-cream-100 dark:bg-dark-800
-                    hover:bg-cream-200 dark:hover:bg-dark-700
-                    transition-colors
+                    bg-white dark:bg-stone-700
+                    shadow-sm hover:shadow
+                    transition-all duration-300
                   "
                   aria-expanded={userDropdownOpen}
                   aria-haspopup="true"
                 >
                   {session?.user?.image ? (
-                    <img
+                    <Image
                       src={session.user.image}
                       alt=""
-                      className="w-8 h-8 rounded-full"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full ring-2 ring-gray-200 dark:ring-stone-600"
                     />
                   ) : (
                     <div
@@ -326,65 +316,69 @@ export function NavigationHeader() {
                       <User className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <span className="hidden sm:block text-sm font-medium text-terracotta-900 dark:text-cream-100 max-w-[100px] truncate">
+                  <span className="hidden sm:block text-sm font-medium text-gray-900 dark:text-stone-100 max-w-[100px] truncate">
                     {session?.user?.name?.split(' ')[0] || 'User'}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-terracotta-600/60 dark:text-cream-300/60" />
+                  <ChevronDown className="w-4 h-4 text-gray-500 dark:text-stone-400" />
                 </button>
 
+                {/* User Dropdown Menu */}
                 {userDropdownOpen && (
                   <div
-                    className="
-                      animate-fade-in-up
-                      absolute top-full right-0 mt-2 w-56
-                      bg-cream-50 dark:bg-dark-900
-                      rounded-2xl warm-shadow-lg grain-overlay
-                      py-2 z-50
-                    "
+                    className="absolute right-0 mt-2 w-60 bg-white dark:bg-stone-800 rounded-xl shadow-lg border border-gray-200 dark:border-stone-700/50 overflow-hidden z-50"
                     role="menu"
                   >
-                    <div className="px-4 py-3 border-b border-terracotta-500/15 dark:border-terracotta-400/20">
-                      <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100 truncate">
+                    {/* User info header */}
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-stone-700/50 bg-gray-50 dark:bg-stone-700/50">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-stone-100 truncate">
                         {session?.user?.name}
                       </p>
-                      <p className="text-xs text-terracotta-600/70 dark:text-cream-300/70 truncate">
+                      <p className="text-xs text-gray-500 dark:text-stone-400 truncate mt-0.5">
                         {session?.user?.email}
                       </p>
                       <span
-                        className="inline-block mt-2 px-2 py-0.5 text-xs rounded-full text-white"
+                        className="inline-block mt-2 px-2.5 py-0.5 text-[10px] font-medium rounded-full text-white"
                         style={{ backgroundColor: accentColor }}
                       >
                         {session?.user?.role}
                       </span>
                     </div>
-                    <Link
-                      href="/profile"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-terracotta-900 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-dark-800"
-                      role="menuitem"
-                    >
-                      <User className="w-4 h-4" />
-                      {t('common.profile')}
-                    </Link>
-                    {isManager && (
+
+                    {/* Menu items */}
+                    <div className="py-1">
                       <Link
-                        href="/settings"
+                        href="/profile"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-terracotta-900 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-dark-800"
+                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 dark:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                         role="menuitem"
                       >
-                        <Settings className="w-4 h-4" />
-                        {t('common.settings')}
+                        <User className="w-4 h-4 text-gray-500 dark:text-stone-400" />
+                        <span>{t('common.profile')}</span>
                       </Link>
-                    )}
-                    <button
-                      onClick={() => signOut({ callbackUrl: '/login' })}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-cream-100 dark:hover:bg-dark-800"
-                      role="menuitem"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      {t('common.logout')}
-                    </button>
+                      {isManager && (
+                        <Link
+                          href="/settings"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 dark:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
+                          role="menuitem"
+                        >
+                          <Settings className="w-4 h-4 text-gray-500 dark:text-stone-400" />
+                          <span>{t('common.settings')}</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Logout */}
+                    <div className="border-t border-gray-100 dark:border-stone-700/50 py-1">
+                      <button
+                        onClick={() => signOut({ callbackUrl: '/login' })}
+                        className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                        role="menuitem"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>{t('common.logout')}</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -395,17 +389,18 @@ export function NavigationHeader() {
                 className="
                   lg:hidden
                   w-10 h-10 flex items-center justify-center rounded-full
-                  bg-cream-100 dark:bg-dark-800
-                  hover:bg-cream-200 dark:hover:bg-dark-700
-                  transition-colors
+                  text-gray-600 dark:text-stone-400
+                  hover:text-gray-900 dark:hover:text-stone-200
+                  hover:bg-gray-200 dark:hover:bg-stone-700/50
+                  transition-all duration-300
                 "
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? (
-                  <X className="w-5 h-5 text-terracotta-900 dark:text-cream-100" />
+                  <X className="w-5 h-5 text-gray-900 dark:text-stone-100" />
                 ) : (
-                  <Menu className="w-5 h-5 text-terracotta-900 dark:text-cream-100" />
+                  <Menu className="w-5 h-5 text-gray-600 dark:text-stone-400" />
                 )}
               </button>
             </div>
@@ -413,8 +408,8 @@ export function NavigationHeader() {
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <nav className="lg:hidden py-4 border-t border-terracotta-500/15 dark:border-terracotta-400/20" aria-label="Mobile navigation">
-              {navigationItems.map(item => {
+            <nav className="lg:hidden py-4 border-t border-gray-200 dark:border-stone-700/50" aria-label="Mobile navigation">
+              {filteredNavigationItems.map(item => {
                 const Icon = item.icon
                 const hasActiveSubItem = item.subItems.some(sub => sub.id === activeSubItemId)
 
@@ -423,13 +418,12 @@ export function NavigationHeader() {
                     <div
                       className={`
                         flex items-center gap-3 px-4 py-2 rounded-xl
-                        text-sm font-semibold uppercase tracking-wider
+                        text-sm font-medium
                         ${hasActiveSubItem
-                          ? 'text-white'
-                          : 'text-terracotta-600/70 dark:text-cream-300/70'
+                          ? 'bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 shadow-sm'
+                          : 'text-gray-500 dark:text-stone-400'
                         }
                       `}
-                      style={hasActiveSubItem ? { backgroundColor: accentColor } : undefined}
                     >
                       <Icon className="w-4 h-4" />
                       {locale === 'fr' ? item.labelFr : item.label}
@@ -447,8 +441,8 @@ export function NavigationHeader() {
                               flex items-center gap-3 px-4 py-3 rounded-xl
                               text-sm font-medium
                               ${isSubActive
-                                ? 'bg-cream-200 dark:bg-dark-700 text-terracotta-900 dark:text-cream-100'
-                                : 'text-terracotta-700 dark:text-cream-200 hover:bg-cream-100 dark:hover:bg-dark-800'
+                                ? 'bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 shadow-sm'
+                                : 'text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-700/50'
                               }
                             `}
                           >
@@ -463,10 +457,10 @@ export function NavigationHeader() {
               })}
 
               {/* Mobile language toggle */}
-              <div className="mt-4 pt-4 border-t border-terracotta-500/15 dark:border-terracotta-400/20">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-stone-700/50">
                 <button
                   onClick={() => setLocale(locale === 'fr' ? 'en' : 'fr')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cream-100 dark:bg-dark-800 text-terracotta-900 dark:text-cream-100"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 font-medium shadow-sm"
                 >
                   {locale === 'fr' ? 'Switch to English' : 'Passer en fran\u00e7ais'}
                 </button>
@@ -486,12 +480,12 @@ export function NavigationHeader() {
       />
 
       {/* Navigation Floating Pickers */}
-      {navigationItems.map(item => {
+      {filteredNavigationItems.map(item => {
         const navItems: FloatingActionItem[] = item.subItems.map(subItem => ({
           id: subItem.id,
           label: locale === 'fr' ? subItem.labelFr : subItem.label,
-          color: activeSubItemId === subItem.id ? accentColor : colorPalettes.terracotta.primary,
-          icon: React.createElement(subItem.icon, { className: 'w-5 h-5', strokeWidth: 2.5 }),
+          color: activeSubItemId === subItem.id ? accentColor : navButtonColor,
+          icon: React.createElement(subItem.icon, { className: 'w-4 h-4', strokeWidth: 2.5 }),
           isActive: activeSubItemId === subItem.id
         }))
 
@@ -507,7 +501,8 @@ export function NavigationHeader() {
                 window.location.href = subItem.href
               }
             }}
-            position="bottom"
+            position="top"
+            showCloseButton={false}
           />
         )
       })}

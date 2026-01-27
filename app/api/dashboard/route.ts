@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getExpiryInfo } from '@/lib/inventory-helpers'
 
 // GET /api/dashboard - Aggregated dashboard data
 export async function GET(request: NextRequest) {
@@ -49,6 +50,9 @@ export async function GET(request: NextRequest) {
       pendingExpensesCount,
       lowStockItems,
       restaurant,
+      unpaidExpenses,
+      inventoryItems,
+      perishableItems,
     ] = await Promise.all([
       // Approved sales in period
       prisma.sale.findMany({
@@ -107,6 +111,56 @@ export async function GET(request: NextRequest) {
           initialCashBalance: true,
           initialOrangeBalance: true,
           initialCardBalance: true,
+        },
+      }),
+      // Unpaid/Partially paid expenses (approved but not fully paid)
+      prisma.expense.findMany({
+        where: {
+          restaurantId,
+          status: 'Approved',
+          paymentStatus: { in: ['Unpaid', 'PartiallyPaid'] },
+        },
+        select: {
+          id: true,
+          categoryName: true,
+          amountGNF: true,
+          totalPaidAmount: true,
+          date: true,
+          supplier: {
+            select: { name: true },
+          },
+        },
+        orderBy: { date: 'asc' },
+        take: 10,
+      }),
+      // Inventory items for valuation
+      prisma.inventoryItem.findMany({
+        where: {
+          restaurantId,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          category: true,
+          currentStock: true,
+          unitCostGNF: true,
+        },
+      }),
+      // Perishable items for expiry tracking
+      prisma.inventoryItem.findMany({
+        where: {
+          restaurantId,
+          isActive: true,
+          expiryDays: { gt: 0 },
+        },
+        select: {
+          id: true,
+          name: true,
+          nameFr: true,
+          category: true,
+          currentStock: true,
+          unit: true,
+          expiryDays: true,
         },
       }),
     ])
@@ -192,6 +246,105 @@ export async function GET(request: NextRequest) {
       })
       .slice(0, 5) // Top 5 most critical
 
+    // Calculate total outstanding (unpaid expense amounts)
+    const totalOutstanding = unpaidExpenses.reduce(
+      (sum, e) => sum + (e.amountGNF - (e.totalPaidAmount || 0)),
+      0
+    )
+
+    // Calculate total inventory value
+    const inventoryValue = inventoryItems.reduce(
+      (sum, item) => sum + (item.currentStock * item.unitCostGNF),
+      0
+    )
+
+    // Calculate category breakdown for inventory value (top 3 categories)
+    const categoryValueMap = new Map<string, { category: string, value: number, itemCount: number }>()
+    inventoryItems.forEach((item) => {
+      const category = item.category || 'Other'
+      const itemValue = item.currentStock * item.unitCostGNF
+      const existing = categoryValueMap.get(category)
+      if (existing) {
+        existing.value += itemValue
+        existing.itemCount++
+      } else {
+        categoryValueMap.set(category, {
+          category,
+          value: itemValue,
+          itemCount: 1,
+        })
+      }
+    })
+
+    const inventoryByCategory = Array.from(categoryValueMap.values())
+      .map((item) => ({
+        ...item,
+        percentOfTotal: inventoryValue > 0 ? Math.round((item.value / inventoryValue) * 100) : 0,
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 3)
+
+    // Fetch last purchase dates for perishable items
+    const perishableItemIds = perishableItems.map(item => item.id)
+    const lastPurchaseMap = new Map<string, Date>()
+
+    if (perishableItemIds.length > 0) {
+      const purchaseMovements = await prisma.stockMovement.findMany({
+        where: {
+          itemId: { in: perishableItemIds },
+          type: 'Purchase',
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          itemId: true,
+          createdAt: true,
+        },
+      })
+
+      purchaseMovements.forEach(movement => {
+        if (!lastPurchaseMap.has(movement.itemId)) {
+          lastPurchaseMap.set(movement.itemId, movement.createdAt)
+        }
+      })
+    }
+
+    // Calculate expiry info for perishable items
+    const itemsWithExpiry = perishableItems.map(item => {
+      const lastPurchaseDate = lastPurchaseMap.get(item.id) || null
+      const expiryInfo = getExpiryInfo(item, lastPurchaseDate, 7) // 7 days warning by default
+
+      return {
+        id: item.id,
+        name: item.name,
+        nameFr: item.nameFr,
+        category: item.category,
+        currentStock: item.currentStock,
+        unit: item.unit,
+        expiryDate: expiryInfo.expiryDate ? expiryInfo.expiryDate.toISOString() : null,
+        status: expiryInfo.status,
+        daysUntilExpiry: expiryInfo.daysUntilExpiry,
+      }
+    })
+
+    // Filter for expired and warning items only
+    const expiringItems = itemsWithExpiry.filter(
+      item => item.status === 'expired' || item.status === 'warning'
+    )
+
+    // Sort by urgency (expired first, then by days until expiry)
+    expiringItems.sort((a, b) => {
+      if (a.status === 'expired' && b.status !== 'expired') return -1
+      if (b.status === 'expired' && a.status !== 'expired') return 1
+      if (a.daysUntilExpiry === null) return 1
+      if (b.daysUntilExpiry === null) return -1
+      return a.daysUntilExpiry - b.daysUntilExpiry
+    })
+
+    const expiredCount = expiringItems.filter(item => item.status === 'expired').length
+    const warningCount = expiringItems.filter(item => item.status === 'warning').length
+
     return NextResponse.json({
       kpis: {
         totalRevenue,
@@ -199,6 +352,7 @@ export async function GET(request: NextRequest) {
         profit,
         profitMargin,
         balance,
+        inventoryValue,
       },
       revenueByDay,
       expensesByCategory,
@@ -206,6 +360,27 @@ export async function GET(request: NextRequest) {
       pendingApprovals: {
         sales: pendingSalesCount,
         expenses: pendingExpensesCount,
+      },
+      unpaidExpenses: {
+        expenses: unpaidExpenses.map(e => ({
+          id: e.id,
+          categoryName: e.categoryName,
+          amountGNF: e.amountGNF,
+          totalPaidAmount: e.totalPaidAmount || 0,
+          date: e.date.toISOString(),
+          supplier: e.supplier,
+        })),
+        totalOutstanding,
+        count: unpaidExpenses.length,
+      },
+      inventoryValuation: {
+        totalValue: inventoryValue,
+        byCategory: inventoryByCategory,
+      },
+      expiringItems: {
+        items: expiringItems.slice(0, 10), // Top 10 most urgent
+        expiredCount,
+        warningCount,
       },
     })
   } catch (error) {

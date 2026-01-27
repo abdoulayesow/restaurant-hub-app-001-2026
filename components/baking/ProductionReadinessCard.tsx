@@ -49,9 +49,9 @@ const statusConfig: Record<
   },
   Complete: {
     icon: CheckCircle2,
-    color: 'text-terracotta-600 dark:text-terracotta-400',
-    bgColor: 'bg-terracotta-50 dark:bg-terracotta-900/20',
-    borderColor: 'border-terracotta-200 dark:border-terracotta-800',
+    color: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+    borderColor: 'border-emerald-200 dark:border-emerald-800',
   },
 }
 
@@ -89,17 +89,17 @@ export function ProductionReadinessCard({
 
   if (loading) {
     return (
-      <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+      <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
         <div className="animate-pulse">
-          <div className="h-5 bg-cream-200 dark:bg-dark-700 rounded w-1/2 mb-4" />
+          <div className="h-5 bg-gray-200 dark:bg-stone-700 rounded w-1/2 mb-4" />
           <div className="grid grid-cols-4 gap-2 mb-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-16 bg-cream-200 dark:bg-dark-700 rounded" />
+              <div key={i} className="h-16 bg-gray-200 dark:bg-stone-700 rounded" />
             ))}
           </div>
           <div className="space-y-2">
-            <div className="h-10 bg-cream-200 dark:bg-dark-700 rounded" />
-            <div className="h-10 bg-cream-200 dark:bg-dark-700 rounded" />
+            <div className="h-10 bg-gray-200 dark:bg-stone-700 rounded" />
+            <div className="h-10 bg-gray-200 dark:bg-stone-700 rounded" />
           </div>
         </div>
       </div>
@@ -107,20 +107,17 @@ export function ProductionReadinessCard({
   }
 
   return (
-    <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+    <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2.5 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
-          <ChefHat className="w-5 h-5 text-terracotta-500 dark:text-terracotta-400" />
+        <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+          <ChefHat className="w-5 h-5 text-gray-700 dark:text-stone-300" />
         </div>
         <div>
-          <h3
-            className="font-semibold text-terracotta-900 dark:text-cream-100"
-            style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-          >
+          <h3 className="font-semibold text-gray-900 dark:text-stone-100">
             {t('production.productionStatus') || 'Production Status'}
           </h3>
-          <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+          <p className="text-xs text-gray-500 dark:text-stone-400">
             {todaysLogs.length} {t('production.itemsToday') || "items today"}
           </p>
         </div>
@@ -138,16 +135,16 @@ export function ProductionReadinessCard({
               <div
                 key={status}
                 className={`
-                  p-3 rounded-xl text-center
+                  p-3 rounded-lg text-center
                   ${config.bgColor}
                   border ${config.borderColor}
                 `}
               >
                 <Icon className={`w-4 h-4 mx-auto mb-1 ${config.color}`} />
-                <p className="text-lg font-bold text-terracotta-900 dark:text-cream-100">
+                <p className="text-lg font-bold text-gray-900 dark:text-stone-100">
                   {count}
                 </p>
-                <p className="text-[10px] text-terracotta-600/70 dark:text-cream-300/70 truncate">
+                <p className="text-[10px] text-gray-500 dark:text-stone-400 truncate">
                   {getStatusLabel(status)}
                 </p>
               </div>
@@ -159,8 +156,8 @@ export function ProductionReadinessCard({
       {/* Today's Production List */}
       {todaysLogs.length === 0 ? (
         <div className="py-6 text-center">
-          <Clock className="w-10 h-10 mx-auto mb-3 text-terracotta-300 dark:text-dark-600" />
-          <p className="text-sm text-terracotta-600/70 dark:text-cream-300/70">
+          <Clock className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-stone-600" />
+          <p className="text-sm text-gray-500 dark:text-stone-400">
             {t('production.noProductionToday') || 'No production logged today'}
           </p>
         </div>
@@ -173,19 +170,19 @@ export function ProductionReadinessCard({
             return (
               <div
                 key={log.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-cream-50 dark:bg-dark-700/50"
+                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-stone-700/50"
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-1.5 rounded-lg ${config.bgColor}`}>
                     <Icon className={`w-4 h-4 ${config.color}`} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-terracotta-900 dark:text-cream-100">
+                    <p className="text-sm font-medium text-gray-900 dark:text-stone-100">
                       {locale === 'fr' && log.productNameFr
                         ? log.productNameFr
                         : log.productName}
                     </p>
-                    <p className="text-xs text-terracotta-600/60 dark:text-cream-300/60">
+                    <p className="text-xs text-gray-500 dark:text-stone-400">
                       {t('production.quantity') || 'Qty'}: {log.quantity}
                     </p>
                   </div>
@@ -201,7 +198,7 @@ export function ProductionReadinessCard({
                     className={`
                       text-xs px-2 py-1 rounded-lg border
                       bg-transparent ${config.color} ${config.borderColor}
-                      focus:ring-1 focus:ring-terracotta-500
+                      focus:ring-1 focus:ring-gray-500
                     `}
                   >
                     <option value="Planning">{getStatusLabel('Planning')}</option>

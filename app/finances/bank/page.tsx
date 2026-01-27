@@ -3,31 +3,51 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet } from 'lucide-react'
+import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet, Smartphone } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { DepositFormModal } from '@/components/bank/DepositFormModal'
-import { DepositList } from '@/components/bank/DepositList'
+import { TransactionFormModal } from '@/components/bank/TransactionFormModal'
+import { TransactionList } from '@/components/bank/TransactionList'
 import { Toast } from '@/components/ui/Toast'
 
-interface Deposit {
+type TransactionType = 'Deposit' | 'Withdrawal'
+type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
+type TransactionStatus = 'Pending' | 'Confirmed'
+type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
+
+interface Transaction {
   id: string
   date: string
   amount: number
-  status: 'Pending' | 'Deposited'
-  saleId?: string | null
+  type: TransactionType
+  method: PaymentMethod
+  reason: TransactionReason
+  status: TransactionStatus
+  description?: string | null
+  comments?: string | null
+  bankRef?: string | null
+  confirmedAt?: string | null
+  createdByName?: string | null
   sale?: {
     id: string
     date: string
     totalGNF: number
   } | null
-  comments?: string | null
-  bankRef?: string | null
-  receiptUrl?: string | null
-  depositedAt?: string | null
-  depositedBy: string
-  depositedByName?: string | null
+  debtPayment?: {
+    id: string
+    amount: number
+    paymentDate: string
+  } | null
+  expensePayment?: {
+    id: string
+    amount: number
+    expense?: {
+      id: string
+      categoryName: string
+      amountGNF: number
+    } | null
+  } | null
 }
 
 export default function BankPage() {
@@ -38,12 +58,13 @@ export default function BankPage() {
 
   // Data state
   const [balances, setBalances] = useState({ cash: 0, orangeMoney: 0, card: 0, total: 0 })
-  const [deposits, setDeposits] = useState<Deposit[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [, setError] = useState<string | null>(null)
 
   // Modal state
-  const [depositModalOpen, setDepositModalOpen] = useState(false)
+  const [transactionModalOpen, setTransactionModalOpen] = useState(false)
+  const [defaultTransactionType, setDefaultTransactionType] = useState<TransactionType>('Deposit')
   const [saving, setSaving] = useState(false)
 
   // Toast state
@@ -74,18 +95,18 @@ export default function BankPage() {
     }
   }, [currentRestaurant, t])
 
-  // Fetch deposits
-  const fetchDeposits = useCallback(async () => {
+  // Fetch transactions
+  const fetchTransactions = useCallback(async () => {
     if (!currentRestaurant) return
 
     try {
-      const response = await fetch(`/api/cash-deposits?restaurantId=${currentRestaurant.id}`)
-      if (!response.ok) throw new Error('Failed to fetch deposits')
+      const response = await fetch(`/api/bank/transactions?restaurantId=${currentRestaurant.id}`)
+      if (!response.ok) throw new Error('Failed to fetch transactions')
 
       const data = await response.json()
-      setDeposits(data.deposits || [])
+      setTransactions(data.transactions || [])
     } catch (err) {
-      console.error('Error fetching deposits:', err)
+      console.error('Error fetching transactions:', err)
       setError(t('errors.fetchFailed') || 'Failed to load data')
     }
   }, [currentRestaurant, t])
@@ -95,18 +116,27 @@ export default function BankPage() {
     if (currentRestaurant) {
       setLoading(true)
       setError(null)
-      Promise.all([fetchBalances(), fetchDeposits()])
+      Promise.all([fetchBalances(), fetchTransactions()])
         .finally(() => setLoading(false))
     }
-  }, [currentRestaurant, fetchBalances, fetchDeposits])
+  }, [currentRestaurant, fetchBalances, fetchTransactions])
 
-  // Create deposit handler
-  const handleCreateDeposit = async (data: { date: string; amount: number; saleId?: string; comments?: string }) => {
+  // Create transaction handler
+  const handleCreateTransaction = async (data: {
+    date: string
+    amount: number
+    type: TransactionType
+    method: PaymentMethod
+    reason: TransactionReason
+    description?: string
+    saleId?: string
+    comments?: string
+  }) => {
     if (!currentRestaurant) return
 
     setSaving(true)
     try {
-      const response = await fetch('/api/cash-deposits', {
+      const response = await fetch('/api/bank/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, restaurantId: currentRestaurant.id }),
@@ -114,12 +144,14 @@ export default function BankPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create deposit')
+        throw new Error(errorData.error || 'Failed to create transaction')
       }
 
-      setDepositModalOpen(false)
-      setToast({ message: t('bank.depositCreated') || 'Deposit created successfully', type: 'success' })
-      await fetchDeposits()
+      setTransactionModalOpen(false)
+      const messageKey = data.type === 'Deposit' ? 'bank.depositCreated' : 'bank.withdrawalCreated'
+      const fallback = data.type === 'Deposit' ? 'Deposit created successfully' : 'Withdrawal created successfully'
+      setToast({ message: t(messageKey) || fallback, type: 'success' })
+      await Promise.all([fetchTransactions(), fetchBalances()])
     } catch (err) {
       setToast({
         message: err instanceof Error ? err.message : t('errors.generic') || 'An error occurred',
@@ -130,35 +162,40 @@ export default function BankPage() {
     }
   }
 
-  // Mark deposit as deposited handler
-  const handleMarkDeposited = async (depositId: string) => {
-    const bankRef = prompt(t('bank.enterBankRef') || 'Enter bank reference number:')
-    if (!bankRef) return
-
+  // Confirm transaction handler
+  const handleConfirmTransaction = async (transactionId: string) => {
     try {
-      const response = await fetch(`/api/cash-deposits/${depositId}`, {
+      const response = await fetch(`/api/bank/transactions/${transactionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: 'Deposited',
-          bankRef: bankRef.trim(),
-          depositedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ status: 'Confirmed' }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update deposit')
+        throw new Error(errorData.error || 'Failed to confirm transaction')
       }
 
-      setToast({ message: t('bank.depositMarked') || 'Deposit marked as deposited', type: 'success' })
-      await fetchDeposits()
+      setToast({ message: t('bank.transactionConfirmed') || 'Transaction confirmed', type: 'success' })
+      await Promise.all([fetchTransactions(), fetchBalances()])
     } catch (err) {
       setToast({
         message: err instanceof Error ? err.message : t('errors.generic') || 'An error occurred',
         type: 'error'
       })
     }
+  }
+
+  // Open modal for deposit
+  const openDepositModal = () => {
+    setDefaultTransactionType('Deposit')
+    setTransactionModalOpen(true)
+  }
+
+  // Open modal for withdrawal
+  const openWithdrawalModal = () => {
+    setDefaultTransactionType('Withdrawal')
+    setTransactionModalOpen(true)
   }
 
   // Format currency
@@ -172,12 +209,12 @@ export default function BankPage() {
 
   if (status === 'loading' || restaurantLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+      <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-cream-200 dark:bg-dark-800 rounded w-1/4"></div>
-            <div className="h-64 bg-cream-200 dark:bg-dark-800 rounded-2xl"></div>
+            <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 dark:bg-stone-800 rounded-xl"></div>
           </div>
         </main>
       </div>
@@ -185,112 +222,124 @@ export default function BankPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-dark-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
       <NavigationHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1
-              className="text-3xl font-bold text-terracotta-900 dark:text-cream-100"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-stone-100">
               {t('bank.title') || 'Bank & Cash'}
             </h1>
-            <p className="text-terracotta-600/70 dark:text-cream-300/70 mt-1">
+            <p className="text-gray-600 dark:text-stone-400 mt-1">
               {currentRestaurant?.name || 'Loading...'}
             </p>
           </div>
 
           {isManager && (
             <button
-              onClick={() => setDepositModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 transition-colors"
+              onClick={openDepositModal}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
             >
               <Plus className="w-5 h-5" />
-              {t('bank.recordDeposit') || 'Record Deposit'}
+              {t('bank.recordTransaction') || 'Record Transaction'}
             </button>
           )}
         </div>
 
         {/* Balance Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
           {/* Total Balance */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-terracotta-500/10 dark:bg-terracotta-400/10">
-                <Wallet className="w-6 h-6 text-terracotta-500 dark:text-terracotta-400" />
+              <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
+                <Wallet className="w-5 h-5 text-gray-700 dark:text-stone-300" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
+              <h3 className="font-medium text-gray-500 dark:text-stone-400">
                 {t('bank.totalBalance') || 'Total Balance'}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(balances.total)}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="text-sm text-gray-500 dark:text-stone-400">
               {t('bank.acrossAllAccounts') || 'Across all accounts'}
             </p>
           </div>
 
           {/* Cash on Hand */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-green-500/10 dark:bg-green-400/10">
-                <ArrowUpRight className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                <ArrowUpRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
-                {t('bank.cashOnHand') || 'Cash on Hand'}
+              <h3 className="font-medium text-gray-500 dark:text-stone-400">
+                {t('bank.cashOnHand') || 'Cash'}
               </h3>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
               {formatCurrency(balances.cash)}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
+            <p className="text-sm text-gray-500 dark:text-stone-400">
               {t('bank.physicalCash') || 'Physical cash'}
             </p>
           </div>
 
-          {/* Bank Account */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          {/* Orange Money */}
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-blue-500/10 dark:bg-blue-400/10">
-                <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-2.5 rounded-lg bg-orange-50 dark:bg-orange-900/30">
+                <Smartphone className="w-5 h-5 text-orange-600 dark:text-orange-400" />
               </div>
-              <h3 className="font-semibold text-terracotta-900 dark:text-cream-100">
-                {t('bank.bankAccount') || 'Bank Account'}
+              <h3 className="font-medium text-gray-500 dark:text-stone-400">
+                Orange Money
               </h3>
             </div>
-            <p className="text-2xl font-bold text-terracotta-900 dark:text-cream-100 mb-1">
-              {formatCurrency(balances.orangeMoney + balances.card)}
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
+              {formatCurrency(balances.orangeMoney)}
             </p>
-            <p className="text-sm text-terracotta-600/60 dark:text-cream-300/60">
-              {t('bank.currentBalance') || 'Current balance'}
+            <p className="text-sm text-gray-500 dark:text-stone-400">
+              {t('bank.mobileWallet') || 'Mobile wallet'}
+            </p>
+          </div>
+
+          {/* Card */}
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="font-medium text-gray-500 dark:text-stone-400">
+                {t('bank.card') || 'Card'}
+              </h3>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-stone-100 mb-1">
+              {formatCurrency(balances.card)}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-stone-400">
+              {t('bank.bankCard') || 'Bank card'}
             </p>
           </div>
         </div>
 
-        {/* Cash Deposits Section */}
-        <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay mb-8">
+        {/* Transactions Section */}
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h3
-              className="text-lg font-semibold text-terracotta-900 dark:text-cream-100"
-              style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-            >
-              {t('bank.cashDeposits') || 'Cash Deposits'}
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
+              {t('bank.transactions') || 'Transactions'}
             </h3>
             <button
-              onClick={() => fetchDeposits()}
-              className="p-2 rounded-xl text-terracotta-700 dark:text-cream-300 hover:bg-cream-200 dark:hover:bg-dark-700"
+              onClick={() => fetchTransactions()}
+              className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
           </div>
 
-          <DepositList
-            deposits={deposits}
-            onMarkDeposited={handleMarkDeposited}
+          <TransactionList
+            transactions={transactions}
+            onConfirm={handleConfirmTransaction}
             canEdit={isManager}
             loading={loading}
           />
@@ -299,53 +348,48 @@ export default function BankPage() {
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Deposit */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-green-500/10">
-                <ArrowUpRight className="w-6 h-6 text-green-600" />
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                <ArrowUpRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <h3
-                  className="font-semibold text-terracotta-900 dark:text-cream-100"
-                  style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-                >
+                <h3 className="font-semibold text-gray-900 dark:text-stone-100">
                   {t('bank.deposit') || 'Deposit'}
                 </h3>
-                <p className="text-sm text-terracotta-600/70 dark:text-cream-300/70">
+                <p className="text-sm text-gray-500 dark:text-stone-400">
                   {t('bank.depositDescription') || 'Add funds to your account'}
                 </p>
               </div>
             </div>
             <button
               disabled={!isManager}
-              onClick={() => setDepositModalOpen(true)}
-              className="w-full px-4 py-2 border border-green-500 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={openDepositModal}
+              className="w-full px-4 py-2.5 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {t('bank.recordDeposit') || 'Record Deposit'}
             </button>
           </div>
 
           {/* Withdrawal */}
-          <div className="bg-cream-100 dark:bg-dark-800 rounded-2xl warm-shadow p-6 grain-overlay">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-red-500/10">
-                <ArrowDownRight className="w-6 h-6 text-red-600" />
+              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-900/30">
+                <ArrowDownRight className="w-5 h-5 text-rose-600 dark:text-rose-400" />
               </div>
               <div>
-                <h3
-                  className="font-semibold text-terracotta-900 dark:text-cream-100"
-                  style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
-                >
+                <h3 className="font-semibold text-gray-900 dark:text-stone-100">
                   {t('bank.withdrawal') || 'Withdrawal'}
                 </h3>
-                <p className="text-sm text-terracotta-600/70 dark:text-cream-300/70">
+                <p className="text-sm text-gray-500 dark:text-stone-400">
                   {t('bank.withdrawalDescription') || 'Remove funds from your account'}
                 </p>
               </div>
             </div>
             <button
               disabled={!isManager}
-              className="w-full px-4 py-2 border border-red-500 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={openWithdrawalModal}
+              className="w-full px-4 py-2.5 border-2 border-rose-500 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {t('bank.recordWithdrawal') || 'Record Withdrawal'}
             </button>
@@ -354,11 +398,12 @@ export default function BankPage() {
       </main>
 
       {/* Modals */}
-      <DepositFormModal
-        isOpen={depositModalOpen}
-        onClose={() => setDepositModalOpen(false)}
-        onSubmit={handleCreateDeposit}
+      <TransactionFormModal
+        isOpen={transactionModalOpen}
+        onClose={() => setTransactionModalOpen(false)}
+        onSubmit={handleCreateTransaction}
         isLoading={saving}
+        defaultType={defaultTransactionType}
       />
 
       {/* Toast */}

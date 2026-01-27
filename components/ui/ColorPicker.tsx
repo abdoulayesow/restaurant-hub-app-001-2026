@@ -71,7 +71,7 @@ export function ColorPicker({ value, onChange, label }: ColorPickerProps) {
               key={color.value}
               type="button"
               onClick={() => handlePresetClick(color.value)}
-              className="relative w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-terracotta-500"
+              className="relative w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-gray-500"
               style={{
                 backgroundColor: color.value,
                 borderColor: value === color.value ? '#000' : 'transparent',
@@ -97,7 +97,7 @@ export function ColorPicker({ value, onChange, label }: ColorPickerProps) {
           onChange={(e) => handleCustomChange(e.target.value)}
           placeholder="#000000"
           maxLength={7}
-          className="w-full px-3 py-2 font-mono text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-terracotta-500 dark:bg-dark-700 dark:text-white"
+          className="w-full px-3 py-2 font-mono text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 dark:bg-stone-700 dark:text-white"
         />
         {customHex && !/^#[0-9A-Fa-f]{6}$/.test(customHex) && (
           <p className="mt-1 text-xs text-red-500">Invalid hex format (use #RRGGBB)</p>

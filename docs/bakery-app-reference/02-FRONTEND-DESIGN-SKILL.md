@@ -473,6 +473,8 @@ className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6"
 
 ## Navigation Header
 
+### Basic Navigation Header
+
 ```tsx
 <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 backdrop-blur-sm bg-opacity-90 dark:bg-opacity-90">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -523,6 +525,36 @@ className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6"
   </div>
 </header>
 ```
+
+### Navigation Pills (Equal Width)
+
+For pill-style navigation buttons with consistent sizing:
+
+```tsx
+// Navigation container
+<nav className="hidden lg:flex items-center gap-2">
+  {navItems.map(item => (
+    <button
+      key={item.id}
+      className="
+        flex items-center justify-center gap-2
+        min-w-[130px] px-4 py-2.5 rounded-full
+        font-medium text-sm tracking-wide
+        bg-gray-100 dark:bg-gray-800
+        text-gray-900 dark:text-gray-100
+        hover:bg-gray-200 dark:hover:bg-gray-700
+        transition-all duration-300 ease-out
+      "
+    >
+      <Icon className="w-4 h-4" strokeWidth={2.5} />
+      <span>{item.label}</span>
+      <ChevronDown className="w-3.5 h-3.5" />
+    </button>
+  ))}
+</nav>
+```
+
+**Key Pattern:** Use `min-w-[Xpx]` + `justify-center` to ensure all nav buttons have the same width regardless of text length. Calculate minimum width based on the longest label in all supported locales.
 
 ---
 

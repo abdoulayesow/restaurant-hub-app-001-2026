@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Plus, Minus } from 'lucide-react'
+import { X, Plus, Minus, ArrowUpDown, Loader2 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StockStatusBadge, getStockStatus } from './StockStatusBadge'
 
@@ -110,14 +110,6 @@ export function StockAdjustmentModal({
     })
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount) + ' GNF'
-  }
-
   const getItemName = () => {
     if (locale === 'fr' && item.nameFr) {
       return item.nameFr
@@ -129,32 +121,37 @@ export function StockAdjustmentModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+      <div className="relative bg-white dark:bg-stone-900 rounded-xl shadow-xl w-full max-w-md animate-fade-in-up">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {t('inventory.adjust')}
-          </h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-gray-900 dark:bg-white">
+              <ArrowUpDown className="w-5 h-5 text-white dark:text-gray-900" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-stone-100">
+              {t('inventory.adjust')}
+            </h2>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-stone-700 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
           </button>
         </div>
 
         {/* Item Info */}
-        <div className="px-6 pt-4 pb-2">
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+        <div className="px-6 pt-5 pb-2">
+          <div className="bg-gray-50 dark:bg-stone-800 rounded-lg p-4 border border-gray-200 dark:border-stone-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">{getItemName()}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="font-medium text-gray-900 dark:text-stone-100">{getItemName()}</p>
+                <p className="text-sm text-gray-600 dark:text-stone-400">
                   {t('inventory.currentStock')}: {item.currentStock} {t(`units.${item.unit}`)}
                 </p>
               </div>
@@ -165,10 +162,10 @@ export function StockAdjustmentModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-5">
             {/* Movement Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
                 {t('inventory.movement')}
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -177,13 +174,15 @@ export function StockAdjustmentModal({
                     key={type.key}
                     type="button"
                     onClick={() => setFormData({ ...formData, type: type.key })}
-                    className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                      formData.type === type.key
-                        ? 'border-gold-500 bg-gold-50 text-gold-700 dark:bg-gold-900/20 dark:text-gold-400 dark:border-gold-600'
-                        : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
+                    className={`
+                      px-3 py-2.5 rounded-lg border text-sm font-medium transition-colors
+                      ${formData.type === type.key
+                        ? 'border-gray-900 bg-gray-100 text-gray-900 dark:bg-stone-700 dark:text-stone-100 dark:border-stone-500'
+                        : 'border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700'
+                      }
+                    `}
                   >
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">
+                    <span className="text-xs text-gray-500 dark:text-stone-400 mr-1">
                       {type.description}
                     </span>
                     {t(type.labelKey)}
@@ -194,14 +193,19 @@ export function StockAdjustmentModal({
 
             {/* Quantity */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                 {t('inventory.quantity')} ({t(`units.${item.unit}`)})
               </label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, quantity: formData.quantity - 1 })}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="
+                    p-2.5 rounded-lg border border-gray-300 dark:border-stone-600
+                    hover:bg-gray-100 dark:hover:bg-stone-700
+                    text-gray-600 dark:text-stone-300
+                    transition-colors
+                  "
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -209,17 +213,28 @@ export function StockAdjustmentModal({
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
-                  className={`flex-1 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-gold-500 focus:border-gold-500 dark:bg-gray-700 dark:text-white transition-colors ${
-                    errors.quantity
+                  className={`
+                    flex-1 px-4 py-2.5 rounded-lg text-center
+                    border bg-white dark:bg-stone-700
+                    text-gray-900 dark:text-stone-100
+                    focus:ring-2 focus:ring-gray-500 focus:border-gray-500
+                    transition-colors
+                    ${errors.quantity
                       ? 'border-red-500 dark:border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
+                      : 'border-gray-300 dark:border-stone-600'
+                    }
+                  `}
                   step="0.01"
                 />
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, quantity: formData.quantity + 1 })}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="
+                    p-2.5 rounded-lg border border-gray-300 dark:border-stone-600
+                    hover:bg-gray-100 dark:hover:bg-stone-700
+                    text-gray-600 dark:text-stone-300
+                    transition-colors
+                  "
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -232,14 +247,21 @@ export function StockAdjustmentModal({
             {/* Unit Cost (only for Purchase) */}
             {formData.type === 'Purchase' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
                   {t('inventory.unitCost')} (GNF)
                 </label>
                 <input
                   type="number"
                   value={formData.unitCost}
                   onChange={(e) => setFormData({ ...formData, unitCost: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 dark:bg-gray-700 dark:text-white transition-colors"
+                  className="
+                    w-full px-4 py-2.5 rounded-lg
+                    border border-gray-300 dark:border-stone-600
+                    bg-white dark:bg-stone-700
+                    text-gray-900 dark:text-stone-100
+                    focus:ring-2 focus:ring-gray-500 focus:border-gray-500
+                    transition-colors
+                  "
                   min="0"
                   step="1"
                 />
@@ -248,26 +270,34 @@ export function StockAdjustmentModal({
 
             {/* Reason */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('inventory.reason')}
+              <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-1">
+                {t('inventory.reason')} <span className="text-gray-400 font-normal">({t('common.optional') || 'optional'})</span>
               </label>
               <textarea
                 value={formData.reason}
                 onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 dark:bg-gray-700 dark:text-white transition-colors resize-none"
+                className="
+                  w-full px-4 py-2.5 rounded-lg
+                  border border-gray-300 dark:border-stone-600
+                  bg-white dark:bg-stone-700
+                  text-gray-900 dark:text-stone-100
+                  focus:ring-2 focus:ring-gray-500 focus:border-gray-500
+                  placeholder:text-gray-400 dark:placeholder:text-stone-500
+                  transition-colors resize-none
+                "
                 rows={2}
                 placeholder={t('inventory.reasonPlaceholder')}
               />
             </div>
 
             {/* Preview */}
-            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+            <div className="bg-gray-100 dark:bg-stone-800 rounded-lg p-4 border border-gray-200 dark:border-stone-700">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm font-medium text-gray-700 dark:text-stone-300">
                   {t('inventory.newStock')}:
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className={`font-semibold ${newStock < 0 ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}>
+                  <span className={`font-semibold ${newStock < 0 ? 'text-red-500' : 'text-gray-900 dark:text-stone-100'}`}>
                     {newStock.toFixed(2)} {t(`units.${item.unit}`)}
                   </span>
                   <StockStatusBadge status={newStatus} />
@@ -277,21 +307,40 @@ export function StockAdjustmentModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-stone-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="
+                px-4 py-2.5 rounded-lg
+                border border-gray-300 dark:border-stone-600
+                text-gray-700 dark:text-stone-300
+                hover:bg-gray-100 dark:hover:bg-stone-700
+                font-medium transition-colors
+              "
               disabled={isLoading}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gold-600 text-white rounded-lg hover:bg-gold-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="
+                px-4 py-2.5 rounded-lg
+                bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium
+                hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors
+                disabled:opacity-50 disabled:cursor-not-allowed
+                inline-flex items-center gap-2
+              "
               disabled={isLoading || newStock < 0}
             >
-              {isLoading ? t('common.loading') : t('common.save')}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t('common.saving') || 'Saving...'}
+                </>
+              ) : (
+                t('common.save')
+              )}
             </button>
           </div>
         </form>
