@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { parseToUTCDate, parseToUTCEndOfDay } from '@/lib/date-utils'
 
 // GET /api/sales - List sales for a bakery
 export async function GET(request: NextRequest) {
@@ -52,10 +53,10 @@ export async function GET(request: NextRequest) {
     if (startDate || endDate) {
       where.date = {}
       if (startDate) {
-        where.date.gte = new Date(startDate)
+        where.date.gte = parseToUTCDate(startDate)
       }
       if (endDate) {
-        where.date.lte = new Date(endDate)
+        where.date.lte = parseToUTCEndOfDay(endDate)
       }
     }
 
@@ -224,8 +225,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Check for existing sale on the same date (one sale per day per restaurant)
-    const saleDate = new Date(date)
-    saleDate.setHours(0, 0, 0, 0)
+    const saleDate = parseToUTCDate(date)
 
     const existingSale = await prisma.sale.findUnique({
       where: {

@@ -45,6 +45,7 @@ interface AddEditSaleModalProps {
   sale?: Sale | null
   loading?: boolean
   error?: string | null
+  existingDates?: string[] // Dates that already have sales (YYYY-MM-DD format)
 }
 
 export function AddEditSaleModal({
@@ -54,6 +55,7 @@ export function AddEditSaleModal({
   sale,
   loading = false,
   error = null,
+  existingDates = [],
 }: AddEditSaleModalProps) {
   const { t, locale } = useLocale()
   const { currentRestaurant } = useRestaurant()
@@ -151,6 +153,26 @@ export function AddEditSaleModal({
   // Handle input change
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+
+    // Immediate validation for date field - check if date already has a sale
+    if (field === 'date' && value && !isEditMode) {
+      const selectedDate = String(value)
+      // Check if this date already has a sale (exclude current sale date in edit mode)
+      const dateExists = existingDates.some(existingDate => {
+        // Normalize both dates to YYYY-MM-DD for comparison
+        const normalizedExisting = existingDate.split('T')[0]
+        return normalizedExisting === selectedDate
+      })
+
+      if (dateExists) {
+        setErrors(prev => ({
+          ...prev,
+          date: t('errors.saleDuplicateDateShort') || 'A sale already exists for this date'
+        }))
+        return // Keep the error, don't clear it
+      }
+    }
+
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev }
@@ -687,7 +709,7 @@ export function AddEditSaleModal({
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || Object.keys(errors).length > 0}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading

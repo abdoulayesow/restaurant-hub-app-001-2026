@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
 import { isValidProductCategory, ProductCategoryValue } from '@/lib/constants/product-categories'
-import { ProductCategory } from '@prisma/client'
+import { ProductCategory, Prisma } from '@prisma/client'
 
 // GET /api/products - List products for a restaurant
 export async function GET(request: NextRequest) {
@@ -141,7 +141,9 @@ export async function POST(request: NextRequest) {
         nameFr: nameFr || null,
         category: category as ProductCategory,
         unit,
-        standardRecipe: standardRecipe || null,
+        standardRecipe: standardRecipe
+          ? (standardRecipe as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
         sortOrder,
       },
     })

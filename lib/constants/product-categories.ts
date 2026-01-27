@@ -25,15 +25,17 @@ export const PRODUCT_CATEGORY_ICONS: Record<ProductCategoryValue, LucideIcon> = 
 }
 
 // Colors for each category (Tailwind classes)
-export const PRODUCT_CATEGORY_COLORS: Record<ProductCategoryValue, { text: string; bg: string; hex: string }> = {
+export const PRODUCT_CATEGORY_COLORS: Record<ProductCategoryValue, { text: string; bg: string; border: string; hex: string }> = {
   Patisserie: {
     text: 'text-amber-600 dark:text-amber-400',
     bg: 'bg-amber-100 dark:bg-amber-900/30',
+    border: 'amber-400',
     hex: '#D97706',
   },
   Boulangerie: {
     text: 'text-yellow-700 dark:text-yellow-400',
     bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    border: 'yellow-500',
     hex: '#A16207',
   },
 }
@@ -44,6 +46,7 @@ export interface ProductCategoryConfig {
   icon: LucideIcon
   textColor: string
   bgColor: string
+  borderColor: string
   hexColor: string
 }
 
@@ -53,6 +56,7 @@ export const PRODUCT_CATEGORIES: ProductCategoryConfig[] = [
     icon: Croissant,
     textColor: PRODUCT_CATEGORY_COLORS.Patisserie.text,
     bgColor: PRODUCT_CATEGORY_COLORS.Patisserie.bg,
+    borderColor: PRODUCT_CATEGORY_COLORS.Patisserie.border,
     hexColor: PRODUCT_CATEGORY_COLORS.Patisserie.hex,
   },
   {
@@ -60,6 +64,7 @@ export const PRODUCT_CATEGORIES: ProductCategoryConfig[] = [
     icon: Wheat,
     textColor: PRODUCT_CATEGORY_COLORS.Boulangerie.text,
     bgColor: PRODUCT_CATEGORY_COLORS.Boulangerie.bg,
+    borderColor: PRODUCT_CATEGORY_COLORS.Boulangerie.border,
     hexColor: PRODUCT_CATEGORY_COLORS.Boulangerie.hex,
   },
 ]

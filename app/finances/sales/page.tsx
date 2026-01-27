@@ -504,6 +504,7 @@ export default function FinancesSalesPage() {
         sale={selectedSale}
         loading={isSaving}
         error={saveError}
+        existingDates={sales.map(s => s.date)}
       />
 
       {/* Quick Actions Menu - Floating */}

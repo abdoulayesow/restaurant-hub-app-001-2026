@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
 import { isValidProductCategory, ProductCategoryValue } from '@/lib/constants/product-categories'
-import { ProductCategory } from '@prisma/client'
+import { ProductCategory, Prisma } from '@prisma/client'
 
 // GET /api/products/[id] - Get single product
 export async function GET(
@@ -118,18 +118,24 @@ export async function PUT(
       )
     }
 
+    // Build update data object
+    const updateData: Prisma.ProductUpdateInput = {}
+    if (name !== undefined) updateData.name = name
+    if (nameFr !== undefined) updateData.nameFr = nameFr
+    if (category !== undefined) updateData.category = category as ProductCategory
+    if (unit !== undefined) updateData.unit = unit
+    if (standardRecipe !== undefined) {
+      updateData.standardRecipe = standardRecipe === null
+        ? Prisma.JsonNull
+        : (standardRecipe as Prisma.InputJsonValue)
+    }
+    if (isActive !== undefined) updateData.isActive = isActive
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder
+
     // Update product
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(nameFr !== undefined && { nameFr }),
-        ...(category !== undefined && { category: category as ProductCategory }),
-        ...(unit !== undefined && { unit }),
-        ...(standardRecipe !== undefined && { standardRecipe }),
-        ...(isActive !== undefined && { isActive }),
-        ...(sortOrder !== undefined && { sortOrder }),
-      },
+      data: updateData,
     })
 
     return NextResponse.json({ product: updatedProduct })

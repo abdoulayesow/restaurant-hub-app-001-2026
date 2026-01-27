@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, Banknote, Smartphone, CreditCard } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { SaleStatusBadge } from './SaleStatusBadge'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface Sale {
   id: string
@@ -56,15 +57,9 @@ export function SalesTable({
     }).format(amount) + ' GNF'
   }
 
-  // Format date
+  // Format date using UTC utility to avoid timezone shifts
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date)
+    return formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-FR' : 'en-US')
   }
 
   // Handle sort
