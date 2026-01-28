@@ -6,6 +6,7 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { CriticalIngredientsCard } from './CriticalIngredientsCard'
 import { ProductionReadinessCard } from './ProductionReadinessCard'
+import { getTodayDateString } from '@/lib/date-utils'
 
 type ProductionStatus = 'Planning' | 'Ready' | 'InProgress' | 'Complete'
 
@@ -63,7 +64,7 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
     if (!currentRestaurant) return
 
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getTodayDateString()
       const response = await fetch(
         `/api/production?restaurantId=${currentRestaurant.id}&dateFrom=${today}&dateTo=${today}`
       )

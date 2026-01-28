@@ -266,6 +266,7 @@ model Product {
   updatedAt      DateTime        @updatedAt
 
   productionItems ProductionItem[]
+  saleItems       SaleItem[]      // Products sold in sales
 
   @@index([restaurantId])
   @@index([category])
@@ -319,11 +320,33 @@ model Sale {
   cashDeposit        CashDeposit?     // Deprecated: use bankTransaction
   bankTransaction    BankTransaction? @relation("BankTransactionSale")
   debts              Debt[]
+  saleItems          SaleItem[]       // Optional product breakdown
 
   @@unique([restaurantId, date]) // One sale per restaurant per day
   @@index([restaurantId])
   @@index([date])
   @@index([status])
+}
+
+// Junction table for Sale <-> Product (optional product sales tracking)
+model SaleItem {
+  id            String   @id @default(uuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId     String?  // Optional: links to Product catalog
+  product       Product? @relation(fields: [productId], references: [id])
+
+  // Manual entry (if product not in catalog)
+  productName   String?
+  productNameFr String?
+
+  quantity      Int
+  unitPrice     Float?   // Optional: unit price per item
+
+  createdAt     DateTime @default(now())
+
+  @@index([saleId])
+  @@index([productId])
 }
 
 enum SubmissionStatus {

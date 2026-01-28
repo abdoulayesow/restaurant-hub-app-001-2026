@@ -41,6 +41,7 @@
     "refresh": "Refresh",
     "retry": "Retry",
     "processing": "Processing...",
+    "calculating": "Calculating...",
     "switchedTo": "Switched to",
     "optional": "Optional",
     "remove": "Remove",
@@ -177,6 +178,7 @@
     "quantity": "Quantity",
     "qty": "Qty",
     "ingredients": "Ingredients",
+    "ingredient": "ingredient",
     "date": "Date",
     "notes": "Notes",
     "notesPlaceholder": "Any notes about this production...",
@@ -252,7 +254,10 @@
     "productActive": "Active",
     "productInactive": "Inactive",
     "noProductsInCatalog": "No products in catalog",
-    "createFirstProduct": "Create your first product to start logging production"
+    "createFirstProduct": "Create your first product to start logging production",
+    "logProductionDesc": "Record your bakery production for the day",
+    "addIngredientHint": "Start by adding the ingredients used in production",
+    "units": "units"
   },
   "sales": {
     "title": "Sales",
@@ -308,7 +313,17 @@
     "description": "Description",
     "optionalNote": "Optional note",
     "creditTotal": "Credit Total",
-    "grandTotal": "Grand Total"
+    "grandTotal": "Grand Total",
+    "productsSold": "Products Sold",
+    "selectProduct": "Select a product",
+    "addProduct": "Add Product",
+    "quantity": "Quantity",
+    "unitPrice": "Unit Price",
+    "noProductsAdded": "No products added",
+    "productBreakdown": "Product Breakdown",
+    "showProducts": "Show Products",
+    "hideProducts": "Hide Products",
+    "productsOptional": "Track which products were sold (optional)"
   },
   "expenses": {
     "title": "Expenses",
@@ -524,10 +539,26 @@
     "g": "g",
     "L": "L",
     "mL": "mL",
+    "ml": "ml",
+    "liters": "L",
+    "units": "units",
+    "piece": "piece",
     "pieces": "pieces",
+    "loaf": "loaf",
     "dozen": "dozen",
     "bags": "bags",
     "boxes": "boxes"
+  },
+  "categories": {
+    "dairy": "Dairy",
+    "packaging": "Packaging",
+    "dry_goods": "Dry Goods",
+    "flavorings": "Flavorings",
+    "produce": "Produce",
+    "meat": "Meat",
+    "seafood": "Seafood",
+    "beverages": "Beverages",
+    "other": "Other"
   },
   "errors": {
     "generic": "An error occurred",

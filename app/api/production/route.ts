@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { ProductionStatus, SubmissionStatus, MovementType, Prisma, ProductCategory } from '@prisma/client'
 import { isValidProductCategory } from '@/lib/constants/product-categories'
+import { parseToUTCDate, parseToUTCEndOfDay } from '@/lib/date-utils'
 
 interface IngredientDetail {
   itemId: string
@@ -67,10 +68,10 @@ export async function GET(request: NextRequest) {
     if (dateFrom || dateTo) {
       where.date = {}
       if (dateFrom) {
-        where.date.gte = new Date(dateFrom)
+        where.date.gte = parseToUTCDate(dateFrom)
       }
       if (dateTo) {
-        where.date.lte = new Date(dateTo)
+        where.date.lte = parseToUTCEndOfDay(dateTo)
       }
     }
 
@@ -314,7 +315,7 @@ export async function POST(request: NextRequest) {
       const productionLog = await tx.productionLog.create({
         data: {
           restaurantId,
-          date: new Date(date),
+          date: parseToUTCDate(date),
           productionType: productionType ? (productionType as ProductCategory) : null,
           productName: displayProductName,
           productNameFr: productNameFr || null,

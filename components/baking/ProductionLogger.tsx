@@ -20,6 +20,7 @@ import {
   ProductCategoryValue,
   PRODUCT_CATEGORY_COLORS,
 } from '@/lib/constants/product-categories'
+import { getTodayDateString } from '@/lib/date-utils'
 
 interface InventoryItem {
   id: string
@@ -337,7 +338,7 @@ export function ProductionLogger({
     try {
       const requestBody = {
         restaurantId: currentRestaurant?.id,
-        date: date || new Date().toISOString(),
+        date: date || getTodayDateString(),
         productionType,
         productionItems: productionItems.map((item) => ({
           productId: item.productId,
@@ -612,7 +613,7 @@ export function ProductionLogger({
                         <p className="font-medium text-gray-900 dark:text-stone-100">
                           {locale === 'fr' && item.productNameFr ? item.productNameFr : item.productName}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-stone-400">{item.unit}</p>
+                        <p className="text-xs text-gray-500 dark:text-stone-400">{t(`units.${item.unit}`) || item.unit}</p>
                       </div>
 
                       {/* Quantity Input */}
@@ -634,7 +635,7 @@ export function ProductionLogger({
                           "
                         />
                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-stone-400">
-                          {item.unit}
+                          {t(`units.${item.unit}`) || item.unit}
                         </span>
                       </div>
 
@@ -782,11 +783,11 @@ export function ProductionLogger({
                         {t('production.selectIngredient') || 'Select an ingredient...'}
                       </option>
                       {Object.entries(itemsByCategory).map(([category, items]) => (
-                        <optgroup key={category} label={category}>
+                        <optgroup key={category} label={t(`categories.${category}`) || category}>
                           {items.map((item) => (
                             <option key={item.id} value={item.id}>
                               {locale === 'fr' && item.nameFr ? item.nameFr : item.name}{' '}
-                              ({item.currentStock} {item.unit})
+                              ({item.currentStock} {t(`units.${item.unit}`) || item.unit})
                             </option>
                           ))}
                         </optgroup>
@@ -823,7 +824,7 @@ export function ProductionLogger({
                         />
                         {ing.unit && (
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-gray-100 dark:bg-stone-600 text-xs font-medium text-gray-600 dark:text-stone-300">
-                            {ing.unit}
+                            {t(`units.${ing.unit}`) || ing.unit}
                           </span>
                         )}
                       </div>
@@ -869,7 +870,7 @@ export function ProductionLogger({
                             {availItem.afterProduction.toFixed(1)}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-stone-400">
-                            {availItem.unit}
+                            {t(`units.${availItem.unit}`) || availItem.unit}
                           </span>
                         </div>
                       </div>

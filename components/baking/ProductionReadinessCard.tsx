@@ -2,6 +2,7 @@
 
 import { ChefHat, Clock, CheckCircle2, PlayCircle, FileEdit } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { getTodayDateString } from '@/lib/date-utils'
 
 type ProductionStatus = 'Planning' | 'Ready' | 'InProgress' | 'Complete'
 
@@ -72,7 +73,7 @@ export function ProductionReadinessCard({
   )
 
   // Get today's logs (for the mini list)
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayDateString()
   const todaysLogs = productionLogs.filter(
     (log) => log.date.split('T')[0] === today
   )

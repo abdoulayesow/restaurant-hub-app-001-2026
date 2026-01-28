@@ -41,6 +41,7 @@
     "refresh": "Actualiser",
     "retry": "Réessayer",
     "processing": "Traitement...",
+    "calculating": "Calcul en cours...",
     "switchedTo": "Basculé vers",
     "optional": "Optionnel",
     "remove": "Supprimer",
@@ -177,6 +178,7 @@
     "quantity": "Quantité",
     "qty": "Qté",
     "ingredients": "Ingrédients",
+    "ingredient": "ingrédient",
     "date": "Date",
     "notes": "Notes",
     "notesPlaceholder": "Notes sur cette production...",
@@ -252,7 +254,10 @@
     "productActive": "Actif",
     "productInactive": "Inactif",
     "noProductsInCatalog": "Aucun produit dans le catalogue",
-    "createFirstProduct": "Créez votre premier produit pour commencer à enregistrer la production"
+    "createFirstProduct": "Créez votre premier produit pour commencer à enregistrer la production",
+    "logProductionDesc": "Enregistrez la production du jour de votre boulangerie",
+    "addIngredientHint": "Commencez par ajouter les ingrédients utilisés",
+    "units": "unités"
   },
   "sales": {
     "title": "Ventes",
@@ -308,7 +313,17 @@
     "description": "Description",
     "optionalNote": "Note optionnelle",
     "creditTotal": "Total à crédit",
-    "grandTotal": "Total général"
+    "grandTotal": "Total général",
+    "productsSold": "Produits vendus",
+    "selectProduct": "Sélectionner un produit",
+    "addProduct": "Ajouter un produit",
+    "quantity": "Quantité",
+    "unitPrice": "Prix unitaire",
+    "noProductsAdded": "Aucun produit ajouté",
+    "productBreakdown": "Détail des produits",
+    "showProducts": "Afficher les produits",
+    "hideProducts": "Masquer les produits",
+    "productsOptional": "Suivre les produits vendus (optionnel)"
   },
   "expenses": {
     "title": "Dépenses",
@@ -524,10 +539,26 @@
     "g": "g",
     "L": "L",
     "mL": "mL",
+    "ml": "ml",
+    "liters": "L",
+    "units": "unités",
+    "piece": "pièce",
     "pieces": "pièces",
+    "loaf": "pain",
     "dozen": "douzaines",
     "bags": "sacs",
     "boxes": "boîtes"
+  },
+  "categories": {
+    "dairy": "Produits laitiers",
+    "packaging": "Emballages",
+    "dry_goods": "Produits secs",
+    "flavorings": "Arômes",
+    "produce": "Produits frais",
+    "meat": "Viandes",
+    "seafood": "Fruits de mer",
+    "beverages": "Boissons",
+    "other": "Autres"
   },
   "errors": {
     "generic": "Une erreur est survenue",

@@ -49,6 +49,21 @@ interface Sale {
     dueDate: string
     description: string
   }>
+  saleItems?: Array<{
+    id?: string
+    productId: string | null
+    product?: {
+      id: string
+      name: string
+      nameFr: string | null
+      category: 'Patisserie' | 'Boulangerie'
+      unit: string
+    } | null
+    productName?: string | null
+    productNameFr?: string | null
+    quantity: number
+    unitPrice?: number | null
+  }>
 }
 
 interface SalesSummary {

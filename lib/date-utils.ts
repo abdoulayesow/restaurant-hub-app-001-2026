@@ -18,11 +18,10 @@
  * formatDateForInput("2026-01-26T00:00:00.000Z") // "2026-01-26"
  */
 export function formatDateForInput(date: Date | string | null | undefined): string {
-  if (!date) {
-    return new Date().toISOString().split('T')[0]
-  }
-
-  const dateObj = typeof date === 'string' ? new Date(date) : date
+  // Use new Date() as default, then format with local components
+  const dateObj = date
+    ? (typeof date === 'string' ? new Date(date) : date)
+    : new Date()
 
   // Get local date components (accounts for timezone)
   const year = dateObj.getFullYear()

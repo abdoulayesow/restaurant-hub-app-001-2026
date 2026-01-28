@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Calendar, DollarSign, Smartphone, CreditCard, Clock, Users, ShoppingBag, FileText, Plus, Trash2, UserCheck } from 'lucide-react'
+import { X, Calendar, DollarSign, Smartphone, CreditCard, Clock, Users, ShoppingBag, FileText, Plus, Trash2, UserCheck, Package, ChevronDown, ChevronUp } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
@@ -22,6 +22,20 @@ interface DebtItem {
   description: string
 }
 
+interface Product {
+  id: string
+  name: string
+  nameFr: string | null
+  category: 'Patisserie' | 'Boulangerie'
+  unit: string
+}
+
+interface SaleItemEntry {
+  productId: string
+  quantity: number
+  unitPrice: number | null
+}
+
 interface Sale {
   id?: string
   date: string
@@ -36,6 +50,15 @@ interface Sale {
   closingTime?: string | null
   comments?: string | null
   debts?: DebtItem[]
+  saleItems?: Array<{
+    id?: string
+    productId: string | null
+    product?: Product | null
+    productName?: string | null
+    productNameFr?: string | null
+    quantity: number
+    unitPrice?: number | null
+  }>
 }
 
 interface AddEditSaleModalProps {
@@ -78,6 +101,11 @@ export function AddEditSaleModal({
   const [showCreditSection, setShowCreditSection] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // Products state for optional product tracking
+  const [products, setProducts] = useState<Product[]>([])
+  const [saleItems, setSaleItems] = useState<SaleItemEntry[]>([])
+  const [showProductsSection, setShowProductsSection] = useState(false)
+
   // Fetch customers
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -99,6 +127,27 @@ export function AddEditSaleModal({
     }
   }, [isOpen, currentRestaurant])
 
+  // Fetch products for optional product tracking
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!currentRestaurant) return
+
+      try {
+        const response = await fetch(`/api/products?restaurantId=${currentRestaurant.id}&isActive=true`)
+        if (response.ok) {
+          const data = await response.json()
+          setProducts(data.products || [])
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      }
+    }
+
+    if (isOpen && currentRestaurant) {
+      fetchProducts()
+    }
+  }, [isOpen, currentRestaurant])
+
   // Initialize form with sale data
   useEffect(() => {
     if (sale) {
@@ -117,6 +166,18 @@ export function AddEditSaleModal({
         setDebtItems(sale.debts)
         setShowCreditSection(true)
       }
+      // Initialize saleItems if present
+      if (sale.saleItems && sale.saleItems.length > 0) {
+        setSaleItems(sale.saleItems.map(item => ({
+          productId: item.productId || '',
+          quantity: item.quantity,
+          unitPrice: item.unitPrice || null
+        })))
+        setShowProductsSection(true)
+      } else {
+        setSaleItems([])
+        setShowProductsSection(false)
+      }
     } else {
       // Default to today for new sales
       setFormData({
@@ -132,6 +193,8 @@ export function AddEditSaleModal({
       })
       setDebtItems([])
       setShowCreditSection(false)
+      setSaleItems([])
+      setShowProductsSection(false)
     }
     setErrors({})
   }, [sale, isOpen])
@@ -218,6 +281,36 @@ export function AddEditSaleModal({
     setDebtItems(updated)
   }
 
+  // Add sale item (product sold)
+  const addSaleItem = () => {
+    setSaleItems([
+      ...saleItems,
+      {
+        productId: '',
+        quantity: 1,
+        unitPrice: null
+      }
+    ])
+    setShowProductsSection(true)
+  }
+
+  // Remove sale item
+  const removeSaleItem = (index: number) => {
+    const updated = saleItems.filter((_, i) => i !== index)
+    setSaleItems(updated)
+    if (updated.length === 0) {
+      setShowProductsSection(false)
+    }
+  }
+
+  // Update sale item
+  const updateSaleItem = (index: number, field: keyof SaleItemEntry, value: string | number | null) => {
+    const updated = [...saleItems]
+    updated[index] = { ...updated[index], [field]: value }
+    setSaleItems(updated)
+  }
+
+
   // Validate form
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -251,6 +344,16 @@ export function AddEditSaleModal({
       }
     })
 
+    // Validate sale items (products sold) - only if section is shown
+    saleItems.forEach((item, index) => {
+      if (!item.productId) {
+        newErrors[`saleItem_${index}_product`] = t('validation.required') || 'Required'
+      }
+      if (item.quantity <= 0) {
+        newErrors[`saleItem_${index}_quantity`] = t('errors.mustBePositive') || 'Must be positive'
+      }
+    })
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -260,6 +363,15 @@ export function AddEditSaleModal({
     e.preventDefault()
 
     if (!validate()) return
+
+    // Prepare sale items for submission (only valid ones)
+    const validSaleItems = saleItems
+      .filter(item => item.productId && item.quantity > 0)
+      .map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice || null
+      }))
 
     onSave({
       ...(sale?.id && { id: sale.id }),
@@ -273,6 +385,7 @@ export function AddEditSaleModal({
       closingTime: formData.closingTime || null,
       comments: formData.comments || null,
       debts: debtItems.length > 0 ? debtItems : undefined,
+      saleItems: validSaleItems.length > 0 ? validSaleItems : undefined,
     })
   }
 
@@ -606,6 +719,182 @@ export function AddEditSaleModal({
               </div>
               {errors.total && (
                 <p className="mt-2 text-sm text-red-500">{errors.total}</p>
+              )}
+            </div>
+
+            {/* Products Sold Section - Optional */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-gray-600 dark:text-stone-400" />
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
+                    {t('sales.productsSold') || 'Products Sold'}
+                  </h3>
+                  <span className="text-xs text-gray-500 dark:text-stone-400 font-normal normal-case">
+                    ({t('common.optional') || 'Optional'})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowProductsSection(!showProductsSection)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+                >
+                  {showProductsSection ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      {t('sales.hideProducts') || 'Hide'}
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      {t('sales.showProducts') || 'Show'}
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {showProductsSection && (
+                <div className="space-y-3 p-4 rounded-xl border border-gold-200 dark:border-gold-800/50 bg-gold-50/30 dark:bg-gold-900/10">
+                  <p className="text-xs text-gold-700 dark:text-gold-400">
+                    {t('sales.productsOptional') || 'Track which products were sold (optional)'}
+                  </p>
+
+                  {saleItems.length === 0 ? (
+                    <div className="text-center py-6">
+                      <Package className="w-10 h-10 mx-auto text-gold-300 dark:text-gold-700 mb-2" />
+                      <p className="text-sm text-gray-600 dark:text-stone-400">
+                        {t('sales.noProductsAdded') || 'No products added'}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={addSaleItem}
+                        className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gold-600 hover:bg-gold-700 rounded-lg shadow-sm transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        {t('sales.addProduct') || 'Add Product'}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {saleItems.map((item, index) => {
+                        const product = products.find(p => p.id === item.productId)
+
+                        return (
+                          <div
+                            key={index}
+                            className="p-3 rounded-lg border border-gray-200 dark:border-stone-600 bg-white dark:bg-stone-800 space-y-3"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {/* Product Selection */}
+                                <div className="md:col-span-1">
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-stone-300 mb-1">
+                                    {t('production.product') || 'Product'}
+                                  </label>
+                                  <select
+                                    value={item.productId}
+                                    onChange={(e) => updateSaleItem(index, 'productId', e.target.value)}
+                                    className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                                      errors[`saleItem_${index}_product`]
+                                        ? 'border-red-500'
+                                        : 'border-gray-300 dark:border-stone-600'
+                                    } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500`}
+                                  >
+                                    <option value="">{t('sales.selectProduct') || 'Select a product'}</option>
+                                    {products.map((p) => (
+                                      <option key={p.id} value={p.id}>
+                                        {locale === 'fr' && p.nameFr ? p.nameFr : p.name}
+                                        {' '}({p.category === 'Patisserie' ? '🥐' : '🥖'})
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {errors[`saleItem_${index}_product`] && (
+                                    <p className="mt-1 text-xs text-red-500">{errors[`saleItem_${index}_product`]}</p>
+                                  )}
+                                </div>
+
+                                {/* Quantity */}
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-stone-300 mb-1">
+                                    {t('sales.quantity') || 'Quantity'}
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={item.quantity}
+                                    onChange={(e) => updateSaleItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                                    min="1"
+                                    className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                                      errors[`saleItem_${index}_quantity`]
+                                        ? 'border-red-500'
+                                        : 'border-gray-300 dark:border-stone-600'
+                                    } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500`}
+                                  />
+                                  {product && (
+                                    <p className="mt-1 text-xs text-gray-400 dark:text-stone-500">
+                                      {product.unit}
+                                    </p>
+                                  )}
+                                  {errors[`saleItem_${index}_quantity`] && (
+                                    <p className="mt-1 text-xs text-red-500">{errors[`saleItem_${index}_quantity`]}</p>
+                                  )}
+                                </div>
+
+                                {/* Unit Price (Optional) */}
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-stone-300 mb-1">
+                                    {t('sales.unitPrice') || 'Unit Price'} (GNF)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={item.unitPrice || ''}
+                                    onChange={(e) => updateSaleItem(index, 'unitPrice', e.target.value ? parseFloat(e.target.value) : null)}
+                                    min="0"
+                                    placeholder={t('common.optional') || 'Optional'}
+                                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Remove Button */}
+                              <button
+                                type="button"
+                                onClick={() => removeSaleItem(index)}
+                                className="p-1.5 mt-5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                title={t('common.remove') || 'Remove'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+
+                      {/* Add Another Product Button */}
+                      <button
+                        type="button"
+                        onClick={addSaleItem}
+                        className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-stone-600 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700/50 transition-colors flex items-center justify-center gap-2 text-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                        {t('sales.addProduct') || 'Add Product'}
+                      </button>
+
+                      {/* Products Summary */}
+                      {saleItems.filter(i => i.productId && i.quantity > 0).length > 0 && (
+                        <div className="p-3 rounded-lg bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800/50">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gold-700 dark:text-gold-300">
+                              {t('production.totalProducts') || 'Total Products'}
+                            </span>
+                            <span className="text-sm font-semibold text-gold-900 dark:text-gold-200">
+                              {saleItems.filter(i => i.productId && i.quantity > 0).length} {t('production.product')?.toLowerCase() || 'product'}(s)
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </div>
 
