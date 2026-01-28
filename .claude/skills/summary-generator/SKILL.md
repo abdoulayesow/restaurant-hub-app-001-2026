@@ -1,6 +1,6 @@
 ---
 name: summary-generator
-description: Generates session summaries and resume prompts for multi-session work. Use when completing features, before context limits (~50% capacity), or when user says "summary", "wrap up", "save progress", "end session". Creates markdown in docs/summaries/ with completed work, files modified, and restart instructions.
+description: Generates session summaries and resume prompts for multi-session work. Use when completing features, before context limits (~50% capacity), or when user says "summary", "wrap up", "save progress", "end session". Creates markdown in .claude/summaries/ with completed work, files modified, and restart instructions.
 allowed-tools: Read, Glob, Grep, Bash(git diff:*), Bash(git log:*), Bash(git status:*), Write
 ---
 
@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Bash(git diff:*), Bash(git log:*), Bash(git sta
 
 ## Overview
 
-This skill creates comprehensive session summaries for complex multi-session work, enabling seamless resumption of tasks. It generates a markdown file in `docs/summaries/` with a standardized format.
+This skill creates comprehensive session summaries for complex multi-session work, enabling seamless resumption of tasks. It generates a markdown file in `.claude/summaries/` with a standardized format.
 
 ## When to Use
 
@@ -29,7 +29,7 @@ Proactively suggest generating a summary when:
 
 ## Output Location
 
-Session summaries are stored in: `docs/summaries/YYYY-MM-DD_feature-name.md`
+Session summaries are stored in: `.claude/summaries/YYYY-MM-DD_feature-name.md`
 
 ## Instructions
 
@@ -153,7 +153,7 @@ When user says: "Let's wrap up for today"
 
 Response:
 1. Analyze git changes and conversation history
-2. Create `docs/summaries/2025-12-30_enrollment-improvements.md`
+2. Create `.claude/summaries/2025-12-30_enrollment-improvements.md`
 3. Provide the resume prompt with token optimization directive
 4. Suggest: "When context gets long (~40% tokens), start a new chat with this resume prompt"
 
@@ -173,7 +173,7 @@ Previous session completed:
 - Updated validation for optional middle name field
 - Added i18n translations for new field
 
-Session summary: docs/summaries/2025-12-30_enrollment-improvements.md
+Session summary: .claude/summaries/2025-12-30_enrollment-improvements.md
 ...
 ```
 

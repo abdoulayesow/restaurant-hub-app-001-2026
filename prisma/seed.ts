@@ -606,14 +606,14 @@ async function main() {
         { itemId: 'inv-milk-001', itemName: 'Milk', quantity: 3, unit: 'liters', unitCostGNF: 8000 },
       ],
       estimatedCostGNF: 1119500,
-      preparationStatus: ProductionStatus.InProgress,
+      preparationStatus: ProductionStatus.Complete,
       status: SubmissionStatus.Pending,
       stockDeducted: true,
       stockDeductedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       createdBy: user.id,
       createdByName: user.name,
     },
-    // Pain au Chocolat - Ready
+    // Pain au Chocolat - Planning
     {
       id: 'prod-003',
       restaurantId: restaurant.id,
@@ -630,7 +630,7 @@ async function main() {
         { itemId: 'inv-eggs-001', itemName: 'Eggs', quantity: 50, unit: 'units', unitCostGNF: 2500 },
       ],
       estimatedCostGNF: 871000,
-      preparationStatus: ProductionStatus.Ready,
+      preparationStatus: ProductionStatus.Planning,
       status: SubmissionStatus.Pending,
       stockDeducted: false,
       createdBy: user.id,

@@ -240,8 +240,6 @@ model ProductionLog {
 
 enum ProductionStatus {
   Planning    // Production is being planned
-  Ready       // All ingredients available, ready to start
-  InProgress  // Production is underway
   Complete    // Production finished
 }
 

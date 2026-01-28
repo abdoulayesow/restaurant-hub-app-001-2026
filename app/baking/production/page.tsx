@@ -10,7 +10,7 @@ import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { BakingDashboard, AddProductionModal } from '@/components/baking'
 import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
 
-type ProductionStatus = 'Planning' | 'Ready' | 'InProgress' | 'Complete'
+type ProductionStatus = 'Planning' | 'Complete'
 type SubmissionStatus = 'Pending' | 'Approved' | 'Rejected'
 
 interface ProductionLog {
@@ -158,10 +158,6 @@ export default function BakingProductionPage() {
     switch (status) {
       case 'Planning':
         return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-      case 'Ready':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-      case 'InProgress':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
       case 'Complete':
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
       default:
@@ -172,8 +168,6 @@ export default function BakingProductionPage() {
   const getStatusLabel = (status: ProductionStatus) => {
     const labels: Record<ProductionStatus, string> = {
       Planning: t('production.statusPlanning') || 'Planning',
-      Ready: t('production.statusReady') || 'Ready',
-      InProgress: t('production.statusInProgress') || 'In Progress',
       Complete: t('production.statusComplete') || 'Complete',
     }
     return labels[status]
@@ -286,8 +280,6 @@ export default function BakingProductionPage() {
                 >
                   <option value="all">{t('common.all')} Status</option>
                   <option value="Planning">{t('production.statusPlanning')}</option>
-                  <option value="Ready">{t('production.statusReady')}</option>
-                  <option value="InProgress">{t('production.statusInProgress')}</option>
                   <option value="Complete">{t('production.statusComplete')}</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />

@@ -195,7 +195,7 @@ Previous session completed:
 - [Key accomplishment 2]
 - [Key accomplishment 3]
 
-Session summary: docs/summaries/YYYY-MM-DD_feature-name.md
+Session summary: .claude/summaries/YYYY-MM-DD_feature-name.md
 
 ## Key Files to Review First
 - path/to/main/file.tsx (primary changes)

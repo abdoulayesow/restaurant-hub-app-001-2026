@@ -81,11 +81,7 @@ export default function ProductionDetail({
   const getStatusColor = (status: ProductionStatus) => {
     switch (status) {
       case 'Planning':
-        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
-      case 'Ready':
         return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-      case 'InProgress':
-        return 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20'
       case 'Complete':
         return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20'
       default:
@@ -361,7 +357,7 @@ export default function ProductionDetail({
             Change Production Status
           </h3>
           <div className="flex flex-wrap gap-2">
-            {(['Planning', 'Ready', 'InProgress', 'Complete'] as ProductionStatus[]).map(
+            {(['Planning', 'Complete'] as ProductionStatus[]).map(
               (status) => (
                 <button
                   key={status}
