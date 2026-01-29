@@ -163,6 +163,8 @@ export async function POST(request: NextRequest) {
         amount: body.amount,
         status: 'Pending',
         saleId: body.saleId || null,
+        bankRef: body.bankRef?.trim() || null,
+        receiptUrl: body.receiptUrl?.trim() || null,
         comments: body.comments?.trim() || null,
         depositedBy: session.user.id,
         depositedByName: user.name || null

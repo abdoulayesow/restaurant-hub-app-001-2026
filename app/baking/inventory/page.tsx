@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Plus, Search, Package, RefreshCw } from 'lucide-react'
+import { Plus, Search, Package, RefreshCw, ClipboardCheck } from 'lucide-react'
+import Link from 'next/link'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
@@ -277,15 +278,24 @@ export default function BakingInventoryPage() {
             </p>
           </div>
 
-          {isManager && (
-            <button
-              onClick={handleAddItem}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+          <div className="flex items-center gap-3">
+            <Link
+              href="/baking/inventory/reconciliation"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 rounded-lg hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
             >
-              <Plus className="w-5 h-5" />
-              {t('inventory.addItem')}
-            </button>
-          )}
+              <ClipboardCheck className="w-5 h-5" />
+              {t('inventory.reconciliation.reconcile')}
+            </Link>
+            {isManager && (
+              <button
+                onClick={handleAddItem}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                {t('inventory.addItem')}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Filters Row */}

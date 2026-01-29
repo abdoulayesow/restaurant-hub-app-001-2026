@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
+import { calculateRestockPrediction } from '@/lib/inventory-helpers'
 
 // GET /api/inventory/[id] - Get single inventory item with recent movements
 export async function GET(
@@ -18,6 +19,10 @@ export async function GET(
 
     const { id } = await params
 
+    // Calculate date 30 days ago for prediction
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
     const item = await prisma.inventoryItem.findUnique({
       where: { id },
       include: {
@@ -29,7 +34,7 @@ export async function GET(
         },
         stockMovements: {
           orderBy: { createdAt: 'desc' },
-          take: 10,
+          take: 100, // Fetch more for prediction calculation
           select: {
             id: true,
             type: true,
@@ -62,10 +67,22 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Add stock status
+    // Calculate restock prediction
+    const restockPrediction = calculateRestockPrediction(
+      { currentStock: item.currentStock, reorderPoint: item.reorderPoint },
+      item.stockMovements.map(m => ({
+        ...m,
+        type: m.type as 'Purchase' | 'Usage' | 'Waste' | 'Adjustment',
+        createdAt: m.createdAt,
+      }))
+    )
+
+    // Add stock status and prediction (limit movements to 10 for response)
     const itemWithStatus = {
       ...item,
+      stockMovements: item.stockMovements.slice(0, 10),
       stockStatus: getStockStatus(item.currentStock, item.minStock),
+      restockPrediction,
     }
 
     return NextResponse.json({ item: itemWithStatus })

@@ -134,6 +134,7 @@ model Restaurant {
   customers            Customer[]
   debts                Debt[]
   debtPayments         DebtPayment[]
+  stockReconciliations StockReconciliation[]
 
   @@index([isActive])
   @@index([restaurantType])
@@ -158,11 +159,12 @@ model InventoryItem {
   supplierId     String?
   supplier       Supplier?       @relation(fields: [supplierId], references: [id])
   expiryDays     Int?
-  isActive       Boolean         @default(true)
-  stockMovements StockMovement[]
-  expenseItems   ExpenseItem[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  isActive             Boolean              @default(true)
+  stockMovements       StockMovement[]
+  expenseItems         ExpenseItem[]
+  reconciliationItems  ReconciliationItem[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   @@index([restaurantId])
   @@index([category])
@@ -201,6 +203,45 @@ enum MovementType {
   Usage
   Waste
   Adjustment
+}
+
+// ============================================================================
+// STOCK RECONCILIATION
+// ============================================================================
+
+model StockReconciliation {
+  id              String                @id @default(uuid())
+  restaurantId    String
+  restaurant      Restaurant            @relation(fields: [restaurantId], references: [id])
+  date            DateTime              @default(now())
+  status          SubmissionStatus      @default(Pending)
+  submittedBy     String
+  submittedByName String?
+  approvedBy      String?
+  approvedByName  String?
+  approvedAt      DateTime?
+  notes           String?
+  items           ReconciliationItem[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([restaurantId])
+  @@index([status])
+}
+
+model ReconciliationItem {
+  id                String              @id @default(uuid())
+  reconciliationId  String
+  reconciliation    StockReconciliation @relation(fields: [reconciliationId], references: [id], onDelete: Cascade)
+  inventoryItemId   String
+  inventoryItem     InventoryItem       @relation(fields: [inventoryItemId], references: [id])
+  systemStock       Float               // Stock at time of count
+  physicalCount     Float               // Actual counted stock
+  variance          Float               // physicalCount - systemStock
+  adjustmentApplied Boolean             @default(false)
+
+  @@index([reconciliationId])
+  @@index([inventoryItemId])
 }
 
 // ============================================================================

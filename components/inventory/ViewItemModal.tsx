@@ -15,12 +15,16 @@ import {
   RefreshCw,
   AlertTriangle,
   Loader2,
+  TrendingDown,
+  Clock,
+  CheckCircle2,
+  HelpCircle,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { StockStatusBadge, getStockStatus } from './StockStatusBadge'
 import { getCategoryLabel } from './CategoryFilter'
-import { InventoryItem } from './InventoryCard'
+import { InventoryItem, RestockPrediction } from './InventoryCard'
 
 interface StockMovement {
   id: string
@@ -41,6 +45,155 @@ interface ViewItemModalProps {
   onEdit: (item: InventoryItem) => void
   onAdjust: (item: InventoryItem) => void
   initialTab?: 'overview' | 'history'
+}
+
+// Restock Forecast Card Component
+function RestockForecastCard({
+  prediction,
+  unit,
+  t,
+}: {
+  prediction: RestockPrediction
+  unit: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: (key: string) => any
+}) {
+  const { status, daysUntilReorder, dailyUsage, confidence, dataPoints } = prediction
+
+  // Status-based styling
+  const statusConfig = {
+    reorder_now: {
+      bg: 'bg-red-50 dark:bg-red-950/40',
+      border: 'border-red-200 dark:border-red-800/60',
+      iconBg: 'bg-red-100 dark:bg-red-900/50',
+      iconColor: 'text-red-600 dark:text-red-400',
+      textColor: 'text-red-700 dark:text-red-300',
+      label: t('inventory.restock.reorderNow') || 'Reorder Now',
+      Icon: AlertTriangle,
+      animate: true,
+    },
+    reorder_soon: {
+      bg: 'bg-amber-50 dark:bg-amber-950/40',
+      border: 'border-amber-200 dark:border-amber-800/60',
+      iconBg: 'bg-amber-100 dark:bg-amber-900/50',
+      iconColor: 'text-amber-600 dark:text-amber-400',
+      textColor: 'text-amber-700 dark:text-amber-300',
+      label: t('inventory.restock.reorderIn')?.replace('{days}', String(daysUntilReorder)) || `Reorder in ~${daysUntilReorder} days`,
+      Icon: Clock,
+      animate: false,
+    },
+    stable: {
+      bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+      border: 'border-emerald-200 dark:border-emerald-800/60',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      textColor: 'text-emerald-700 dark:text-emerald-300',
+      label: daysUntilReorder !== null
+        ? (t('inventory.restock.reorderIn')?.replace('{days}', String(daysUntilReorder)) || `Reorder in ~${daysUntilReorder} days`)
+        : (t('inventory.restock.stable') || 'Stock Stable'),
+      Icon: CheckCircle2,
+      animate: false,
+    },
+    no_data: {
+      bg: 'bg-gray-50 dark:bg-stone-800',
+      border: 'border-gray-200 dark:border-stone-700',
+      iconBg: 'bg-gray-100 dark:bg-stone-700',
+      iconColor: 'text-gray-500 dark:text-stone-400',
+      textColor: 'text-gray-600 dark:text-stone-400',
+      label: t('inventory.restock.noData') || 'No Usage Data',
+      Icon: HelpCircle,
+      animate: false,
+    },
+  }
+
+  const config = statusConfig[status]
+  const { Icon } = config
+
+  // Confidence badge colors
+  const confidenceColors = {
+    high: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+    medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+    low: 'bg-gray-100 text-gray-600 dark:bg-stone-700 dark:text-stone-400',
+  }
+
+  // Format daily usage
+  const formattedUsage = dailyUsage > 0
+    ? (t('inventory.restock.dailyUsage')
+        ?.replace('{rate}', dailyUsage.toFixed(2))
+        ?.replace('{unit}', t(`units.${unit}`) || unit) || `Daily usage: ~${dailyUsage.toFixed(2)} ${unit}/day`)
+    : null
+
+  return (
+    <div
+      className={`
+        relative overflow-hidden
+        p-4 rounded-lg
+        ${config.bg}
+        border ${config.border}
+        transition-all duration-300
+      `}
+    >
+      {/* Subtle animated pulse for urgent status */}
+      {config.animate && (
+        <div className="absolute inset-0 bg-red-500/5 animate-pulse pointer-events-none" />
+      )}
+
+      <div className="relative flex items-start gap-3">
+        {/* Icon */}
+        <div className={`
+          shrink-0
+          w-10 h-10 rounded-lg
+          ${config.iconBg}
+          flex items-center justify-center
+          ${config.animate ? 'animate-pulse' : ''}
+        `}>
+          <Icon className={`w-5 h-5 ${config.iconColor}`} />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Header with title and confidence badge */}
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wide">
+              {t('inventory.restock.title') || 'Restock Forecast'}
+            </span>
+            {status !== 'no_data' && (
+              <span className={`
+                inline-flex items-center gap-1
+                px-2 py-0.5 rounded-full
+                text-[10px] font-semibold uppercase tracking-wider
+                ${confidenceColors[confidence]}
+              `}>
+                {t(`inventory.restock.${confidence}`) || confidence}
+              </span>
+            )}
+          </div>
+
+          {/* Main status text */}
+          <div className={`font-semibold ${config.textColor}`}>
+            {config.label}
+          </div>
+
+          {/* Daily usage rate */}
+          {formattedUsage && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <TrendingDown className="w-3.5 h-3.5 text-gray-400 dark:text-stone-500" />
+              <span className="text-xs text-gray-500 dark:text-stone-400">
+                {formattedUsage}
+              </span>
+            </div>
+          )}
+
+          {/* Data points indicator */}
+          {dataPoints > 0 && (
+            <div className="text-[10px] text-gray-400 dark:text-stone-500 mt-1">
+              {t('inventory.restock.basedOn')?.replace('{count}', String(dataPoints)) || `Based on ${dataPoints} data points`}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function ViewItemModal({
@@ -290,6 +443,15 @@ export function ViewItemModal({
                   </div>
                 </div>
               </div>
+
+              {/* Restock Forecast Card */}
+              {item.restockPrediction && (
+                <RestockForecastCard
+                  prediction={item.restockPrediction}
+                  unit={item.unit}
+                  t={t}
+                />
+              )}
 
               {/* Info Grid */}
               <div className="grid grid-cols-2 gap-3">

@@ -17,6 +17,10 @@ const AddEditSaleModal = dynamic(
   () => import('@/components/sales/AddEditSaleModal').then(mod => ({ default: mod.AddEditSaleModal })),
   { ssr: false }
 )
+const ConfirmDepositModal = dynamic(
+  () => import('@/components/sales/ConfirmDepositModal').then(mod => ({ default: mod.ConfirmDepositModal })),
+  { ssr: false }
+)
 const SalesTrendChart = dynamic(
   () => import('@/components/sales/SalesTrendChart').then(mod => ({ default: mod.SalesTrendChart })),
   { ssr: false, loading: () => <div className="h-64 animate-pulse bg-gray-200 dark:bg-stone-700 rounded-xl"></div> }
@@ -104,6 +108,11 @@ export default function FinancesSalesPage() {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  // Deposit modal state
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false)
+  const [saleForDeposit, setSaleForDeposit] = useState<Sale | null>(null)
+  const [isConfirmingDeposit, setIsConfirmingDeposit] = useState(false)
 
   const isManager = session?.user?.role === 'Manager'
 
@@ -250,8 +259,8 @@ export default function FinancesSalesPage() {
     setIsModalOpen(true)
   }
 
-  // Handle confirm deposit - creates a cash deposit record linked to this sale
-  const handleConfirmDeposit = async (sale: Sale) => {
+  // Handle confirm deposit - opens modal to capture bank ref and comments
+  const handleConfirmDeposit = (sale: Sale) => {
     if (!currentRestaurant?.id) return
 
     // Only allow if sale has cash amount
@@ -260,31 +269,47 @@ export default function FinancesSalesPage() {
       return
     }
 
-    if (!confirm(t('sales.confirmDepositQuestion') || `Confirm cash deposit of ${formatCurrency(sale.cashGNF)}?`)) {
-      return
-    }
+    setSaleForDeposit(sale)
+    setIsDepositModalOpen(true)
+  }
 
+  // Submit deposit from modal
+  const handleSubmitDeposit = async (data: {
+    bankRef: string
+    comments?: string
+    receiptUrl?: string
+  }) => {
+    if (!currentRestaurant?.id || !saleForDeposit) return
+
+    setIsConfirmingDeposit(true)
     try {
       const res = await fetch('/api/cash-deposits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           restaurantId: currentRestaurant.id,
-          saleId: sale.id,
-          date: sale.date,
-          amount: sale.cashGNF,
+          saleId: saleForDeposit.id,
+          date: saleForDeposit.date,
+          amount: saleForDeposit.cashGNF,
+          bankRef: data.bankRef,
+          comments: data.comments,
+          receiptUrl: data.receiptUrl,
         }),
       })
 
       if (res.ok) {
+        setIsDepositModalOpen(false)
+        setSaleForDeposit(null)
         fetchSales()
       } else {
         const errorData = await res.json()
-        alert(errorData.error || t('errors.failedToSave') || 'Failed to confirm deposit')
+        throw new Error(errorData.error || t('errors.failedToSave') || 'Failed to confirm deposit')
       }
     } catch (error) {
       console.error('Error confirming deposit:', error)
-      alert(t('errors.failedToSave') || 'Failed to confirm deposit')
+      throw error
+    } finally {
+      setIsConfirmingDeposit(false)
     }
   }
 
@@ -563,6 +588,18 @@ export default function FinancesSalesPage() {
         loading={isSaving}
         error={saveError}
         existingDates={sales.map(s => s.date)}
+      />
+
+      {/* Confirm Deposit Modal */}
+      <ConfirmDepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => {
+          setIsDepositModalOpen(false)
+          setSaleForDeposit(null)
+        }}
+        onSubmit={handleSubmitDeposit}
+        sale={saleForDeposit}
+        isLoading={isConfirmingDeposit}
       />
 
       {/* Quick Actions Menu - Floating */}
