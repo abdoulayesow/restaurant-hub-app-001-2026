@@ -723,6 +723,9 @@ model ExpensePayment {
   bankTransactionId   String?             @unique
   bankTransaction     BankTransaction?    @relation(fields: [bankTransactionId], references: [id])
 
+  // Transaction reference (for Card/OrangeMoney payments)
+  transactionId       String?             // External transaction reference from payment processor
+
   // Audit
   paidBy              String?
   paidByName          String?

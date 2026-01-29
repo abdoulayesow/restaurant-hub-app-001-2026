@@ -238,5 +238,3 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
     </div>
   )
 }
-
-export default BakingDashboard

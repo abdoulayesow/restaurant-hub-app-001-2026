@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, Banknote, Smartphone, CreditCard } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, Eye, Banknote, Smartphone, CreditCard, Landmark } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { SaleStatusBadge } from './SaleStatusBadge'
 import { formatUTCDateForDisplay } from '@/lib/date-utils'
@@ -19,7 +19,10 @@ interface Sale {
   itemsCount?: number | null
   customersCount?: number | null
   activeDebtsCount?: number
-  outstandingDebtAmount?: number
+  cashDeposit?: {
+    id: string
+    status: string
+  } | null
 }
 
 interface SalesTableProps {
@@ -28,6 +31,7 @@ interface SalesTableProps {
   onEdit: (sale: Sale) => void
   onApprove?: (sale: Sale) => void
   onReject?: (sale: Sale) => void
+  onConfirmDeposit?: (sale: Sale) => void
   isManager?: boolean
   loading?: boolean
 }
@@ -39,9 +43,10 @@ export function SalesTable({
   sales,
   onView,
   onEdit,
-  onApprove,
-  onReject,
-  isManager = false,
+  onApprove: _onApprove,
+  onReject: _onReject,
+  onConfirmDeposit,
+  isManager: _isManager = false,
   loading = false,
 }: SalesTableProps) {
   const { t, locale } = useLocale()
@@ -120,7 +125,7 @@ export function SalesTable({
         <thead>
           <tr className="bg-gray-100 dark:bg-stone-700">
             <th
-              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
+              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors min-w-[180px]"
               onClick={() => handleSort('date')}
             >
               <div className="flex items-center gap-1">
@@ -154,9 +159,6 @@ export function SalesTable({
                 <CreditCard className="w-4 h-4 text-gray-600 dark:text-stone-400" />
                 {t('sales.card') || 'Card'}
               </div>
-            </th>
-            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100">
-              {t('sales.paymentStatus') || 'Payment Status'}
             </th>
             <th
               className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
@@ -213,68 +215,58 @@ export function SalesTable({
                 </span>
               </td>
               <td className="px-6 py-4 text-center">
-                {sale.activeDebtsCount && sale.activeDebtsCount > 0 ? (
-                  <div
-                    className="inline-flex flex-col items-center gap-1 cursor-help"
-                    title={`${sale.activeDebtsCount} customer${sale.activeDebtsCount > 1 ? 's' : ''} with outstanding credit`}
-                  >
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                      Has Debts ({sale.activeDebtsCount})
+                <div className="flex flex-col items-center gap-1.5">
+                  {/* Payment status */}
+                  {sale.activeDebtsCount && sale.activeDebtsCount > 0 ? (
+                    <span
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 cursor-help"
+                      title={`${sale.activeDebtsCount} customer${sale.activeDebtsCount > 1 ? 's' : ''} with outstanding credit`}
+                    >
+                      {t('sales.hasDebts') || 'Has Debts'} ({sale.activeDebtsCount})
                     </span>
-                    {sale.outstandingDebtAmount && sale.outstandingDebtAmount > 0 && (
-                      <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-                        {formatCurrency(sale.outstandingDebtAmount)}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 cursor-help"
-                    title="All payments received in cash, card, or mobile money"
-                  >
-                    Fully Paid
-                  </span>
-                )}
-              </td>
-              <td className="px-6 py-4 text-center">
-                <SaleStatusBadge status={sale.status} size="sm" />
+                  ) : (
+                    <span
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 cursor-help"
+                      title={t('sales.fullyPaidTooltip') || 'All payments received in cash, card, or mobile money'}
+                    >
+                      {t('sales.fullyPaid') || 'Fully Paid'}
+                    </span>
+                  )}
+                  {/* Sale approval status */}
+                  <SaleStatusBadge status={sale.status} size="sm" />
+                </div>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => onView(sale)}
-                    className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
-                    title={t('common.view') || 'View'}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
-
-                  {(isManager || sale.status === 'Pending') && (
+                  {/* If cash has been deposited, show only View */}
+                  {sale.cashDeposit ? (
                     <button
-                      onClick={() => onEdit(sale)}
+                      onClick={() => onView(sale)}
                       className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
-                      title={t('common.edit') || 'Edit'}
+                      title={t('common.view') || 'View'}
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Eye className="w-4 h-4" />
                     </button>
-                  )}
-
-                  {isManager && sale.status === 'Pending' && onApprove && onReject && (
+                  ) : (
                     <>
+                      {/* Update button for pending sales */}
                       <button
-                        onClick={() => onApprove(sale)}
-                        className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-500/10 transition-colors"
-                        title={t('common.approve') || 'Approve'}
+                        onClick={() => onEdit(sale)}
+                        className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
+                        title={t('common.edit') || 'Edit'}
                       >
-                        <CheckCircle className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => onReject(sale)}
-                        className="p-2 rounded-lg text-rose-600 hover:bg-rose-500/10 transition-colors"
-                        title={t('common.reject') || 'Reject'}
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </button>
+                      {/* Confirm Deposit button */}
+                      {onConfirmDeposit && (
+                        <button
+                          onClick={() => onConfirmDeposit(sale)}
+                          className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-500/10 transition-colors"
+                          title={t('sales.confirmDeposit') || 'Confirm Deposit'}
+                        >
+                          <Landmark className="w-4 h-4" />
+                        </button>
+                      )}
                     </>
                   )}
                 </div>

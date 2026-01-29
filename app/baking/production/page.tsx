@@ -8,9 +8,10 @@ import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { BakingDashboard, AddProductionModal } from '@/components/baking'
+import { ProductionDetailModal } from '@/components/production'
 import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
+import { ProductionStatus } from '@prisma/client'
 
-type ProductionStatus = 'Planning' | 'Complete'
 type SubmissionStatus = 'Pending' | 'Approved' | 'Rejected'
 
 interface ProductionLog {
@@ -26,6 +27,31 @@ interface ProductionLog {
   createdAt: string
 }
 
+interface ProductionDetail {
+  id: string
+  productName: string
+  productNameFr: string | null
+  quantity: number
+  date: string
+  estimatedCostGNF: number | null
+  preparationStatus: ProductionStatus
+  status: SubmissionStatus
+  notes: string | null
+  stockDeducted: boolean
+  stockDeductedAt: string | null
+  createdByName: string | null
+  createdAt: string
+  updatedAt: string
+  ingredientDetails: Array<{
+    itemId: string
+    itemName: string
+    quantity: number
+    unit: string
+    unitCostGNF: number
+    currentStock?: number
+  }>
+}
+
 export default function BakingProductionPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -34,11 +60,17 @@ export default function BakingProductionPage() {
 
   // Modal state
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [selectedProduction, setSelectedProduction] = useState<ProductionDetail | null>(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
 
   // Production logs
   const [productionLogs, setProductionLogs] = useState<ProductionLog[]>([])
   const [loadingLogs, setLoadingLogs] = useState(false)
-  const [selectedDateRange, setSelectedDateRange] = useState<'today' | 'week' | 'month'>('today')
+  const [selectedDateRange, setSelectedDateRange] = useState<'today' | 'week' | 'month'>('week')
+
+  // Check if user is manager
+  const isManager = session?.user?.role === 'Manager'
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -132,6 +164,54 @@ export default function BakingProductionPage() {
   // Handle production added
   const handleProductionAdded = () => {
     fetchProductionLogs()
+  }
+
+  // Fetch production detail
+  const fetchProductionDetail = async (id: string) => {
+    // Prevent multiple concurrent fetches
+    if (loadingDetail) return
+
+    setLoadingDetail(true)
+    try {
+      const response = await fetch(`/api/production/${id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setSelectedProduction(data.productionLog)
+        setDetailModalOpen(true)
+      }
+    } catch (error) {
+      console.error('Error fetching production detail:', error)
+    } finally {
+      setLoadingDetail(false)
+    }
+  }
+
+  // Handle status change from modal
+  const handleStatusChange = async (productionId: string, newStatus: ProductionStatus) => {
+    try {
+      const response = await fetch(`/api/production/${productionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ preparationStatus: newStatus }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSelectedProduction(data.productionLog)
+        // Note: Don't call fetchProductionLogs here - onUpdate in modal will do it
+      }
+    } catch (error) {
+      console.error('Error updating production status:', error)
+    }
+  }
+
+  // Handle row click - open detail modal
+  const handleRowClick = (log: ProductionLog) => {
+    // Prevent opening multiple modals or duplicate fetches
+    if (loadingDetail || detailModalOpen) return
+    fetchProductionDetail(log.id)
   }
 
   // Format date
@@ -357,7 +437,7 @@ export default function BakingProductionPage() {
                     {filteredLogs.map((log) => (
                       <tr
                         key={log.id}
-                        onClick={() => router.push(`/baking/production/${log.id}`)}
+                        onClick={() => handleRowClick(log)}
                         className="hover:bg-gray-50 dark:hover:bg-stone-700/50 transition-colors cursor-pointer"
                       >
                         <td className="px-4 py-3">
@@ -417,6 +497,19 @@ export default function BakingProductionPage() {
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
         onSuccess={handleProductionAdded}
+      />
+
+      {/* Production Detail Modal */}
+      <ProductionDetailModal
+        production={selectedProduction}
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false)
+          setSelectedProduction(null)
+        }}
+        isManager={isManager}
+        onStatusChange={handleStatusChange}
+        onUpdate={fetchProductionLogs}
       />
     </div>
   )

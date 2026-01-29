@@ -17,6 +17,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
+    "update": "Update",
     "view": "View",
     "add": "Add",
     "search": "Search",
@@ -59,9 +60,23 @@
     "of": "of",
     "showing": "Showing",
     "to": "to",
+    "from": "From",
+    "apply": "Apply",
     "dateTime": "Date/Time",
     "type": "Type",
-    "createdBy": "Created By"
+    "createdBy": "Created By",
+    "days": "days",
+    "items": "items"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "sales": "Sales",
+    "expenses": "Expenses",
+    "inventory": "Inventory",
+    "production": "Production",
+    "bank": "Bank & Cash",
+    "debts": "Debts",
+    "settings": "Settings"
   },
   "auth": {
     "signInWith": "Sign in with",
@@ -77,6 +92,7 @@
     "totalBalance": "Total Balance",
     "totalRevenue": "Total Revenue",
     "totalExpenses": "Total Expenses",
+    "profit": "Profit",
     "profitMargin": "Profit Margin",
     "lowStockAlerts": "Low Stock Alerts",
     "pendingApprovals": "Pending Approvals",
@@ -87,6 +103,11 @@
     "period7Days": "7 Days",
     "period30Days": "30 Days",
     "period90Days": "90 Days",
+    "periodCustom": "Custom",
+    "customDateRange": "Custom Date Range",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "selectDateRange": "Select Date Range",
     "viewAll": "View All",
     "noAlerts": "All clear!",
     "unpaidExpenses": "Unpaid Expenses",
@@ -97,7 +118,36 @@
     "expired": "Expired",
     "expiringSoon": "Expiring Soon",
     "allItemsFresh": "All items are fresh!",
-    "noRevenueData": "No revenue data available"
+    "noRevenueData": "No revenue data available",
+    "cashIn": "Cash In",
+    "cashOut": "Cash Out",
+    "vsPrevious": "vs previous",
+    "cashFlowOverTime": "Cash Flow Over Time",
+    "revenueExpensesOverTime": "Revenue & Expenses Over Time",
+    "businessView": "Business View",
+    "cashView": "Cash View",
+    "target": "target",
+    "alertsAndTasks": "Alerts & Tasks",
+    "allGood": "All good!",
+    "criticalStock": "Critical stock",
+    "lowStock": "Low stock",
+    "totalItems": "Total Items",
+    "consumption": "Consumption",
+    "topConsumed": "Top Consumed",
+    "expenseBreakdown": "Expense Breakdown",
+    "noExpenses": "No expenses recorded",
+    "foodCostRatio": "Food Cost Ratio",
+    "foodCostExcellent": "Excellent",
+    "foodCostGood": "On Target",
+    "foodCostWarning": "Watch",
+    "foodCostHigh": "High",
+    "foodExpenses": "Food expenses",
+    "ofRevenue": "of revenue",
+    "revenue": "Revenue",
+    "expenses": "Expenses",
+    "noData": "No data available",
+    "alerts": "alerts",
+    "critical": "critical"
   },
   "editor": {
     "title": "Editor Dashboard",
@@ -121,6 +171,8 @@
     "minStock": "Minimum Stock",
     "unit": "Unit",
     "unitCost": "Unit Cost",
+    "totalStockValue": "Total Stock Value",
+    "overview": "Overview",
     "supplier": "Supplier",
     "lowStock": "Low Stock",
     "critical": "Critical",
@@ -287,7 +339,12 @@
     "createFirstProduct": "Create your first product to start logging production",
     "logProductionDesc": "Record your bakery production for the day",
     "addIngredientHint": "Start by adding the ingredients used in production",
-    "units": "units"
+    "units": "units",
+    "createdBy": "Created By",
+    "stockDeducted": "Stock Deducted",
+    "stockNotDeducted": "Stock Not Yet Deducted",
+    "available": "Available",
+    "totalEstimatedCost": "Total Estimated Cost"
   },
   "sales": {
     "title": "Sales",
@@ -353,7 +410,13 @@
     "productBreakdown": "Product Breakdown",
     "showProducts": "Show Products",
     "hideProducts": "Hide Products",
-    "productsOptional": "Track which products were sold (optional)"
+    "productsOptional": "Track which products were sold (optional)",
+    "confirmDeposit": "Confirm Deposit",
+    "confirmDepositQuestion": "Confirm cash deposit?",
+    "noCashToDeposit": "This sale has no cash to deposit.",
+    "hasDebts": "Has Debts",
+    "fullyPaid": "Fully Paid",
+    "fullyPaidTooltip": "All payments received in cash, card, or mobile money"
   },
   "expenses": {
     "title": "Expenses",
@@ -443,8 +506,19 @@
       "receiptUrl": "Receipt URL",
       "receiptUrlPlaceholder": "https://drive.google.com/...",
       "receiptUrlHint": "Paste a link to your receipt image (Google Drive, Dropbox, etc.)",
-      "viewReceipt": "View Receipt"
-    }
+      "viewReceipt": "View Receipt",
+      "for": "For",
+      "quickAmounts": "Quick Amounts",
+      "payFull": "Pay Full",
+      "transactionId": "Transaction ID",
+      "transactionIdPlaceholder": "Enter transaction reference",
+      "transactionIdHint": "Required for Card and Orange Money payments",
+      "transactionIdRequired": "Transaction ID is required for Card and Orange Money payments"
+    },
+    "editExpenseDescription": "Update expense details",
+    "addExpenseDescription": "Record a new expense",
+    "transactionRefHint": "Required for Card and Orange Money payments",
+    "transactionRefRequired": "Transaction reference is required for Card and Orange Money payments"
   },
   "bank": {
     "title": "Bank & Cash",
@@ -734,6 +808,25 @@
     "Overdue": "Overdue",
     "WrittenOff": "Written Off",
     "showOverdueOnly": "Show Overdue Only",
-    "activeDebts": "Active Debts"
+    "activeDebts": "Active Debts",
+    "transactionId": "Transaction ID",
+    "transactionIdPlaceholder": "Enter transaction reference",
+    "transactionIdHint": "Required for Card and Orange Money payments",
+    "paymentProgress": "Payment Progress",
+    "quickAmounts": "Quick Amounts",
+    "payFull": "Pay Full",
+    "paymentFor": "Payment for",
+    "paid": "Paid",
+    "left": "Left"
+  },
+  "customers": {
+    "customer": "Customer",
+    "customerType": "Customer Type",
+    "contactInformation": "Contact Information",
+    "types": {
+      "Individual": "Individual",
+      "Corporate": "Corporate",
+      "Wholesale": "Wholesale"
+    }
   }
 }

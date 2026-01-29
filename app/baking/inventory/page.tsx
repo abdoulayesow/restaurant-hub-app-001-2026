@@ -12,7 +12,6 @@ import { InventoryItem } from '@/components/inventory/InventoryCard'
 import { CategoryFilter } from '@/components/inventory/CategoryFilter'
 import { AddEditItemModal } from '@/components/inventory/AddEditItemModal'
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal'
-import { MovementHistoryModal } from '@/components/inventory/MovementHistoryModal'
 import { DeleteConfirmModal } from '@/components/inventory/DeleteConfirmModal'
 import { ViewItemModal } from '@/components/inventory/ViewItemModal'
 
@@ -35,7 +34,7 @@ export default function BakingInventoryPage() {
   // Modal state
   const [addEditModalOpen, setAddEditModalOpen] = useState(false)
   const [adjustModalOpen, setAdjustModalOpen] = useState(false)
-  const [historyModalOpen, setHistoryModalOpen] = useState(false)
+  const [viewModalInitialTab, setViewModalInitialTab] = useState<'overview' | 'history'>('overview')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
@@ -156,10 +155,12 @@ export default function BakingInventoryPage() {
 
   const handleViewHistory = (item: InventoryItem) => {
     setSelectedItem(item)
-    setHistoryModalOpen(true)
+    setViewModalInitialTab('history')
+    setViewModalOpen(true)
   }
 
   const handleViewItem = (item: InventoryItem) => {
+    setViewModalInitialTab('overview')
     setSelectedItem(item)
     setViewModalOpen(true)
   }
@@ -407,15 +408,6 @@ export default function BakingInventoryPage() {
         isLoading={saving}
       />
 
-      <MovementHistoryModal
-        isOpen={historyModalOpen}
-        onClose={() => {
-          setHistoryModalOpen(false)
-          setSelectedItem(null)
-        }}
-        item={selectedItem}
-      />
-
       <DeleteConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => {
@@ -437,7 +429,7 @@ export default function BakingInventoryPage() {
         isManager={isManager}
         onEdit={handleEditItem}
         onAdjust={handleAdjustStock}
-        onViewHistory={handleViewHistory}
+        initialTab={viewModalInitialTab}
       />
     </div>
   )

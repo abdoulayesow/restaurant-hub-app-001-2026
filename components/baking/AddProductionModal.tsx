@@ -13,6 +13,7 @@ function formatDateShort(dateString: string, locale: string): string {
   const [year, month, day] = dateString.split('-')
   return locale === 'fr' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`
 }
+// TODO: Consider using formatDateForDisplay from lib/date-utils.ts instead
 
 interface AddProductionModalProps {
   isOpen: boolean
@@ -226,5 +227,3 @@ export function AddProductionModal({
     </>
   )
 }
-
-export default AddProductionModal

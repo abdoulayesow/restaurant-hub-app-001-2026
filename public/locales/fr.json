@@ -17,6 +17,7 @@
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
+    "update": "Mettre à jour",
     "view": "Voir",
     "add": "Ajouter",
     "search": "Rechercher",
@@ -59,9 +60,23 @@
     "of": "sur",
     "showing": "Affichage de",
     "to": "à",
+    "from": "De",
+    "apply": "Appliquer",
     "dateTime": "Date/Heure",
     "type": "Type",
-    "createdBy": "Créé par"
+    "createdBy": "Créé par",
+    "days": "jours",
+    "items": "articles"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "sales": "Ventes",
+    "expenses": "Dépenses",
+    "inventory": "Inventaire",
+    "production": "Production",
+    "bank": "Banque & Caisse",
+    "debts": "Créances",
+    "settings": "Paramètres"
   },
   "auth": {
     "signInWith": "Se connecter avec",
@@ -77,6 +92,7 @@
     "totalBalance": "Solde total",
     "totalRevenue": "Revenu total",
     "totalExpenses": "Dépenses totales",
+    "profit": "Profit",
     "profitMargin": "Marge bénéficiaire",
     "lowStockAlerts": "Alertes stock faible",
     "pendingApprovals": "Approbations en attente",
@@ -87,6 +103,11 @@
     "period7Days": "7 jours",
     "period30Days": "30 jours",
     "period90Days": "90 jours",
+    "periodCustom": "Personnalisé",
+    "customDateRange": "Plage de dates",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "selectDateRange": "Sélectionner la période",
     "viewAll": "Voir tout",
     "noAlerts": "Tout est en ordre!",
     "unpaidExpenses": "Dépenses Impayées",
@@ -97,7 +118,36 @@
     "expired": "Expiré",
     "expiringSoon": "Expire Bientôt",
     "allItemsFresh": "Tous les articles sont frais!",
-    "noRevenueData": "Aucune donnée de revenu disponible"
+    "noRevenueData": "Aucune donnée de revenu disponible",
+    "cashIn": "Entrées",
+    "cashOut": "Sorties",
+    "vsPrevious": "vs période préc.",
+    "cashFlowOverTime": "Flux de Trésorerie",
+    "revenueExpensesOverTime": "Revenus & Dépenses",
+    "businessView": "Vue Business",
+    "cashView": "Vue Trésorerie",
+    "target": "cible",
+    "alertsAndTasks": "Alertes & Tâches",
+    "allGood": "Tout va bien!",
+    "criticalStock": "Stock critique",
+    "lowStock": "Stock faible",
+    "totalItems": "Total Articles",
+    "consumption": "Consommation",
+    "topConsumed": "Plus Consommés",
+    "expenseBreakdown": "Répartition Dépenses",
+    "noExpenses": "Aucune dépense enregistrée",
+    "foodCostRatio": "Ratio Coût Alimentaire",
+    "foodCostExcellent": "Excellent",
+    "foodCostGood": "Sur Cible",
+    "foodCostWarning": "Attention",
+    "foodCostHigh": "Élevé",
+    "foodExpenses": "Dépenses alim.",
+    "ofRevenue": "sur revenus",
+    "revenue": "Revenus",
+    "expenses": "Dépenses",
+    "noData": "Aucune donnée disponible",
+    "alerts": "alertes",
+    "critical": "critique"
   },
   "editor": {
     "title": "Espace Éditeur",
@@ -121,6 +171,8 @@
     "minStock": "Stock minimum",
     "unit": "Unité",
     "unitCost": "Coût unitaire",
+    "totalStockValue": "Valeur totale du stock",
+    "overview": "Aperçu",
     "supplier": "Fournisseur",
     "lowStock": "Stock faible",
     "critical": "Critique",
@@ -287,7 +339,12 @@
     "createFirstProduct": "Créez votre premier produit pour commencer à enregistrer la production",
     "logProductionDesc": "Enregistrez la production du jour de votre boulangerie",
     "addIngredientHint": "Commencez par ajouter les ingrédients utilisés",
-    "units": "unités"
+    "units": "unités",
+    "createdBy": "Créé par",
+    "stockDeducted": "Stock déduit",
+    "stockNotDeducted": "Stock non encore déduit",
+    "available": "Disponible",
+    "totalEstimatedCost": "Coût total estimé"
   },
   "sales": {
     "title": "Ventes",
@@ -353,7 +410,13 @@
     "productBreakdown": "Détail des produits",
     "showProducts": "Afficher les produits",
     "hideProducts": "Masquer les produits",
-    "productsOptional": "Suivre les produits vendus (optionnel)"
+    "productsOptional": "Suivre les produits vendus (optionnel)",
+    "confirmDeposit": "Confirmer le dépôt",
+    "confirmDepositQuestion": "Confirmer le dépôt en espèces ?",
+    "noCashToDeposit": "Cette vente n'a pas d'espèces à déposer.",
+    "hasDebts": "A des dettes",
+    "fullyPaid": "Entièrement payé",
+    "fullyPaidTooltip": "Tous les paiements reçus en espèces, carte ou mobile money"
   },
   "expenses": {
     "title": "Dépenses",
@@ -443,8 +506,19 @@
       "receiptUrl": "Lien du Reçu",
       "receiptUrlPlaceholder": "https://drive.google.com/...",
       "receiptUrlHint": "Collez un lien vers votre image de reçu (Google Drive, Dropbox, etc.)",
-      "viewReceipt": "Voir le Reçu"
-    }
+      "viewReceipt": "Voir le Reçu",
+      "for": "Pour",
+      "quickAmounts": "Montants Rapides",
+      "payFull": "Payer Tout",
+      "transactionId": "ID de Transaction",
+      "transactionIdPlaceholder": "Entrer la référence de transaction",
+      "transactionIdHint": "Requis pour les paiements par Carte et Orange Money",
+      "transactionIdRequired": "L'ID de transaction est requis pour les paiements par Carte et Orange Money"
+    },
+    "editExpenseDescription": "Modifier les détails de la dépense",
+    "addExpenseDescription": "Enregistrer une nouvelle dépense",
+    "transactionRefHint": "Requis pour les paiements par Carte et Orange Money",
+    "transactionRefRequired": "La référence de transaction est requise pour les paiements par Carte et Orange Money"
   },
   "bank": {
     "title": "Banque & Caisse",
@@ -679,7 +753,7 @@
     "notificationLanguageDesc": "Langue pour les notifications SMS"
   },
   "debts": {
-    "title": "Gestion des Crédits",
+    "title": "Gestion des crédits",
     "subtitle": "Suivi et recouvrement",
     "debts": "Dettes",
     "debt": "Dette",
@@ -687,7 +761,7 @@
     "noDebts": "Aucune dette trouvée",
     "noDebtsDescription": "Les dettes apparaîtront ici lors des ventes à crédit",
     "totalOutstanding": "Total Dû",
-    "totalOverdue": "Total En Retard",
+    "totalOverdue": "Total en retard",
     "fullyPaid": "Entièrement Payé",
     "writtenOff": "Irrécouvrable",
     "customers": "clients",
@@ -728,12 +802,31 @@
     "writeOffReason": "Raison de l'annulation",
     "writeOffReasonRequired": "Veuillez fournir une raison pour annuler cette dette",
     "writeOffReasonPlaceholder": "ex: Faillite du client, injoignable, etc.",
-    "createDebt": "Créer une Dette",
+    "createDebt": "Enregistrer une dette",
     "createDebtDescription": "Enregistrer manuellement une dette pour un client",
     "selectCustomer": "Sélectionner un client",
     "invalidAmount": "Le montant principal doit être supérieur à 0",
     "description": "Description",
     "descriptionPlaceholder": "ex: Dette héritée de l'ancien système",
-    "notesPlaceholder": "Informations supplémentaires sur cette dette..."
+    "notesPlaceholder": "Informations supplémentaires sur cette dette...",
+    "transactionId": "ID Transaction",
+    "transactionIdPlaceholder": "Entrer la référence de transaction",
+    "transactionIdHint": "Requis pour les paiements par Carte et Orange Money",
+    "paymentProgress": "Progression du Paiement",
+    "quickAmounts": "Montants Rapides",
+    "payFull": "Payer Tout",
+    "paymentFor": "Paiement pour",
+    "paid": "Payé",
+    "left": "Reste"
+  },
+  "customers": {
+    "customer": "Client",
+    "customerType": "Type de client",
+    "contactInformation": "Coordonnées",
+    "types": {
+      "Individual": "Particulier",
+      "Corporate": "Entreprise",
+      "Wholesale": "Grossiste"
+    }
   }
 }

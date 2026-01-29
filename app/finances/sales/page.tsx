@@ -43,6 +43,10 @@ interface Sale {
   comments?: string | null
   activeDebtsCount?: number
   outstandingDebtAmount?: number
+  cashDeposit?: {
+    id: string
+    status: string
+  } | null
   debts?: Array<{
     customerId: string
     amountGNF: number
@@ -244,6 +248,44 @@ export default function FinancesSalesPage() {
   const handleEdit = (sale: Sale) => {
     setSelectedSale(sale)
     setIsModalOpen(true)
+  }
+
+  // Handle confirm deposit - creates a cash deposit record linked to this sale
+  const handleConfirmDeposit = async (sale: Sale) => {
+    if (!currentRestaurant?.id) return
+
+    // Only allow if sale has cash amount
+    if (sale.cashGNF <= 0) {
+      alert(t('sales.noCashToDeposit') || 'This sale has no cash to deposit.')
+      return
+    }
+
+    if (!confirm(t('sales.confirmDepositQuestion') || `Confirm cash deposit of ${formatCurrency(sale.cashGNF)}?`)) {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/cash-deposits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId: currentRestaurant.id,
+          saleId: sale.id,
+          date: sale.date,
+          amount: sale.cashGNF,
+        }),
+      })
+
+      if (res.ok) {
+        fetchSales()
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || t('errors.failedToSave') || 'Failed to confirm deposit')
+      }
+    } catch (error) {
+      console.error('Error confirming deposit:', error)
+      alert(t('errors.failedToSave') || 'Failed to confirm deposit')
+    }
   }
 
   // Get today's sales from summary
@@ -480,6 +522,7 @@ export default function FinancesSalesPage() {
             onEdit={handleEdit}
             onApprove={isManager ? handleApprove : undefined}
             onReject={isManager ? handleReject : undefined}
+            onConfirmDeposit={isManager ? handleConfirmDeposit : undefined}
             isManager={isManager}
             loading={loading}
           />

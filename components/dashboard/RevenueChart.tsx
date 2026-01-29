@@ -21,7 +21,7 @@ interface RevenueChartProps {
 }
 
 export function RevenueChart({ data }: RevenueChartProps) {
-  const { locale } = useLocale()
+  const { locale, t } = useLocale()
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -64,7 +64,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center text-gray-500 dark:text-stone-400">
-        <p>No revenue data available</p>
+        <p>{t('dashboard.noRevenueData') || 'No revenue data available'}</p>
       </div>
     )
   }

@@ -1022,5 +1022,3 @@ export function ProductionLogger({
     </div>
   )
 }
-
-export default ProductionLogger

@@ -1,10 +1,17 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Calendar, FileText, Tag, Building2, Package, Plus, Trash2, History, CreditCard, DollarSign } from 'lucide-react'
+import { X, Calendar, FileText, Tag, Building2, Package, Plus, Trash2, History, DollarSign, Banknote, CreditCard, Smartphone, Receipt, Hash } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PaymentHistory } from './PaymentHistory'
 import { PAYMENT_METHODS, PaymentMethodValue } from '@/lib/constants/payment-methods'
+
+// Payment method icons mapping
+const paymentMethodIcons: Record<string, typeof Banknote> = {
+  Cash: Banknote,
+  Card: CreditCard,
+  OrangeMoney: Smartphone,
+}
 
 interface Category {
   id: string
@@ -305,6 +312,11 @@ export function AddEditExpenseModal({
       newErrors.paymentMethod = t('validation.required') || 'Required'
     }
 
+    // Require transaction ref for Card and OrangeMoney payments
+    if ((formData.paymentMethod === 'Card' || formData.paymentMethod === 'OrangeMoney') && !formData.transactionRef.trim()) {
+      newErrors.transactionRef = t('expenses.transactionRefRequired') || 'Transaction reference is required for Card and Orange Money payments'
+    }
+
     // Validate expense items for inventory purchases
     if (formData.isInventoryPurchase && expenseItems.length === 0) {
       newErrors.expenseItems = t('expenses.itemsRequired') || 'At least one inventory item is required'
@@ -385,24 +397,37 @@ export function AddEditExpenseModal({
           aria-labelledby="modal-title"
         >
           {/* Header */}
-          <div className="sticky top-0 bg-white dark:bg-stone-800 p-6 border-b border-gray-200 dark:border-stone-700 z-10">
-            <div className="flex items-center justify-between">
-              <h2
-                id="modal-title"
-                className="text-xl font-bold text-gray-900 dark:text-stone-100"
-              >
-                {isEditMode
-                  ? (t('expenses.editExpense') || 'Edit Expense')
-                  : (t('expenses.addExpense') || 'Add Expense')
-                }
-              </h2>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
-                aria-label={t('common.close') || 'Close'}
-              >
-                <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
-              </button>
+          <div className="sticky top-0 z-10 px-6 py-5 border-b border-gray-100 dark:border-stone-700 bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-900/20 dark:to-orange-900/20">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="absolute top-4 right-4 p-2 hover:bg-white/60 dark:hover:bg-stone-700/60 rounded-xl transition-all disabled:opacity-50"
+              aria-label={t('common.close') || 'Close'}
+            >
+              <X className="w-5 h-5 text-gray-500 dark:text-stone-400" />
+            </button>
+
+            <div className="flex items-center gap-3 pr-10">
+              <div className="p-2.5 bg-rose-500 rounded-xl shadow-lg shadow-rose-500/25">
+                <Receipt className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2
+                  id="modal-title"
+                  className="text-xl font-bold text-gray-900 dark:text-stone-100"
+                >
+                  {isEditMode
+                    ? (t('expenses.editExpense') || 'Edit Expense')
+                    : (t('expenses.addExpense') || 'Add Expense')
+                  }
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-stone-400">
+                  {isEditMode
+                    ? (t('expenses.editExpenseDescription') || 'Update expense details')
+                    : (t('expenses.addExpenseDescription') || 'Record a new expense')
+                  }
+                </p>
+              </div>
             </div>
           </div>
 
@@ -502,22 +527,28 @@ export function AddEditExpenseModal({
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {PAYMENT_METHODS.map(method => {
-                  const Icon = method.icon
+                  const Icon = paymentMethodIcons[method.value] || Banknote
                   const isSelected = formData.paymentMethod === method.value
                   const translationKey = method.value === 'OrangeMoney' ? 'expenses.orangeMoney' : `expenses.${method.value.toLowerCase()}`
                   const label = t(translationKey) || method.displayName
-                  // Derive color class from the payment method config
-                  const colorClass = method.value === 'Cash' ? 'green' : method.value === 'OrangeMoney' ? 'orange' : 'blue'
+
+                  // Explicit color classes for each method
+                  const selectedStyles = {
+                    Cash: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+                    OrangeMoney: 'border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+                    Card: 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+                  }
+
                   return (
                     <button
                       key={method.value}
                       type="button"
                       onClick={() => handleChange('paymentMethod', method.value as PaymentMethodValue)}
                       className={`
-                        flex flex-col items-center gap-1 p-3 rounded-xl border transition-all
+                        flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all
                         ${isSelected
-                          ? `border-${colorClass}-500 bg-${colorClass}-500/10 text-${colorClass}-700 dark:text-${colorClass}-400`
-                          : 'border-gray-300 dark:border-stone-600 text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700'
+                          ? selectedStyles[method.value as keyof typeof selectedStyles]
+                          : 'border-gray-200 dark:border-stone-600 text-gray-500 dark:text-stone-400 hover:bg-gray-50 dark:hover:bg-stone-700 hover:border-gray-300 dark:hover:border-stone-500'
                         }
                       `}
                     >
@@ -571,20 +602,29 @@ export function AddEditExpenseModal({
                 />
               </div>
 
-              {/* Transaction Ref */}
+              {/* Transaction Ref - Required for Card and OrangeMoney */}
               {(formData.paymentMethod === 'OrangeMoney' || formData.paymentMethod === 'Card') && (
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
-                    <FileText className="w-4 h-4" />
-                    {t('expenses.transactionRef') || 'Transaction Reference'}
+                <div className={`p-4 rounded-xl border ${errors.transactionRef ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50'}`}>
+                  <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${errors.transactionRef ? 'text-red-700 dark:text-red-400' : 'text-amber-800 dark:text-amber-300'}`}>
+                    <Hash className="w-4 h-4" />
+                    {t('expenses.transactionRef') || 'Transaction Reference'} *
                   </label>
                   <input
                     type="text"
                     value={formData.transactionRef}
                     onChange={(e) => handleChange('transactionRef', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-gray-50 dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
+                    className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-stone-800 text-gray-900 dark:text-stone-100 focus:ring-2 ${errors.transactionRef ? 'border-red-400 dark:border-red-600 focus:ring-red-500 focus:border-red-500' : 'border-amber-300 dark:border-amber-700 focus:ring-amber-500 focus:border-amber-500'}`}
                     placeholder={t('expenses.transactionRefPlaceholder') || 'e.g., OM123456'}
                   />
+                  {errors.transactionRef ? (
+                    <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                      {errors.transactionRef}
+                    </p>
+                  ) : (
+                    <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                      {t('expenses.transactionRefHint') || 'Required for Card and Orange Money payments'}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -775,18 +815,19 @@ export function AddEditExpenseModal({
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-stone-700 mt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors"
+                disabled={loading}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors font-medium disabled:opacity-50"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-rose-600 text-white font-medium hover:bg-rose-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-rose-600/25"
               >
                 {loading
                   ? (t('common.saving') || 'Saving...')

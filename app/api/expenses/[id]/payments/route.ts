@@ -160,7 +160,7 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { amount, paymentMethod, notes, receiptUrl } = body
+    const { amount, paymentMethod, notes, receiptUrl, transactionId } = body
 
     // Validate required fields
     if (!amount || amount <= 0) {
@@ -173,6 +173,14 @@ export async function POST(
     if (!paymentMethod || !['Cash', 'OrangeMoney', 'Card'].includes(paymentMethod)) {
       return NextResponse.json(
         { error: 'Payment method must be Cash, OrangeMoney, or Card' },
+        { status: 400 }
+      )
+    }
+
+    // Require transactionId for Card and OrangeMoney payments
+    if ((paymentMethod === 'Card' || paymentMethod === 'OrangeMoney') && !transactionId?.trim()) {
+      return NextResponse.json(
+        { error: 'Transaction ID is required for Card and Orange Money payments' },
         { status: 400 }
       )
     }
@@ -227,6 +235,7 @@ export async function POST(
           amount,
           paymentMethod,
           bankTransactionId: bankTransaction.id,
+          transactionId: transactionId?.trim() || null,
           paidBy: session.user.id,
           paidByName: user?.name || null,
           notes: notes?.trim() || null,
