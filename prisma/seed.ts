@@ -1,4 +1,4 @@
-import { PrismaClient, ProductionStatus, SubmissionStatus } from '@prisma/client'
+import { PrismaClient, ProductionStatus, SubmissionStatus, ProductCategory } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -180,6 +180,162 @@ async function main() {
     }
   }
   console.log('✅ Created payment methods for all restaurants')
+
+  // Create products for all restaurants
+  const products = [
+    // Patisserie products
+    {
+      id: 'prod-croissant',
+      name: 'Croissant',
+      nameFr: 'Croissant',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 1,
+    },
+    {
+      id: 'prod-pain-chocolat',
+      name: 'Chocolate Croissant',
+      nameFr: 'Pain au Chocolat',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 2,
+    },
+    {
+      id: 'prod-chausson-pomme',
+      name: 'Apple Turnover',
+      nameFr: 'Chausson aux Pommes',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 3,
+    },
+    {
+      id: 'prod-pain-raisin',
+      name: 'Raisin Roll',
+      nameFr: 'Pain aux Raisins',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 4,
+    },
+    {
+      id: 'prod-brioche',
+      name: 'Brioche',
+      nameFr: 'Brioche',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 5,
+    },
+    {
+      id: 'prod-eclair',
+      name: 'Eclair',
+      nameFr: 'Éclair',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 6,
+    },
+    {
+      id: 'prod-tarte-citron',
+      name: 'Lemon Tart',
+      nameFr: 'Tarte au Citron',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 7,
+    },
+    {
+      id: 'prod-mille-feuille',
+      name: 'Mille-feuille',
+      nameFr: 'Mille-feuille',
+      category: ProductCategory.Patisserie,
+      unit: 'piece',
+      sortOrder: 8,
+    },
+    // Boulangerie products
+    {
+      id: 'prod-baguette',
+      name: 'Baguette',
+      nameFr: 'Baguette',
+      category: ProductCategory.Boulangerie,
+      unit: 'piece',
+      sortOrder: 1,
+    },
+    {
+      id: 'prod-pain-complet',
+      name: 'Whole Wheat Bread',
+      nameFr: 'Pain Complet',
+      category: ProductCategory.Boulangerie,
+      unit: 'loaf',
+      sortOrder: 2,
+    },
+    {
+      id: 'prod-pain-campagne',
+      name: 'Country Bread',
+      nameFr: 'Pain de Campagne',
+      category: ProductCategory.Boulangerie,
+      unit: 'loaf',
+      sortOrder: 3,
+    },
+    {
+      id: 'prod-pain-mie',
+      name: 'Sandwich Bread',
+      nameFr: 'Pain de Mie',
+      category: ProductCategory.Boulangerie,
+      unit: 'loaf',
+      sortOrder: 4,
+    },
+    {
+      id: 'prod-ficelle',
+      name: 'Ficelle',
+      nameFr: 'Ficelle',
+      category: ProductCategory.Boulangerie,
+      unit: 'piece',
+      sortOrder: 5,
+    },
+    {
+      id: 'prod-pain-cereales',
+      name: 'Multigrain Bread',
+      nameFr: 'Pain aux Céréales',
+      category: ProductCategory.Boulangerie,
+      unit: 'loaf',
+      sortOrder: 6,
+    },
+    {
+      id: 'prod-fougasse',
+      name: 'Fougasse',
+      nameFr: 'Fougasse',
+      category: ProductCategory.Boulangerie,
+      unit: 'piece',
+      sortOrder: 7,
+    },
+    {
+      id: 'prod-pain-seigle',
+      name: 'Rye Bread',
+      nameFr: 'Pain de Seigle',
+      category: ProductCategory.Boulangerie,
+      unit: 'loaf',
+      sortOrder: 8,
+    },
+  ]
+
+  for (const restaurant of restaurants) {
+    for (const product of products) {
+      await prisma.product.upsert({
+        where: {
+          id: `${product.id}-${restaurant.id}`,
+        },
+        update: {},
+        create: {
+          id: `${product.id}-${restaurant.id}`,
+          restaurantId: restaurant.id,
+          name: product.name,
+          nameFr: product.nameFr,
+          category: product.category,
+          unit: product.unit,
+          sortOrder: product.sortOrder,
+          isActive: true,
+        },
+      })
+    }
+  }
+  console.log(`✅ Created ${products.length * restaurants.length} products (${products.length} per restaurant)`)
 
   // Create sample inventory items
   const inventoryItems = [
@@ -414,6 +570,7 @@ async function main() {
       id: 'prod-001',
       restaurantId: restaurant.id,
       date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+      productionType: ProductCategory.Boulangerie,
       productName: 'Baguettes',
       productNameFr: 'Baguettes',
       quantity: 200,
@@ -436,6 +593,7 @@ async function main() {
       id: 'prod-002',
       restaurantId: restaurant.id,
       date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      productionType: ProductCategory.Patisserie,
       productName: 'Croissants',
       productNameFr: 'Croissants',
       quantity: 100,
@@ -448,18 +606,19 @@ async function main() {
         { itemId: 'inv-milk-001', itemName: 'Milk', quantity: 3, unit: 'liters', unitCostGNF: 8000 },
       ],
       estimatedCostGNF: 1119500,
-      preparationStatus: ProductionStatus.InProgress,
+      preparationStatus: ProductionStatus.Complete,
       status: SubmissionStatus.Pending,
       stockDeducted: true,
       stockDeductedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       createdBy: user.id,
       createdByName: user.name,
     },
-    // Pain au Chocolat - Ready
+    // Pain au Chocolat - Planning
     {
       id: 'prod-003',
       restaurantId: restaurant.id,
       date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      productionType: ProductCategory.Patisserie,
       productName: 'Pain au Chocolat',
       productNameFr: 'Pain au Chocolat',
       quantity: 80,
@@ -471,7 +630,7 @@ async function main() {
         { itemId: 'inv-eggs-001', itemName: 'Eggs', quantity: 50, unit: 'units', unitCostGNF: 2500 },
       ],
       estimatedCostGNF: 871000,
-      preparationStatus: ProductionStatus.Ready,
+      preparationStatus: ProductionStatus.Planning,
       status: SubmissionStatus.Pending,
       stockDeducted: false,
       createdBy: user.id,
@@ -482,6 +641,7 @@ async function main() {
       id: 'prod-004',
       restaurantId: restaurant.id,
       date: new Date(),
+      productionType: ProductCategory.Boulangerie,
       productName: 'Baguettes',
       productNameFr: 'Baguettes',
       quantity: 150,
@@ -508,6 +668,47 @@ async function main() {
     })
   }
   console.log(`✅ Created ${productionLogs.length} production logs`)
+
+  // Create ProductionItem records to link production logs with products
+  const productionItems = [
+    // prod-001: Baguettes (200 baguettes)
+    {
+      id: 'prod-item-001',
+      productionLogId: 'prod-001',
+      productId: `prod-baguette-${restaurant.id}`,
+      quantity: 200,
+    },
+    // prod-002: Croissants (100 croissants)
+    {
+      id: 'prod-item-002',
+      productionLogId: 'prod-002',
+      productId: `prod-croissant-${restaurant.id}`,
+      quantity: 100,
+    },
+    // prod-003: Pain au Chocolat (80 pieces)
+    {
+      id: 'prod-item-003',
+      productionLogId: 'prod-003',
+      productId: `prod-pain-chocolat-${restaurant.id}`,
+      quantity: 80,
+    },
+    // prod-004: Baguettes (150 baguettes)
+    {
+      id: 'prod-item-004',
+      productionLogId: 'prod-004',
+      productId: `prod-baguette-${restaurant.id}`,
+      quantity: 150,
+    },
+  ]
+
+  for (const item of productionItems) {
+    await prisma.productionItem.upsert({
+      where: { id: item.id },
+      update: {},
+      create: item,
+    })
+  }
+  console.log(`✅ Created ${productionItems.length} production items`)
 
   // Create stock movements for production
   const productionMovements = [
@@ -1197,12 +1398,14 @@ async function main() {
   console.log(`     • ${restaurant3.name} (${restaurant3.location})`)
   console.log(`   - User: ${user.email} (${user.role})`)
   console.log(`   - Payment Methods: 9 (3 per restaurant)`)
+  console.log(`   - Products: ${products.length * restaurants.length} (${products.length} per restaurant)`)
   console.log(`   - Customers: 3`)
   console.log(`   - Debts: 4 (Outstanding, PartiallyPaid, FullyPaid, Overdue)`)
   console.log(`   - Debt Payments: 2`)
   console.log(`   - Bank Transactions: 7 (Deposits, Withdrawals, Pending)`)
   console.log(`   - Inventory Items: ${inventoryItems.length}`)
   console.log(`   - Production Logs: ${productionLogs.length}`)
+  console.log(`   - Production Items: ${productionItems.length}`)
   console.log(`   - Stock Movements: ${productionMovements.length + 1}`)
   console.log(`   - Sales Records: ${sales.length}`)
   console.log(`   - Expenses: ${expenses.length}`)
@@ -1211,6 +1414,7 @@ async function main() {
   console.log('🚀 You can now login and access the app!')
   console.log('💡 Test bakery switching by clicking the logo!')
   console.log('📊 Dashboard has real data: sales, inventory, debts, bank transactions!')
+  console.log('🥐 Check Baking > Production to log Patisserie/Boulangerie products')
   console.log('💰 Check Finances > Debts to see customer accounts')
   console.log('🏦 Check Finances > Bank to see deposit/withdrawal history')
 }

@@ -1,10 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Calendar, X, ChefHat } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ProductionLogger } from './ProductionLogger'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { formatDateForDisplay, getTodayDateString, parseDateInput } from '@/lib/date-utils'
+
+// Format date as DD/MM/YYYY for French or MM/DD/YYYY for English
+function formatDateShort(dateString: string, locale: string): string {
+  if (!dateString) return ''
+  const [year, month, day] = dateString.split('-')
+  return locale === 'fr' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`
+}
 
 interface AddProductionModalProps {
   isOpen: boolean
@@ -17,9 +25,18 @@ export function AddProductionModal({
   onClose,
   onSuccess,
 }: AddProductionModalProps) {
-  const { t } = useLocale()
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const { t, locale } = useLocale()
+  // Initialize with empty string to avoid server/client timezone mismatch
+  const [date, setDate] = useState('')
   const [isMobile, setIsMobile] = useState(false)
+  const dateInputRef = useRef<HTMLInputElement>(null)
+
+  // Set initial date on client side only to ensure correct timezone
+  useEffect(() => {
+    if (!date) {
+      setDate(getTodayDateString())
+    }
+  }, [date])
 
   // Check for mobile on mount and resize
   useEffect(() => {
@@ -34,11 +51,8 @@ export function AddProductionModal({
     onClose()
   }
 
-  // Format date for display
-  const formatDateDisplay = (dateStr: string) => {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-  }
+  // Get the max date (today) to prevent future date selection
+  const maxDate = getTodayDateString()
 
   if (isMobile) {
     return (
@@ -56,34 +70,47 @@ export function AddProductionModal({
               {t('production.date') || 'Production Date'}
             </label>
             <div className="relative">
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+              <button
+                type="button"
+                onClick={() => dateInputRef.current?.showPicker()}
                 className="
                   w-full px-4 py-3 rounded-lg
                   border border-gray-300 dark:border-stone-600
                   bg-white dark:bg-stone-700
                   text-gray-900 dark:text-stone-100
-                  focus:ring-2 focus:ring-gray-500 focus:border-gray-500
-                  font-medium
+                  font-medium text-left
+                  flex items-center justify-between
                 "
+              >
+                {formatDateShort(date, locale)}
+                <Calendar className="w-4 h-4 text-gray-400" />
+              </button>
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={date}
+                max={maxDate}
+                onChange={(e) => setDate(e.target.value)}
+                className="absolute inset-0 opacity-0"
+                tabIndex={-1}
               />
             </div>
           </div>
 
-          <ProductionLogger
-            date={date}
-            onSuccess={handleSuccess}
-            onCancel={onClose}
-          />
+          {date && (
+            <ProductionLogger
+              date={date}
+              onSuccess={handleSuccess}
+              onCancel={onClose}
+            />
+          )}
         </div>
       </BottomSheet>
     )
   }
 
   // Desktop modal
-  if (!isOpen) return null
+  if (!isOpen || !date) return null
 
   return (
     <>
@@ -149,25 +176,39 @@ export function AddProductionModal({
                       {t('production.date') || 'Production Date'}
                     </p>
                     <p className="text-sm font-medium text-gray-900 dark:text-stone-100 mt-0.5">
-                      {formatDateDisplay(date)}
+                      {formatDateForDisplay(parseDateInput(date), locale === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                     </p>
                   </div>
                 </div>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="
-                    px-4 py-2.5 rounded-lg
-                    border border-gray-300 dark:border-stone-600
-                    bg-white dark:bg-stone-700
-                    text-gray-900 dark:text-stone-100
-                    focus:ring-2 focus:ring-gray-500 focus:border-gray-500
-                    font-medium text-sm
-                    cursor-pointer hover:border-gray-400 dark:hover:border-stone-500
-                    transition-colors
-                  "
-                />
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => dateInputRef.current?.showPicker()}
+                    className="
+                      px-4 py-2.5 rounded-lg
+                      border border-gray-300 dark:border-stone-600
+                      bg-white dark:bg-stone-700
+                      text-gray-900 dark:text-stone-100
+                      hover:border-gray-400 dark:hover:border-stone-500
+                      font-medium text-sm
+                      cursor-pointer
+                      transition-colors
+                      flex items-center gap-2
+                    "
+                  >
+                    {formatDateShort(date, locale)}
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                  </button>
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    value={date}
+                    max={maxDate}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    tabIndex={-1}
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
+import { normalizePaymentMethod, PAYMENT_METHOD_VALUES } from '@/lib/constants/payment-methods'
 
 // GET /api/expenses/[id] - Get a single expense
 export async function GET(
@@ -147,6 +148,18 @@ export async function PUT(
       )
     }
 
+    // Validate payment method if provided
+    let normalizedPaymentMethod: string | undefined
+    if (paymentMethod !== undefined) {
+      normalizedPaymentMethod = normalizePaymentMethod(paymentMethod) ?? undefined
+      if (!normalizedPaymentMethod) {
+        return NextResponse.json(
+          { error: `Invalid payment method: ${paymentMethod}. Allowed methods: ${PAYMENT_METHOD_VALUES.join(', ')}` },
+          { status: 400 }
+        )
+      }
+    }
+
     // Determine final isInventoryPurchase value
     const finalIsInventoryPurchase = isInventoryPurchase !== undefined ? isInventoryPurchase : existingExpense.isInventoryPurchase
 
@@ -189,7 +202,7 @@ export async function PUT(
           categoryName: categoryName !== undefined ? categoryName : existingExpense.categoryName,
           amountGNF: amountGNF !== undefined ? amountGNF : existingExpense.amountGNF,
           amountEUR: amountEUR !== undefined ? amountEUR : existingExpense.amountEUR,
-          paymentMethod: paymentMethod !== undefined ? paymentMethod : existingExpense.paymentMethod,
+          paymentMethod: normalizedPaymentMethod !== undefined ? normalizedPaymentMethod : existingExpense.paymentMethod,
           description: description !== undefined ? (description || null) : existingExpense.description,
           receiptUrl: receiptUrl !== undefined ? (receiptUrl || null) : existingExpense.receiptUrl,
           comments: comments !== undefined ? (comments || null) : existingExpense.comments,

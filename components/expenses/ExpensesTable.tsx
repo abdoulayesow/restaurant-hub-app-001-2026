@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, DollarSign, Smartphone, CreditCard, Banknote } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, DollarSign, Banknote } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { PAYMENT_METHODS, normalizePaymentMethod } from '@/lib/constants/payment-methods'
 
 interface Expense {
   id: string
@@ -79,15 +80,29 @@ export function ExpensesTable({
     }).format(date)
   }
 
-  // Payment method config - keys match database values
-  const paymentMethodConfig: Record<string, { label: string; icon: typeof DollarSign; color: string }> = {
-    'Cash': { label: t('expenses.cash') || 'Cash', icon: DollarSign, color: 'text-green-600 dark:text-green-400' },
-    'Orange Money': { label: t('expenses.orangeMoney') || 'Orange Money', icon: Smartphone, color: 'text-orange-600 dark:text-orange-400' },
-    'Card': { label: t('expenses.card') || 'Card', icon: CreditCard, color: 'text-blue-600 dark:text-blue-400' },
-  }
+  // Payment method config - built from centralized constants
+  const paymentMethodConfig: Record<string, { label: string; icon: typeof DollarSign; color: string }> = Object.fromEntries(
+    PAYMENT_METHODS.map(pm => {
+      const translationKey = pm.value === 'OrangeMoney' ? 'expenses.orangeMoney' : `expenses.${pm.value.toLowerCase()}`
+      return [
+        pm.value,
+        {
+          label: t(translationKey) || pm.displayName,
+          icon: pm.icon,
+          color: pm.textColor,
+        }
+      ]
+    })
+  )
 
   // Fallback config for unknown payment methods
   const defaultPaymentConfig = { label: 'Unknown', icon: DollarSign, color: 'text-gray-600 dark:text-gray-400' }
+
+  // Helper to get payment config with normalization for legacy data
+  const getPaymentConfig = (method: string) => {
+    const normalized = normalizePaymentMethod(method)
+    return normalized ? paymentMethodConfig[normalized] : defaultPaymentConfig
+  }
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -201,7 +216,7 @@ export function ExpensesTable({
         </thead>
         <tbody className="bg-white dark:bg-stone-800">
           {sortedExpenses.map((expense, index) => {
-            const paymentConfig = paymentMethodConfig[expense.paymentMethod] || defaultPaymentConfig
+            const paymentConfig = getPaymentConfig(expense.paymentMethod)
             const PaymentIcon = paymentConfig.icon
 
             return (

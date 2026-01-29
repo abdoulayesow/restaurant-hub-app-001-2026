@@ -5,9 +5,10 @@ import { ChefHat, Package, Coins, Plus } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { CriticalIngredientsCard } from './CriticalIngredientsCard'
-import { ProductionReadinessCard } from './ProductionReadinessCard'
+import { ProductionCategoryChart } from './ProductionCategoryChart'
+import { getTodayDateString } from '@/lib/date-utils'
 
-type ProductionStatus = 'Planning' | 'Ready' | 'InProgress' | 'Complete'
+type ProductionStatus = 'Planning' | 'Complete'
 
 interface LowStockItem {
   id: string
@@ -25,6 +26,7 @@ interface ProductionLog {
   productNameFr?: string | null
   quantity: number
   preparationStatus: ProductionStatus
+  productionType?: 'Patisserie' | 'Boulangerie' | null
   date: string
   estimatedCostGNF?: number | null
 }
@@ -63,7 +65,7 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
     if (!currentRestaurant) return
 
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getTodayDateString()
       const response = await fetch(
         `/api/production?restaurantId=${currentRestaurant.id}&dateFrom=${today}&dateTo=${today}`
       )
@@ -88,30 +90,6 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
       fetchAll()
     }
   }, [currentRestaurant, fetchLowStockItems, fetchProductionLogs])
-
-  // Handle status change
-  const handleStatusChange = async (id: string, newStatus: ProductionStatus) => {
-    try {
-      const response = await fetch(`/api/production/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ preparationStatus: newStatus }),
-      })
-
-      if (response.ok) {
-        // Update local state
-        setProductionLogs((prev) =>
-          prev.map((log) =>
-            log.id === id ? { ...log, preparationStatus: newStatus } : log
-          )
-        )
-      }
-    } catch (error) {
-      console.error('Error updating status:', error)
-    }
-  }
 
   // Calculate summary stats
   const todaysProductionCount = productionLogs.length
@@ -229,11 +207,10 @@ export function BakingDashboard({ onAddProduction }: BakingDashboardProps) {
 
       {/* Main Dashboard Grid */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Production Status Card */}
-        <ProductionReadinessCard
+        {/* Production Category Chart */}
+        <ProductionCategoryChart
           productionLogs={productionLogs}
           loading={loading}
-          onStatusChange={handleStatusChange}
         />
 
         {/* Low Stock Alerts Card */}

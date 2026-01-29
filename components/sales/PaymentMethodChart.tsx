@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { PAYMENT_METHOD_COLORS } from '@/lib/constants/payment-methods'
 
 interface PaymentMethodData {
   name: string
@@ -23,11 +24,11 @@ interface PaymentMethodChartProps {
   card: number
 }
 
-// Payment method colors (semantic)
+// Payment method colors from centralized constants
 const PAYMENT_COLORS = {
-  cash: '#10b981',      // green-500 (physical money)
-  orangeMoney: '#f97316', // orange-500 (Orange Money brand)
-  card: '#3b82f6',      // blue-500 (digital/card)
+  cash: PAYMENT_METHOD_COLORS.Cash.hex,
+  orangeMoney: PAYMENT_METHOD_COLORS.OrangeMoney.hex,
+  card: PAYMENT_METHOD_COLORS.Card.hex,
 }
 
 export function PaymentMethodChart({ cash, orangeMoney, card }: PaymentMethodChartProps) {

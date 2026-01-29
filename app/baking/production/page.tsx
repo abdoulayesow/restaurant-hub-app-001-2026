@@ -8,8 +8,9 @@ import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { BakingDashboard, AddProductionModal } from '@/components/baking'
+import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
 
-type ProductionStatus = 'Planning' | 'Ready' | 'InProgress' | 'Complete'
+type ProductionStatus = 'Planning' | 'Complete'
 type SubmissionStatus = 'Pending' | 'Approved' | 'Rejected'
 
 interface ProductionLog {
@@ -62,18 +63,27 @@ export default function BakingProductionPage() {
     try {
       const today = new Date()
       let dateFrom: string
-      const dateTo = today.toISOString().split('T')[0]
+      // Use getTodayDateString for proper local timezone handling
+      const dateTo = getTodayDateString()
 
       if (selectedDateRange === 'today') {
         dateFrom = dateTo
       } else if (selectedDateRange === 'week') {
         const weekAgo = new Date(today)
         weekAgo.setDate(weekAgo.getDate() - 7)
-        dateFrom = weekAgo.toISOString().split('T')[0]
+        // Format using local date components
+        const year = weekAgo.getFullYear()
+        const month = String(weekAgo.getMonth() + 1).padStart(2, '0')
+        const day = String(weekAgo.getDate()).padStart(2, '0')
+        dateFrom = `${year}-${month}-${day}`
       } else {
         const monthAgo = new Date(today)
         monthAgo.setMonth(monthAgo.getMonth() - 1)
-        dateFrom = monthAgo.toISOString().split('T')[0]
+        // Format using local date components
+        const year = monthAgo.getFullYear()
+        const month = String(monthAgo.getMonth() + 1).padStart(2, '0')
+        const day = String(monthAgo.getDate()).padStart(2, '0')
+        dateFrom = `${year}-${month}-${day}`
       }
 
       const response = await fetch(
@@ -125,13 +135,13 @@ export default function BakingProductionPage() {
   }
 
   // Format date
+  // Use UTC-aware date formatting to prevent timezone shifts
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-FR' : 'en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   // Format currency
@@ -148,10 +158,6 @@ export default function BakingProductionPage() {
     switch (status) {
       case 'Planning':
         return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-      case 'Ready':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-      case 'InProgress':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
       case 'Complete':
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
       default:
@@ -162,8 +168,6 @@ export default function BakingProductionPage() {
   const getStatusLabel = (status: ProductionStatus) => {
     const labels: Record<ProductionStatus, string> = {
       Planning: t('production.statusPlanning') || 'Planning',
-      Ready: t('production.statusReady') || 'Ready',
-      InProgress: t('production.statusInProgress') || 'In Progress',
       Complete: t('production.statusComplete') || 'Complete',
     }
     return labels[status]
@@ -276,8 +280,6 @@ export default function BakingProductionPage() {
                 >
                   <option value="all">{t('common.all')} Status</option>
                   <option value="Planning">{t('production.statusPlanning')}</option>
-                  <option value="Ready">{t('production.statusReady')}</option>
-                  <option value="InProgress">{t('production.statusInProgress')}</option>
                   <option value="Complete">{t('production.statusComplete')}</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />

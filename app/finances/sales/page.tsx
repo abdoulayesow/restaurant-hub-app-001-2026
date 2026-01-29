@@ -49,6 +49,21 @@ interface Sale {
     dueDate: string
     description: string
   }>
+  saleItems?: Array<{
+    id?: string
+    productId: string | null
+    product?: {
+      id: string
+      name: string
+      nameFr: string | null
+      category: 'Patisserie' | 'Boulangerie'
+      unit: string
+    } | null
+    productName?: string | null
+    productNameFr?: string | null
+    quantity: number
+    unitPrice?: number | null
+  }>
 }
 
 interface SalesSummary {
@@ -84,6 +99,7 @@ export default function FinancesSalesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const isManager = session?.user?.role === 'Manager'
 
@@ -144,6 +160,7 @@ export default function FinancesSalesPage() {
     if (!currentRestaurant?.id) return
 
     setIsSaving(true)
+    setSaveError(null)
     try {
       const isEdit = !!saleData.id
       const url = isEdit ? `/api/sales/${saleData.id}` : '/api/sales'
@@ -161,14 +178,20 @@ export default function FinancesSalesPage() {
       if (res.ok) {
         setIsModalOpen(false)
         setSelectedSale(null)
+        setSaveError(null)
         fetchSales()
       } else {
-        const error = await res.json()
-        alert(error.error || 'Failed to save sale')
+        const errorData = await res.json()
+        // Handle specific error codes with translations
+        if (errorData.code === 'SALE_DUPLICATE_DATE') {
+          setSaveError(t('errors.saleDuplicateDate') || errorData.error)
+        } else {
+          setSaveError(errorData.error || t('errors.failedToSave') || 'Failed to save sale')
+        }
       }
     } catch (error) {
       console.error('Error saving sale:', error)
-      alert('Failed to save sale')
+      setSaveError(t('errors.failedToSave') || 'Failed to save sale')
     } finally {
       setIsSaving(false)
     }
@@ -266,6 +289,7 @@ export default function FinancesSalesPage() {
           <button
             onClick={() => {
               setSelectedSale(null)
+              setSaveError(null)
               setIsModalOpen(true)
             }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
@@ -471,6 +495,7 @@ export default function FinancesSalesPage() {
             <button
               onClick={() => {
                 setSelectedSale(null)
+                setSaveError(null)
                 setIsModalOpen(true)
               }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
@@ -488,10 +513,13 @@ export default function FinancesSalesPage() {
         onClose={() => {
           setIsModalOpen(false)
           setSelectedSale(null)
+          setSaveError(null)
         }}
         onSave={handleSaveSale}
         sale={selectedSale}
         loading={isSaving}
+        error={saveError}
+        existingDates={sales.map(s => s.date)}
       />
 
       {/* Quick Actions Menu - Floating */}

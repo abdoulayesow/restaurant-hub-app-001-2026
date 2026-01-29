@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { parseToUTCDate, parseToUTCEndOfDay } from '@/lib/date-utils'
 
 // GET /api/sales - List sales for a bakery
 export async function GET(request: NextRequest) {
@@ -52,10 +53,10 @@ export async function GET(request: NextRequest) {
     if (startDate || endDate) {
       where.date = {}
       if (startDate) {
-        where.date.gte = new Date(startDate)
+        where.date.gte = parseToUTCDate(startDate)
       }
       if (endDate) {
-        where.date.lte = new Date(endDate)
+        where.date.lte = parseToUTCEndOfDay(endDate)
       }
     }
 
@@ -65,6 +66,19 @@ export async function GET(request: NextRequest) {
       orderBy: { date: 'desc' },
       include: {
         cashDeposit: true,
+        saleItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                nameFr: true,
+                category: true,
+                unit: true
+              }
+            }
+          }
+        },
         debts: {
           where: {
             status: {
@@ -194,6 +208,7 @@ export async function POST(request: NextRequest) {
       closingTime,
       comments,
       debts = [], // Optional debts array
+      saleItems = [], // Optional product sales tracking
     } = body
 
     if (!restaurantId || !date) {
@@ -224,8 +239,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Check for existing sale on the same date (one sale per day per restaurant)
-    const saleDate = new Date(date)
-    saleDate.setHours(0, 0, 0, 0)
+    const saleDate = parseToUTCDate(date)
 
     const existingSale = await prisma.sale.findUnique({
       where: {
@@ -238,7 +252,11 @@ export async function POST(request: NextRequest) {
 
     if (existingSale) {
       return NextResponse.json(
-        { error: 'A sale already exists for this date. Please edit the existing record.' },
+        {
+          error: 'A sale already exists for this date. Please edit the existing record.',
+          code: 'SALE_DUPLICATE_DATE',
+          existingSaleId: existingSale.id
+        },
         { status: 409 }
       )
     }
@@ -312,6 +330,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validate saleItems if provided
+    if (saleItems.length > 0) {
+      for (const item of saleItems) {
+        if (!item.quantity || item.quantity <= 0) {
+          return NextResponse.json(
+            { error: 'Each sale item must have a positive quantity' },
+            { status: 400 }
+          )
+        }
+
+        // If productId is provided, verify it exists and belongs to this restaurant
+        if (item.productId) {
+          const product = await prisma.product.findUnique({
+            where: { id: item.productId }
+          })
+
+          if (!product) {
+            return NextResponse.json(
+              { error: `Product not found: ${item.productId}` },
+              { status: 404 }
+            )
+          }
+
+          if (product.restaurantId !== restaurantId) {
+            return NextResponse.json(
+              { error: 'Product does not belong to this restaurant' },
+              { status: 400 }
+            )
+          }
+        }
+      }
+    }
+
     // Calculate credit total
     const creditTotal = debts.reduce((sum: number, debt: { amountGNF: number }) => sum + debt.amountGNF, 0)
 
@@ -361,11 +412,38 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // Create sale items if any (optional product tracking)
+      if (saleItems.length > 0) {
+        await tx.saleItem.createMany({
+          data: saleItems.map((item: { productId?: string; productName?: string; productNameFr?: string; quantity: number; unitPrice?: number }) => ({
+            saleId: sale.id,
+            productId: item.productId || null,
+            productName: item.productName?.trim() || null,
+            productNameFr: item.productNameFr?.trim() || null,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice || null
+          }))
+        })
+      }
+
       // Fetch created sale with relations
       const saleWithRelations = await tx.sale.findUnique({
         where: { id: sale.id },
         include: {
           cashDeposit: true,
+          saleItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  nameFr: true,
+                  category: true,
+                  unit: true
+                }
+              }
+            }
+          },
           debts: {
             include: {
               customer: {

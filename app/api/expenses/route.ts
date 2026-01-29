@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { normalizePaymentMethod, PAYMENT_METHOD_VALUES } from '@/lib/constants/payment-methods'
 
 // GET /api/expenses - List expenses for a bakery
 export async function GET(request: NextRequest) {
@@ -278,6 +279,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate payment method
+    const normalizedPaymentMethod = normalizePaymentMethod(paymentMethod)
+    if (!normalizedPaymentMethod) {
+      return NextResponse.json(
+        { error: `Invalid payment method: ${paymentMethod}. Allowed methods: ${PAYMENT_METHOD_VALUES.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
     // Validate amount
     if (amountGNF <= 0) {
       return NextResponse.json(
@@ -346,7 +356,7 @@ export async function POST(request: NextRequest) {
           categoryName,
           amountGNF,
           amountEUR,
-          paymentMethod,
+          paymentMethod: normalizedPaymentMethod,
           description: description || null,
           receiptUrl: receiptUrl || null,
           comments: comments || null,

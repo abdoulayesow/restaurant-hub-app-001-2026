@@ -123,6 +123,7 @@ model Restaurant {
   inventoryItems       InventoryItem[]
   stockMovements       StockMovement[]
   productionLogs       ProductionLog[]
+  products             Product[]        // Product catalog for production
   sales                Sale[]
   expenses             Expense[]
   cashDeposits         CashDeposit[]    // Deprecated: use bankTransactions
@@ -211,9 +212,10 @@ model ProductionLog {
   restaurantId        String
   restaurant          Restaurant        @relation(fields: [restaurantId], references: [id])
   date                DateTime
-  productName         String
+  productionType      ProductCategory?  // Patisserie or Boulangerie
+  productName         String            // Legacy: single product name (kept for backward compatibility)
   productNameFr       String?
-  quantity            Int
+  quantity            Int               // Legacy: single product quantity
   ingredients         Json              // Basic recipe ingredients list
   ingredientDetails   Json?             // Detailed breakdown: [{itemId, itemName, plannedQty, actualQty, unit}]
   estimatedCostGNF    Float?            // Calculated cost from ingredients
@@ -227,18 +229,60 @@ model ProductionLog {
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   stockMovements      StockMovement[]
+  productionItems     ProductionItem[]  // Multi-product support
 
   @@index([restaurantId])
   @@index([date])
   @@index([status])
   @@index([preparationStatus])
+  @@index([productionType])
 }
 
 enum ProductionStatus {
   Planning    // Production is being planned
-  Ready       // All ingredients available, ready to start
-  InProgress  // Production is underway
   Complete    // Production finished
+}
+
+enum ProductCategory {
+  Patisserie  // Pastry products (croissants, pain au chocolat, etc.)
+  Boulangerie // Bread products (baguettes, etc.)
+}
+
+// Product catalog for production tracking
+model Product {
+  id             String          @id @default(uuid())
+  restaurantId   String
+  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name           String
+  nameFr         String?
+  category       ProductCategory
+  unit           String          @default("piece") // piece, loaf, dozen
+  standardRecipe Json?           // [{ itemId, quantity, unit }]
+  isActive       Boolean         @default(true)
+  sortOrder      Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  productionItems ProductionItem[]
+  saleItems       SaleItem[]      // Products sold in sales
+
+  @@index([restaurantId])
+  @@index([category])
+  @@index([isActive])
+  @@index([restaurantId, category, isActive])
+}
+
+// Junction table for ProductionLog <-> Product (multi-product production)
+model ProductionItem {
+  id              String        @id @default(uuid())
+  productionLogId String
+  productionLog   ProductionLog @relation(fields: [productionLogId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  quantity        Int
+
+  @@index([productionLogId])
+  @@index([productId])
 }
 
 // ============================================================================
@@ -274,11 +318,33 @@ model Sale {
   cashDeposit        CashDeposit?     // Deprecated: use bankTransaction
   bankTransaction    BankTransaction? @relation("BankTransactionSale")
   debts              Debt[]
+  saleItems          SaleItem[]       // Optional product breakdown
 
   @@unique([restaurantId, date]) // One sale per restaurant per day
   @@index([restaurantId])
   @@index([date])
   @@index([status])
+}
+
+// Junction table for Sale <-> Product (optional product sales tracking)
+model SaleItem {
+  id            String   @id @default(uuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId     String?  // Optional: links to Product catalog
+  product       Product? @relation(fields: [productId], references: [id])
+
+  // Manual entry (if product not in catalog)
+  productName   String?
+  productNameFr String?
+
+  quantity      Int
+  unitPrice     Float?   // Optional: unit price per item
+
+  createdAt     DateTime @default(now())
+
+  @@index([saleId])
+  @@index([productId])
 }
 
 enum SubmissionStatus {

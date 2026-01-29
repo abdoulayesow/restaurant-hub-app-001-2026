@@ -1,9 +1,10 @@
 'use client'
 
-import { ChefHat, Clock, CheckCircle2, PlayCircle, FileEdit } from 'lucide-react'
+import { ChefHat, Clock, CheckCircle2, FileEdit } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { getTodayDateString } from '@/lib/date-utils'
 
-type ProductionStatus = 'Planning' | 'Ready' | 'InProgress' | 'Complete'
+type ProductionStatus = 'Planning' | 'Complete'
 
 interface ProductionLog {
   id: string
@@ -35,18 +36,6 @@ const statusConfig: Record<
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     borderColor: 'border-blue-200 dark:border-blue-800',
   },
-  Ready: {
-    icon: CheckCircle2,
-    color: 'text-green-600 dark:text-green-400',
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
-    borderColor: 'border-green-200 dark:border-green-800',
-  },
-  InProgress: {
-    icon: PlayCircle,
-    color: 'text-amber-600 dark:text-amber-400',
-    bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-    borderColor: 'border-amber-200 dark:border-amber-800',
-  },
   Complete: {
     icon: CheckCircle2,
     color: 'text-emerald-600 dark:text-emerald-400',
@@ -72,7 +61,7 @@ export function ProductionReadinessCard({
   )
 
   // Get today's logs (for the mini list)
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayDateString()
   const todaysLogs = productionLogs.filter(
     (log) => log.date.split('T')[0] === today
   )
@@ -80,8 +69,6 @@ export function ProductionReadinessCard({
   const getStatusLabel = (status: ProductionStatus) => {
     const labels: Record<ProductionStatus, string> = {
       Planning: t('production.statusPlanning') || 'Planning',
-      Ready: t('production.statusReady') || 'Ready',
-      InProgress: t('production.statusInProgress') || 'In Progress',
       Complete: t('production.statusComplete') || 'Complete',
     }
     return labels[status]
@@ -124,8 +111,8 @@ export function ProductionReadinessCard({
       </div>
 
       {/* Status Grid */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
-        {(['Planning', 'Ready', 'InProgress', 'Complete'] as ProductionStatus[]).map(
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {(['Planning', 'Complete'] as ProductionStatus[]).map(
           (status) => {
             const config = statusConfig[status]
             const Icon = config.icon
@@ -202,8 +189,6 @@ export function ProductionReadinessCard({
                     `}
                   >
                     <option value="Planning">{getStatusLabel('Planning')}</option>
-                    <option value="Ready">{getStatusLabel('Ready')}</option>
-                    <option value="InProgress">{getStatusLabel('InProgress')}</option>
                     <option value="Complete">{getStatusLabel('Complete')}</option>
                   </select>
                 )}

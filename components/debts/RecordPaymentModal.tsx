@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, DollarSign, Calendar, CreditCard, FileText, Receipt } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { PAYMENT_METHODS, PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 interface Debt {
   id: string
@@ -107,8 +108,6 @@ export default function RecordPaymentModal({
     }
   }
 
-  const paymentMethods = ['Cash', 'Orange Money', 'Card']
-
   return (
     <>
       {/* Backdrop */}
@@ -210,12 +209,12 @@ export default function RecordPaymentModal({
               <select
                 required
                 value={formData.paymentMethod}
-                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as PaymentMethodValue })}
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100"
                 disabled={isSubmitting}
               >
-                {paymentMethods.map(method => (
-                  <option key={method} value={method}>{method}</option>
+                {PAYMENT_METHODS.map(method => (
+                  <option key={method.value} value={method.value}>{method.displayName}</option>
                 ))}
               </select>
             </div>
