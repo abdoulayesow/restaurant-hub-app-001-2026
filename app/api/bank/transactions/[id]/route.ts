@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canAccessBank } from '@/lib/roles'
 
 // GET /api/bank/transactions/[id] - Get a single bank transaction
 export async function GET(
@@ -17,9 +17,9 @@ export async function GET(
     }
 
     // Check manager role
-    if (!isManagerRole(session.user.role)) {
+    if (!canAccessBank(session.user.role)) {
       return NextResponse.json(
-        { error: 'Only managers can access bank transactions' },
+        { error: 'Only owners can access bank transactions' },
         { status: 403 }
       )
     }
@@ -119,9 +119,9 @@ export async function PUT(
     }
 
     // Check manager role
-    if (!isManagerRole(session.user.role)) {
+    if (!canAccessBank(session.user.role)) {
       return NextResponse.json(
-        { error: 'Only managers can update bank transactions' },
+        { error: 'Only owners can update bank transactions' },
         { status: 403 }
       )
     }
@@ -153,6 +153,14 @@ export async function PUT(
       )
     }
 
+    // Prevent modification of confirmed transactions
+    if (existingTransaction.status === 'Confirmed') {
+      return NextResponse.json(
+        { error: 'Confirmed transactions cannot be modified' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
     const {
       status,
@@ -172,7 +180,7 @@ export async function PUT(
       description?: string | null
     } = {}
 
-    // Handle status change
+    // Handle status change (only Pending transactions reach this point)
     if (status !== undefined) {
       if (status !== 'Pending' && status !== 'Confirmed') {
         return NextResponse.json(
@@ -182,11 +190,9 @@ export async function PUT(
       }
       updateData.status = status
 
-      // Set confirmedAt when confirming
-      if (status === 'Confirmed' && existingTransaction.status !== 'Confirmed') {
+      // Set confirmedAt when confirming (existingTransaction.status is always 'Pending' here)
+      if (status === 'Confirmed') {
         updateData.confirmedAt = new Date()
-      } else if (status === 'Pending') {
-        updateData.confirmedAt = null
       }
     }
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canAccessBank } from '@/lib/roles'
 
 // GET /api/bank/balances - Get current balances for a bakery
 // Calculates from initial balances + BankTransaction deposits - withdrawals
@@ -41,10 +41,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Only managers can view bank balances
-    if (!isManagerRole(session.user.role)) {
+    // Only owners can view bank balances
+    if (!canAccessBank(session.user.role)) {
       return NextResponse.json(
-        { error: 'Only managers can view bank balances' },
+        { error: 'Only owners can view bank balances' },
         { status: 403 }
       )
     }

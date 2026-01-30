@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canAccessBank } from '@/lib/roles'
 
 // GET /api/debts/[id]/payments - List payments for a debt
 export async function GET(
@@ -138,6 +139,14 @@ export async function POST(
     if (!userRestaurant) {
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    // Check owner role - only owners can record debt payments (creates bank transaction)
+    if (!canAccessBank(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Only owners can record debt payments' },
         { status: 403 }
       )
     }

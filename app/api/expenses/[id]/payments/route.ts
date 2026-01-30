@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canAccessBank } from '@/lib/roles'
 
 // GET /api/expenses/[id]/payments - List all payments for an expense
 export async function GET(
@@ -97,10 +97,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check manager role - only managers can record payments
-    if (!isManagerRole(session.user.role)) {
+    // Check owner role - only owners can record expense payments (creates bank transaction)
+    if (!canAccessBank(session.user.role)) {
       return NextResponse.json(
-        { error: 'Only managers can record expense payments' },
+        { error: 'Only owners can record expense payments' },
         { status: 403 }
       )
     }

@@ -19,6 +19,13 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { CustomersTab } from '@/components/admin/CustomersTab'
 
+interface ApiCustomer {
+  isActive: boolean
+  creditLimit: number | null
+  outstandingDebt: number | null
+  customerType: 'Individual' | 'Corporate' | 'Wholesale'
+}
+
 interface ClientStats {
   totalCustomers: number
   activeCustomers: number
@@ -57,16 +64,16 @@ export default function FinancesClientsPage() {
       const res = await fetch(`/api/customers?restaurantId=${currentRestaurant.id}`)
       if (res.ok) {
         const data = await res.json()
-        const customers = data.customers || []
+        const customers: ApiCustomer[] = data.customers || []
 
         // Calculate stats
-        const activeCustomers = customers.filter((c: any) => c.isActive)
-        const creditCustomers = customers.filter((c: any) => c.creditLimit && c.creditLimit > 0)
+        const activeCustomers = customers.filter((c) => c.isActive)
+        const creditCustomers = customers.filter((c) => c.creditLimit && c.creditLimit > 0)
         const customersWithDebt = customers.filter(
-          (c: any) => c.outstandingDebt && c.outstandingDebt > 0
+          (c) => c.outstandingDebt && c.outstandingDebt > 0
         )
         const totalDebt = customersWithDebt.reduce(
-          (sum: number, c: any) => sum + (c.outstandingDebt || 0),
+          (sum: number, c) => sum + (c.outstandingDebt || 0),
           0
         )
 
@@ -77,9 +84,9 @@ export default function FinancesClientsPage() {
           totalOutstandingDebt: totalDebt,
           customersWithDebt: customersWithDebt.length,
           averageDebt: customersWithDebt.length > 0 ? totalDebt / customersWithDebt.length : 0,
-          corporateCount: customers.filter((c: any) => c.customerType === 'Corporate').length,
-          individualCount: customers.filter((c: any) => c.customerType === 'Individual').length,
-          wholesaleCount: customers.filter((c: any) => c.customerType === 'Wholesale').length,
+          corporateCount: customers.filter((c) => c.customerType === 'Corporate').length,
+          individualCount: customers.filter((c) => c.customerType === 'Individual').length,
+          wholesaleCount: customers.filter((c) => c.customerType === 'Wholesale').length,
         })
       }
     } catch (error) {
@@ -138,7 +145,7 @@ export default function FinancesClientsPage() {
 
         {/* Stats Grid */}
         {!loading && stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8 animate-in fade-in duration-500">
             {/* Total Customers Card */}
             <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-3">

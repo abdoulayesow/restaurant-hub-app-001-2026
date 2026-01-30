@@ -611,7 +611,14 @@
     "lastUpdated": "Last updated",
     "contactInfo": "Contact Information",
     "financialInfo": "Financial Information",
-    "noOutstandingDebt": "No outstanding debt"
+    "noOutstandingDebt": "No outstanding debt",
+    "phonePlaceholder": "+224 XXX XX XX XX",
+    "emailPlaceholder": "customer@example.com",
+    "creditLimitPlaceholder": "0",
+    "errors": {
+      "saveFailed": "Failed to save customer",
+      "updateFailed": "Failed to update customer"
+    }
   },
   "expenses": {
     "title": "Expenses",
@@ -850,7 +857,10 @@
     }
   },
   "validation": {
-    "required": "Required"
+    "required": "Required",
+    "nameRequired": "Name is required",
+    "invalidEmail": "Invalid email format",
+    "mustBePositive": "Must be a positive number"
   },
   "categories": {
     "dryGoods": "Dry Goods",

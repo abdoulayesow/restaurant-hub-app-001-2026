@@ -96,15 +96,15 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
     const newErrors: Record<string, string> = {}
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Customer name is required'
+      newErrors.name = t('validation.nameRequired') || 'Name is required'
     }
 
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format'
+      newErrors.email = t('validation.invalidEmail') || 'Invalid email format'
     }
 
     if (formData.creditLimit && parseFloat(formData.creditLimit) < 0) {
-      newErrors.creditLimit = 'Credit limit must be positive'
+      newErrors.creditLimit = t('validation.mustBePositive') || 'Must be positive'
     }
 
     setErrors(newErrors)
@@ -185,10 +185,10 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
         handleCloseModal()
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to save customer')
+        alert(data.error || t('clients.errors.saveFailed'))
       }
     } catch (error) {
-      alert('Failed to save customer')
+      alert(t('clients.errors.saveFailed'))
       console.error(error)
     } finally {
       setSaving(false)
@@ -222,10 +222,10 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
         if (onStatsUpdate) onStatsUpdate()
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to update customer')
+        alert(data.error || t('clients.errors.updateFailed'))
       }
     } catch (error) {
-      alert('Failed to update customer')
+      alert(t('clients.errors.updateFailed'))
       console.error(error)
     }
   }
@@ -293,7 +293,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
           </div>
 
           <div className="flex gap-2">
-            <label className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-stone-600 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors">
+            <label className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-stone-300 border border-gray-300 dark:border-stone-600 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors">
               <input
                 type="checkbox"
                 checked={showInactive}
@@ -319,28 +319,28 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
         <table className="w-full">
           <thead className="bg-gray-50 dark:bg-stone-700/50 border-b border-gray-200 dark:border-stone-600">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.clientName')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.clientType')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.phone')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.email')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.outstandingDebt')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.creditLimit')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.status')}
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('common.actions')}
               </th>
             </tr>
@@ -348,14 +348,14 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
           <tbody className="divide-y divide-gray-200 dark:divide-stone-700">
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-stone-400">
                   {t('clients.noClients')}
                 </td>
               </tr>
             ) : (
               filteredCustomers.map((customer) => {
                 const TypeIcon = customerTypeIcons[customer.customerType]
-                const hasDebt = customer.outstandingDebt && customer.outstandingDebt > 0
+                const hasDebt = Boolean(customer.outstandingDebt && customer.outstandingDebt > 0)
                 return (
                   <tr
                     key={customer.id}
@@ -367,13 +367,13 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                         {customer.name}
                       </div>
                       {customer.company && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        <div className="text-xs text-gray-500 dark:text-stone-400 mt-0.5">
                           {customer.company}
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-1.5 text-gray-600 dark:text-stone-400">
                         <TypeIcon className="w-4 h-4" />
                         <span>
                           {customer.customerType === 'Individual' && t('clients.individual')}
@@ -382,10 +382,10 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-stone-400">
                       {customer.phone || '-'}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-stone-400">
                       {customer.email || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm">
@@ -404,14 +404,14 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                         <span className="text-gray-400 dark:text-stone-500 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-stone-400">
                       {customer.creditLimit ? formatCurrency(customer.creditLimit) : '-'}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         customer.isActive
                           ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'
+                          : 'bg-gray-100 text-gray-800 dark:bg-stone-700 dark:text-stone-400'
                       }`}>
                         {customer.isActive ? t('clients.activeStatus') : t('clients.inactiveStatus')}
                       </span>
@@ -420,7 +420,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                       <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleViewCustomer(customer)}
-                          className="p-1.5 text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-600 rounded transition-colors"
+                          className="p-1.5 text-gray-600 hover:text-gray-700 dark:text-stone-400 dark:hover:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-600 rounded transition-colors"
                           title={t('common.view')}
                         >
                           <Eye className="w-4 h-4" />
@@ -481,7 +481,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -491,7 +491,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                     {t('clients.clientName')} *
                   </label>
                   <input
@@ -507,7 +507,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                     {t('clients.clientType')}
                   </label>
                   <select
@@ -523,7 +523,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                   {t('clients.company')}
                 </label>
                 <input
@@ -537,7 +537,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                     {t('clients.phone')}
                   </label>
                   <input
@@ -545,12 +545,12 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100"
-                    placeholder="+224 XXX XX XX XX"
+                    placeholder={t('clients.phonePlaceholder')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                     {t('clients.email')}
                   </label>
                   <input
@@ -560,14 +560,14 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                     className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 transition-colors ${
                       errors.email ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                     }`}
-                    placeholder="customer@example.com"
+                    placeholder={t('clients.emailPlaceholder')}
                   />
                   {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                   {t('clients.address')}
                 </label>
                 <textarea
@@ -580,7 +580,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                   {t('clients.creditLimitGNF')}
                 </label>
                 <input
@@ -590,17 +590,17 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                   className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100 transition-colors ${
                     errors.creditLimit ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'
                   }`}
-                  placeholder="0"
+                  placeholder={t('clients.creditLimitPlaceholder')}
                   min="0"
                 />
                 {errors.creditLimit && <p className="mt-1 text-sm text-red-500">{errors.creditLimit}</p>}
-                <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1.5 text-xs text-gray-500 dark:text-stone-400">
                   {t('clients.creditLimitHint')}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-1.5">
                   {t('clients.notes')}
                 </label>
                 <textarea
@@ -617,7 +617,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-stone-700 bg-gray-50 dark:bg-stone-800/50">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-stone-700 rounded-lg transition-colors font-medium"
+                className="px-4 py-2.5 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-700 rounded-lg transition-colors font-medium"
               >
                 {t('common.cancel')}
               </button>
@@ -654,7 +654,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
               </h3>
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -678,13 +678,13 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                     viewingCustomer.isActive
                       ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'
+                      : 'bg-gray-100 text-gray-800 dark:bg-stone-700 dark:text-stone-400'
                   }`}>
                     {viewingCustomer.isActive ? t('clients.activeStatus') : t('clients.inactiveStatus')}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-stone-400">
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-stone-400">
                   {(() => {
                     const TypeIcon = customerTypeIcons[viewingCustomer.customerType]
                     return (
@@ -796,7 +796,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-stone-700 bg-gray-50 dark:bg-stone-800/50">
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-stone-700 rounded-lg transition-colors font-medium"
+                className="px-4 py-2.5 text-gray-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-700 rounded-lg transition-colors font-medium"
               >
                 {t('common.close')}
               </button>

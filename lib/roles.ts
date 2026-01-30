@@ -125,7 +125,7 @@ export function canAccessAdmin(role: UserRole | string | null | undefined): bool
 
 // Can access bank pages (/finances/bank) - Owner only
 export function canAccessBank(role: UserRole | string | null | undefined): boolean {
-  return isOwner(role) || role === 'Manager' // Legacy
+  return isOwner(role)
 }
 
 // Can view inventory (read-only access) - All roles

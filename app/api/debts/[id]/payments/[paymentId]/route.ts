@@ -160,8 +160,13 @@ export async function DELETE(
       )
     }
 
-    // Use transaction to delete payment and update debt atomically
+    // Use transaction to delete payment, related bank transaction, and update debt atomically
     await prisma.$transaction(async (tx) => {
+      // First, delete any associated bank transaction (DebtCollection)
+      await tx.bankTransaction.deleteMany({
+        where: { debtPaymentId: paymentId }
+      })
+
       // Delete payment
       await tx.debtPayment.delete({
         where: { id: paymentId }

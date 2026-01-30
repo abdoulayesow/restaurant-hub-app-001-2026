@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canAccessBank } from '@/lib/roles'
 import { Prisma } from '@prisma/client'
 
 // GET /api/bank/transactions - List bank transactions for a restaurant
@@ -47,10 +47,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check manager role for bank access
-    if (!isManagerRole(session.user.role)) {
+    // Check owner role for bank access
+    if (!canAccessBank(session.user.role)) {
       return NextResponse.json(
-        { error: 'Only managers can access bank transactions' },
+        { error: 'Only owners can access bank transactions' },
         { status: 403 }
       )
     }
@@ -176,10 +176,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check manager role
-    if (!isManagerRole(session.user.role)) {
+    // Check owner role for bank access
+    if (!canAccessBank(session.user.role)) {
       return NextResponse.json(
-        { error: 'Only managers can create bank transactions' },
+        { error: 'Only owners can create bank transactions' },
         { status: 403 }
       )
     }

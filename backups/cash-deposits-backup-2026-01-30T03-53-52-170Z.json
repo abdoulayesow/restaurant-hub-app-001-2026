@@ -1,0 +1,18 @@
+[
+  {
+    "id": "e4be03a4-c9bd-464f-9a60-48b6238b42d4",
+    "restaurantId": "bakery-conakry-main",
+    "date": "2026-01-26T00:00:00.000Z",
+    "amount": 1000000,
+    "status": "Pending",
+    "bankRef": "765765767",
+    "receiptUrl": null,
+    "comments": "Depot deposé à la banque",
+    "depositedBy": "5e47d956-0de7-4e9f-9192-487161818b8a",
+    "depositedByName": "Abdoulaye Sow",
+    "depositedAt": null,
+    "saleId": "44cf5cab-80e7-49dc-962f-b13179203aba",
+    "createdAt": "2026-01-29T23:19:42.309Z",
+    "updatedAt": "2026-01-29T23:19:42.309Z"
+  }
+]

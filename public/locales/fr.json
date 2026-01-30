@@ -607,7 +607,14 @@
     "lastUpdated": "Dernière mise à jour",
     "contactInfo": "Informations de contact",
     "financialInfo": "Informations financières",
-    "noOutstandingDebt": "Aucune dette en cours"
+    "noOutstandingDebt": "Aucune dette en cours",
+    "phonePlaceholder": "+224 XXX XX XX XX",
+    "emailPlaceholder": "client@exemple.com",
+    "creditLimitPlaceholder": "0",
+    "errors": {
+      "saveFailed": "Échec de l'enregistrement du client",
+      "updateFailed": "Échec de la mise à jour du client"
+    }
   },
   "expenses": {
     "title": "Dépenses",
@@ -846,7 +853,10 @@
     }
   },
   "validation": {
-    "required": "Requis"
+    "required": "Requis",
+    "nameRequired": "Le nom est requis",
+    "invalidEmail": "Format d'email invalide",
+    "mustBePositive": "Doit être un nombre positif"
   },
   "categories": {
     "dryGoods": "Produits secs",
