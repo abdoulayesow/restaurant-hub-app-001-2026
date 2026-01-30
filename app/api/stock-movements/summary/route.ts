@@ -59,6 +59,14 @@ export async function GET(request: NextRequest) {
     const movements = await prisma.stockMovement.findMany({
       where: whereConditions,
       orderBy: { createdAt: 'asc' },
+      include: {
+        item: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     })
 
     // Calculate aggregations
@@ -77,6 +85,8 @@ export async function GET(request: NextRequest) {
       Usage: { type: 'Usage', count: 0, totalQuantity: 0 },
       Waste: { type: 'Waste', count: 0, totalQuantity: 0 },
       Adjustment: { type: 'Adjustment', count: 0, totalQuantity: 0 },
+      TransferOut: { type: 'TransferOut', count: 0, totalQuantity: 0 },
+      TransferIn: { type: 'TransferIn', count: 0, totalQuantity: 0 },
     }
 
     movements.forEach((movement) => {
@@ -115,6 +125,26 @@ export async function GET(request: NextRequest) {
     // Calculate average cost
     const averageCost = costCount > 0 ? totalCost / costCount : 0
 
+    // Calculate top items by movement count
+    const itemMovementCounts: Record<string, { itemId: string; name: string; movementCount: number }> = {}
+    movements.forEach((movement) => {
+      if (movement.item) {
+        const itemId = movement.item.id
+        if (!itemMovementCounts[itemId]) {
+          itemMovementCounts[itemId] = {
+            itemId,
+            name: movement.item.name,
+            movementCount: 0,
+          }
+        }
+        itemMovementCounts[itemId].movementCount++
+      }
+    })
+
+    const topItems = Object.values(itemMovementCounts)
+      .sort((a, b) => b.movementCount - a.movementCount)
+      .slice(0, 10)
+
     return NextResponse.json({
       totalPurchases,
       totalUsage,
@@ -124,6 +154,7 @@ export async function GET(request: NextRequest) {
       averageCost: Math.round(averageCost * 100) / 100, // Round to 2 decimal places
       movementsByType: Object.values(movementsByType),
       totalMovements: movements.length,
+      topItems,
     })
   } catch (error) {
     console.error('Error fetching stock movement summary:', error)

@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canApprove } from '@/lib/roles'
 
-// PUT /api/cash-deposits/[id] - Update deposit status (mark as deposited)
+// PUT /api/cash-deposits/[id] - Update deposit status (mark as confirmed)
+// Now uses BankTransaction instead of CashDeposit
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,42 +17,30 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can update cash deposits' },
-        { status: 403 }
-      )
-    }
-
     const { id } = await params
     const body = await request.json()
 
-    // Check if deposit exists
-    const existingDeposit = await prisma.cashDeposit.findUnique({
+    // Check if bank transaction exists
+    const existingTransaction = await prisma.bankTransaction.findUnique({
       where: { id }
     })
 
-    if (!existingDeposit) {
+    if (!existingTransaction) {
       return NextResponse.json(
         { error: 'Deposit not found' },
         { status: 404 }
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
           userId: session.user.id,
-          restaurantId: existingDeposit.restaurantId
+          restaurantId: existingTransaction.restaurantId
         }
-      }
+      },
+      select: { role: true }
     })
 
     if (!userRestaurant) {
@@ -60,39 +50,51 @@ export async function PUT(
       )
     }
 
-    // Validate status
-    if (body.status && body.status !== 'Pending' && body.status !== 'Deposited') {
+    if (!canApprove(userRestaurant.role)) {
       return NextResponse.json(
-        { error: 'Invalid status. Must be "Pending" or "Deposited"' },
+        { error: 'Only owners can update cash deposits' },
+        { status: 403 }
+      )
+    }
+
+    // Validate status - map legacy values
+    let newStatus = body.status
+    if (newStatus === 'Deposited') {
+      newStatus = 'Confirmed' // Map legacy status
+    }
+    if (newStatus && newStatus !== 'Pending' && newStatus !== 'Confirmed') {
+      return NextResponse.json(
+        { error: 'Invalid status. Must be "Pending" or "Confirmed"' },
         { status: 400 }
       )
     }
 
-    // Parse depositedAt if provided
-    let depositedAt = existingDeposit.depositedAt
-    if (body.depositedAt) {
-      depositedAt = new Date(body.depositedAt)
-      if (isNaN(depositedAt.getTime())) {
+    // Parse confirmedAt if provided (legacy: depositedAt)
+    let confirmedAt = existingTransaction.confirmedAt
+    if (body.depositedAt || body.confirmedAt) {
+      confirmedAt = new Date(body.depositedAt || body.confirmedAt)
+      if (isNaN(confirmedAt.getTime())) {
         return NextResponse.json(
-          { error: 'Invalid depositedAt date format' },
+          { error: 'Invalid date format' },
           { status: 400 }
         )
       }
     }
 
-    // If marking as Deposited, set depositedAt to now if not provided
-    if (body.status === 'Deposited' && !depositedAt) {
-      depositedAt = new Date()
+    // If marking as Confirmed, set confirmedAt to now if not provided
+    if (newStatus === 'Confirmed' && !confirmedAt) {
+      confirmedAt = new Date()
     }
 
-    // Update deposit
-    const deposit = await prisma.cashDeposit.update({
+    // Update bank transaction
+    const transaction = await prisma.bankTransaction.update({
       where: { id },
       data: {
-        status: body.status || existingDeposit.status,
-        bankRef: body.bankRef?.trim() || existingDeposit.bankRef,
-        receiptUrl: body.receiptUrl?.trim() || existingDeposit.receiptUrl,
-        depositedAt: depositedAt
+        status: newStatus || existingTransaction.status,
+        bankRef: body.bankRef?.trim() || existingTransaction.bankRef,
+        receiptUrl: body.receiptUrl?.trim() || existingTransaction.receiptUrl,
+        confirmedAt: confirmedAt,
+        comments: body.comments?.trim() || existingTransaction.comments,
       },
       include: {
         sale: {
@@ -105,7 +107,26 @@ export async function PUT(
       }
     })
 
-    return NextResponse.json({ deposit })
+    // Return in legacy format for backward compatibility
+    return NextResponse.json({
+      deposit: {
+        id: transaction.id,
+        restaurantId: transaction.restaurantId,
+        date: transaction.date,
+        amount: transaction.amount,
+        status: transaction.status === 'Confirmed' ? 'Deposited' : 'Pending',
+        bankRef: transaction.bankRef,
+        receiptUrl: transaction.receiptUrl,
+        comments: transaction.comments,
+        depositedAt: transaction.confirmedAt,
+        depositedBy: transaction.createdBy,
+        depositedByName: transaction.createdByName,
+        saleId: transaction.saleId,
+        sale: transaction.sale,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+      }
+    })
   } catch (error) {
     console.error('Error updating cash deposit:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

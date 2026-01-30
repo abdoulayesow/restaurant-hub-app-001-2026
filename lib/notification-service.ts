@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma'
 import { sendSMS } from '@/lib/sms'
 import { smsTemplates } from '@/lib/sms-templates'
+import { isOwner } from '@/lib/roles'
 
 type NotificationType = 'low_stock' | 'critical_stock' | 'expense_approved' | 'expense_rejected' |
         'sale_approved' | 'sale_rejected' | 'pending_approval' | 'daily_summary' | 'large_expense' |
@@ -116,7 +117,7 @@ async function getRecipients(
     where: { restaurantId },
     include: {
       user: {
-        select: { id: true, phone: true, role: true },
+        select: { id: true, phone: true },
       },
     },
   })
@@ -124,7 +125,8 @@ async function getRecipients(
   for (const ur of userRestaurants) {
     if (!ur.user.phone) continue
 
-    if (recipientType === 'manager' && ur.user.role === 'Manager') {
+    // Check per-restaurant role for manager recipient type
+    if (recipientType === 'manager' && isOwner(ur.role)) {
       recipients.push({ userId: ur.user.id, phone: ur.user.phone })
     } else if (recipientType === 'all_staff') {
       recipients.push({ userId: ur.user.id, phone: ur.user.phone })

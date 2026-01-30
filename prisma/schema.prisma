@@ -58,10 +58,12 @@ model User {
 }
 
 // Junction table for User <-> Restaurant (many-to-many)
+// Role is stored here to allow different roles per restaurant
 model UserRestaurant {
   id           String     @id @default(uuid())
   userId       String
   restaurantId String
+  role         UserRole   @default(RestaurantManager) // Role at this specific restaurant
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
@@ -69,6 +71,7 @@ model UserRestaurant {
   @@unique([userId, restaurantId])
   @@index([userId])
   @@index([restaurantId])
+  @@index([role])
 }
 
 model VerificationToken {
@@ -80,6 +83,13 @@ model VerificationToken {
 }
 
 enum UserRole {
+  // New RBAC roles
+  Owner           // Full access to all pages (analytics, approvals, settings)
+  RestaurantManager // Can record production, sales, expenses via /editor
+  Baker           // Can record production only via /editor
+  PastryChef      // Can record production only via /editor
+  Cashier         // Can record sales and expenses only via /editor
+  // Legacy values (for backward compatibility)
   Editor
   Manager
 }
@@ -126,7 +136,6 @@ model Restaurant {
   products             Product[]        // Product catalog for production
   sales                Sale[]
   expenses             Expense[]
-  cashDeposits         CashDeposit[]    // Deprecated: use bankTransactions
   bankTransactions     BankTransaction[]
   dailySummaries       DailySummary[]
   paymentMethods       PaymentMethod[]
@@ -135,6 +144,8 @@ model Restaurant {
   debts                Debt[]
   debtPayments         DebtPayment[]
   stockReconciliations StockReconciliation[]
+  transfersOut         InventoryTransfer[]  @relation("TransfersOut")
+  transfersIn          InventoryTransfer[]  @relation("TransfersIn")
 
   @@index([isActive])
   @@index([restaurantType])
@@ -163,6 +174,8 @@ model InventoryItem {
   stockMovements       StockMovement[]
   expenseItems         ExpenseItem[]
   reconciliationItems  ReconciliationItem[]
+  transfersFrom        InventoryTransfer[]  @relation("TransfersFrom")
+  transfersTo          InventoryTransfer[]  @relation("TransfersTo")
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 
@@ -203,6 +216,34 @@ enum MovementType {
   Usage
   Waste
   Adjustment
+  TransferOut
+  TransferIn
+}
+
+// ============================================================================
+// INVENTORY TRANSFER
+// ============================================================================
+
+model InventoryTransfer {
+  id                    String       @id @default(uuid())
+  sourceRestaurantId    String
+  sourceRestaurant      Restaurant   @relation("TransfersOut", fields: [sourceRestaurantId], references: [id])
+  targetRestaurantId    String
+  targetRestaurant      Restaurant   @relation("TransfersIn", fields: [targetRestaurantId], references: [id])
+  sourceItemId          String
+  sourceItem            InventoryItem @relation("TransfersFrom", fields: [sourceItemId], references: [id])
+  targetItemId          String?
+  targetItem            InventoryItem? @relation("TransfersTo", fields: [targetItemId], references: [id])
+  quantity              Float
+  reason                String?
+  createdBy             String
+  createdByName         String?
+  createdAt             DateTime     @default(now())
+
+  @@index([sourceRestaurantId])
+  @@index([targetRestaurantId])
+  @@index([sourceItemId])
+  @@index([createdAt])
 }
 
 // ============================================================================
@@ -356,7 +397,6 @@ model Sale {
   lastModifiedByName String?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
-  cashDeposit        CashDeposit?     // Deprecated: use bankTransaction
   bankTransaction    BankTransaction? @relation("BankTransactionSale")
   debts              Debt[]
   saleItems          SaleItem[]       // Optional product breakdown
@@ -641,39 +681,7 @@ model CategorySupplier {
 }
 
 // ============================================================================
-// CASH DEPOSITS
-// ============================================================================
-
-model CashDeposit {
-  id              String            @id @default(uuid())
-  restaurantId    String
-  restaurant      Restaurant        @relation(fields: [restaurantId], references: [id])
-  date            DateTime
-  amount          Float
-  status          CashDepositStatus @default(Pending)
-  bankRef         String?
-  receiptUrl      String?
-  comments        String?
-  depositedBy     String?
-  depositedByName String?
-  depositedAt     DateTime?
-  saleId          String?           @unique
-  sale            Sale?             @relation(fields: [saleId], references: [id])
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-
-  @@index([restaurantId])
-  @@index([date])
-  @@index([status])
-}
-
-enum CashDepositStatus {
-  Pending
-  Deposited
-}
-
-// ============================================================================
-// BANK TRANSACTIONS (Replaces CashDeposit for comprehensive tracking)
+// BANK TRANSACTIONS (Unified financial tracking)
 // ============================================================================
 
 model BankTransaction {

@@ -56,6 +56,7 @@ interface Transaction {
 interface TransactionListProps {
   transactions: Transaction[]
   onConfirm?: (transactionId: string) => void
+  onTransactionClick?: (transaction: Transaction) => void
   canEdit: boolean
   loading?: boolean
 }
@@ -75,7 +76,7 @@ const METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
   Card: CreditCard,
 }
 
-export function TransactionList({ transactions, onConfirm, canEdit, loading }: TransactionListProps) {
+export function TransactionList({ transactions, onConfirm, onTransactionClick, canEdit, loading }: TransactionListProps) {
   const { t, locale } = useLocale()
   const [typeFilter, setTypeFilter] = useState<'All' | 'Deposit' | 'Withdrawal'>('All')
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Confirmed'>('All')
@@ -221,7 +222,10 @@ export function TransactionList({ transactions, onConfirm, canEdit, loading }: T
                   return (
                     <div
                       key={txn.id}
-                      className="flex items-center gap-4 p-4 bg-white dark:bg-stone-800 rounded-xl border border-gray-200 dark:border-stone-700 hover:shadow-md transition-shadow"
+                      onClick={() => onTransactionClick?.(txn)}
+                      className={`flex items-center gap-4 p-4 bg-white dark:bg-stone-800 rounded-xl border border-gray-200 dark:border-stone-700 hover:shadow-md transition-all ${
+                        onTransactionClick ? 'cursor-pointer hover:border-cyan-300 dark:hover:border-cyan-700' : ''
+                      }`}
                     >
                       {/* Type Icon */}
                       <div className={`p-2.5 rounded-lg ${
@@ -256,7 +260,7 @@ export function TransactionList({ transactions, onConfirm, canEdit, loading }: T
                         <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-stone-400">
                           <span className="flex items-center gap-1">
                             <MethodIcon className="w-4 h-4" />
-                            {t(`bank.methods.${txn.method.toLowerCase()}`) || txn.method}
+                            {t(`bank.methods.${txn.method}`) || txn.method}
                           </span>
                           {txn.description && (
                             <span className="truncate max-w-[200px]">{txn.description}</span>

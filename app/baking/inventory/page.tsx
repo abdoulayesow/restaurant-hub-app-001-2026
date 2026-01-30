@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Plus, Search, Package, RefreshCw, ClipboardCheck } from 'lucide-react'
+import { Plus, Search, Package, RefreshCw, ClipboardCheck, ArrowRightLeft, Activity } from 'lucide-react'
 import Link from 'next/link'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canApprove } from '@/lib/roles'
 import { InventoryCardGrid } from '@/components/inventory/InventoryCardGrid'
 import { InventoryItem } from '@/components/inventory/InventoryCard'
 import { CategoryFilter } from '@/components/inventory/CategoryFilter'
@@ -15,12 +16,14 @@ import { AddEditItemModal } from '@/components/inventory/AddEditItemModal'
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal'
 import { DeleteConfirmModal } from '@/components/inventory/DeleteConfirmModal'
 import { ViewItemModal } from '@/components/inventory/ViewItemModal'
+import { TransferModal } from '@/components/inventory/TransferModal'
+import StockMovementPanel from '@/components/inventory/StockMovementPanel'
 
 export default function BakingInventoryPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, restaurants, loading: restaurantLoading } = useRestaurant()
 
   // Data state
   const [items, setItems] = useState<InventoryItem[]>([])
@@ -42,8 +45,11 @@ export default function BakingInventoryPage() {
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [transferModalOpen, setTransferModalOpen] = useState(false)
+  const [movementPanelOpen, setMovementPanelOpen] = useState(false)
 
-  const isManager = session?.user?.role === 'Manager'
+  // Permission check for manager actions (Owner or legacy Manager)
+  const isManager = canApprove(currentRole)
 
   // Auth check
   useEffect(() => {
@@ -116,6 +122,7 @@ export default function BakingInventoryPage() {
 
   const handleEditItem = (item: InventoryItem) => {
     setSelectedItem(item)
+    setViewModalOpen(false) // Close view modal if open
     setAddEditModalOpen(true)
   }
 
@@ -279,6 +286,16 @@ export default function BakingInventoryPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Transfer button - only show if user has multiple restaurants */}
+            {restaurants.length > 1 && (
+              <button
+                onClick={() => setTransferModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-400 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+              >
+                <ArrowRightLeft className="w-5 h-5" />
+                {t('inventory.transfer.transferStock') || 'Transfer'}
+              </button>
+            )}
             <Link
               href="/baking/inventory/reconciliation"
               className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 rounded-lg hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
@@ -441,6 +458,29 @@ export default function BakingInventoryPage() {
         onAdjust={handleAdjustStock}
         initialTab={viewModalInitialTab}
       />
+
+      <TransferModal
+        isOpen={transferModalOpen}
+        onClose={() => setTransferModalOpen(false)}
+        onTransferComplete={() => {
+          fetchItems()
+        }}
+      />
+
+      {/* Stock Movement Panel */}
+      <StockMovementPanel
+        isOpen={movementPanelOpen}
+        onClose={() => setMovementPanelOpen(false)}
+      />
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setMovementPanelOpen(true)}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gold-500 hover:bg-gold-600 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center"
+        title={t('inventory.movementPanel.title')}
+      >
+        <Activity className="w-6 h-6" />
+      </button>
     </div>
   )
 }

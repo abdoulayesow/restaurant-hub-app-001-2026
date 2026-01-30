@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canApprove } from '@/lib/roles'
 
 // GET /api/restaurants/[id] - Fetch restaurant details
 export async function GET(
@@ -92,7 +93,7 @@ export async function PATCH(
 
     const { id } = await params
 
-    // Verify user has access to this restaurant AND check Manager role (combined query)
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
@@ -100,11 +101,7 @@ export async function PATCH(
           restaurantId: id
         }
       },
-      include: {
-        user: {
-          select: { role: true }
-        }
-      }
+      select: { role: true }
     })
 
     if (!userRestaurant) {
@@ -114,9 +111,9 @@ export async function PATCH(
       )
     }
 
-    if (userRestaurant.user.role !== 'Manager') {
+    if (!canApprove(userRestaurant.role)) {
       return NextResponse.json(
-        { error: 'Only managers can update restaurant configuration' },
+        { error: 'Only owners can update restaurant configuration' },
         { status: 403 }
       )
     }
@@ -279,7 +276,7 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Verify user has access to this restaurant AND check Manager role
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
@@ -287,11 +284,7 @@ export async function DELETE(
           restaurantId: id
         }
       },
-      include: {
-        user: {
-          select: { role: true }
-        }
-      }
+      select: { role: true }
     })
 
     if (!userRestaurant) {
@@ -301,9 +294,9 @@ export async function DELETE(
       )
     }
 
-    if (userRestaurant.user.role !== 'Manager') {
+    if (!canApprove(userRestaurant.role)) {
       return NextResponse.json(
-        { error: 'Only managers can delete restaurants' },
+        { error: 'Only owners can delete restaurants' },
         { status: 403 }
       )
     }

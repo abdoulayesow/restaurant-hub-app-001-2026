@@ -10,7 +10,7 @@ interface Sale {
   date: string
   totalGNF: number
   cashGNF: number
-  cashDeposit?: unknown
+  bankTransaction?: unknown
 }
 
 interface DepositFormModalProps {
@@ -58,8 +58,8 @@ export function DepositFormModal({
 
         if (response.ok) {
           const data = await response.json()
-          // Filter out sales that already have deposits
-          const salesWithoutDeposits = data.sales.filter((sale: Sale) => !sale.cashDeposit)
+          // Filter out sales that already have bank transactions
+          const salesWithoutDeposits = data.sales.filter((sale: Sale) => !sale.bankTransaction)
           setAvailableSales(salesWithoutDeposits)
         }
       } catch (error) {

@@ -74,18 +74,11 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Editor or Manager role
+    // Get user name for record keeping
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true, name: true }
+      select: { name: true }
     })
-
-    if (!user || (user.role !== 'Manager' && user.role !== 'Editor')) {
-      return NextResponse.json(
-        { error: 'Only managers and editors can record payments' },
-        { status: 403 }
-      )
-    }
 
     const { id } = await params
     const body = await request.json()
@@ -181,7 +174,24 @@ export async function POST(
           receiptNumber: body.receiptNumber?.trim() || null,
           notes: body.notes?.trim() || null,
           receivedBy: session.user.id,
-          receivedByName: user.name || null
+          receivedByName: user?.name || null
+        }
+      })
+
+      // Create bank transaction for the debt payment (deposit - cash coming in)
+      await tx.bankTransaction.create({
+        data: {
+          restaurantId: debt.restaurantId,
+          date: new Date(body.paymentDate),
+          amount: body.amount,
+          type: 'Deposit',
+          method: body.paymentMethod.trim(),
+          reason: 'DebtCollection',
+          description: `Debt payment from ${debt.customer?.name || 'Unknown customer'}`,
+          status: 'Pending',
+          debtPaymentId: payment.id,
+          createdBy: session.user.id,
+          createdByName: user?.name || null
         }
       })
 

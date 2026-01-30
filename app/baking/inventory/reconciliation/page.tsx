@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canApprove } from '@/lib/roles'
 import { ReconciliationForm } from '@/components/inventory/ReconciliationForm'
 import { VarianceReport } from '@/components/inventory/VarianceReport'
 import { InventoryItem } from '@/components/inventory/InventoryCard'
@@ -49,7 +50,7 @@ export default function ReconciliationPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   // Data state
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
@@ -62,7 +63,8 @@ export default function ReconciliationPage() {
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('list')
 
-  const isManager = session?.user?.role === 'Manager'
+  // Permission check for manager actions (Owner or legacy Manager)
+  const isManager = canApprove(currentRole)
 
   // Auth check
   useEffect(() => {

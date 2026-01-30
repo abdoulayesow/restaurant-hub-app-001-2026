@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { normalizePaymentMethod, PAYMENT_METHOD_VALUES } from '@/lib/constants/payment-methods'
+import { canRecordExpenses } from '@/lib/roles'
 
 // GET /api/expenses - List expenses for a bakery
 export async function GET(request: NextRequest) {
@@ -296,18 +297,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and permission to record expenses
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      restaurantId,
+      canRecordExpenses,
+      'Your role does not have permission to record expenses'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Parse date

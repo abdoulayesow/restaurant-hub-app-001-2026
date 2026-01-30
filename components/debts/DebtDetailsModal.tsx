@@ -127,7 +127,10 @@ export default function DebtDetailsModal({
       if (onUpdate) onUpdate()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      // Check if the error is a translation key
+      const translatedError = errorMessage.startsWith('errors.') ? t(errorMessage) : errorMessage
+      setError(translatedError || errorMessage)
     } finally {
       setIsSubmitting(false)
     }

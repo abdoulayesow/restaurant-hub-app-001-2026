@@ -9,6 +9,7 @@ import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { QuickActionsMenu } from '@/components/layout/QuickActionsMenu'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canApprove } from '@/lib/roles'
 import { SalesTable } from '@/components/sales/SalesTable'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
 
@@ -47,9 +48,10 @@ interface Sale {
   comments?: string | null
   activeDebtsCount?: number
   outstandingDebtAmount?: number
-  cashDeposit?: {
+  bankTransaction?: {
     id: string
-    status: string
+    status: 'Pending' | 'Confirmed'
+    confirmedAt?: string | null
   } | null
   debts?: Array<{
     customerId: string
@@ -95,7 +97,7 @@ export default function FinancesSalesPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   const [loading, setLoading] = useState(true)
   const [sales, setSales] = useState<Sale[]>([])
@@ -114,7 +116,8 @@ export default function FinancesSalesPage() {
   const [saleForDeposit, setSaleForDeposit] = useState<Sale | null>(null)
   const [isConfirmingDeposit, setIsConfirmingDeposit] = useState(false)
 
-  const isManager = session?.user?.role === 'Manager'
+  // Permission check for approval actions (Owner or legacy Manager)
+  const canApproveItems = canApprove(currentRole)
 
   // Auth check
   useEffect(() => {
@@ -545,10 +548,10 @@ export default function FinancesSalesPage() {
             sales={sales}
             onView={handleView}
             onEdit={handleEdit}
-            onApprove={isManager ? handleApprove : undefined}
-            onReject={isManager ? handleReject : undefined}
-            onConfirmDeposit={isManager ? handleConfirmDeposit : undefined}
-            isManager={isManager}
+            onApprove={canApproveItems ? handleApprove : undefined}
+            onReject={canApproveItems ? handleReject : undefined}
+            onConfirmDeposit={canApproveItems ? handleConfirmDeposit : undefined}
+            isManager={canApproveItems}
             loading={loading}
           />
         ) : (

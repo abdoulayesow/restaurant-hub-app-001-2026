@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canApprove } from '@/lib/roles'
 
 // GET /api/customers - List customers for a restaurant
 export async function GET(request: NextRequest) {
@@ -118,19 +119,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can create customers' },
-        { status: 403 }
-      )
-    }
-
     const body = await request.json()
 
     // Validate required fields
@@ -148,19 +136,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
           userId: session.user.id,
           restaurantId: body.restaurantId
         }
-      }
+      },
+      select: { role: true }
     })
 
     if (!userRestaurant) {
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    // Only Owner can create customers
+    if (!canApprove(userRestaurant.role)) {
+      return NextResponse.json(
+        { error: 'Only owners can create customers' },
         { status: 403 }
       )
     }

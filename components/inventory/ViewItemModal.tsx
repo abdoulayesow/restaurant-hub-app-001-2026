@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   X,
   Package,
-  Plus,
   History,
   Edit2,
   Calendar,
@@ -19,6 +18,8 @@ import {
   Clock,
   CheckCircle2,
   HelpCircle,
+  ArrowRightCircle,
+  ArrowLeftCircle,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
@@ -28,7 +29,7 @@ import { InventoryItem, RestockPrediction } from './InventoryCard'
 
 interface StockMovement {
   id: string
-  type: 'Purchase' | 'Usage' | 'Waste' | 'Adjustment'
+  type: 'Purchase' | 'Usage' | 'Waste' | 'Adjustment' | 'TransferOut' | 'TransferIn'
   quantity: number
   unitCost: number | null
   reason: string | null
@@ -95,11 +96,11 @@ function RestockForecastCard({
       animate: false,
     },
     no_data: {
-      bg: 'bg-gray-50 dark:bg-stone-800',
-      border: 'border-gray-200 dark:border-stone-700',
-      iconBg: 'bg-gray-100 dark:bg-stone-700',
-      iconColor: 'text-gray-500 dark:text-stone-400',
-      textColor: 'text-gray-600 dark:text-stone-400',
+      bg: 'bg-gray-50 dark:bg-gray-800',
+      border: 'border-gray-200 dark:border-gray-700',
+      iconBg: 'bg-gray-100 dark:bg-gray-700',
+      iconColor: 'text-gray-500 dark:text-gray-400',
+      textColor: 'text-gray-600 dark:text-gray-400',
       label: t('inventory.restock.noData') || 'No Usage Data',
       Icon: HelpCircle,
       animate: false,
@@ -113,7 +114,7 @@ function RestockForecastCard({
   const confidenceColors = {
     high: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
     medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-    low: 'bg-gray-100 text-gray-600 dark:bg-stone-700 dark:text-stone-400',
+    low: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
   }
 
   // Format daily usage
@@ -154,7 +155,7 @@ function RestockForecastCard({
         <div className="flex-1 min-w-0">
           {/* Header with title and confidence badge */}
           <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wide">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               {t('inventory.restock.title') || 'Restock Forecast'}
             </span>
             {status !== 'no_data' && (
@@ -177,8 +178,8 @@ function RestockForecastCard({
           {/* Daily usage rate */}
           {formattedUsage && (
             <div className="flex items-center gap-1.5 mt-1.5">
-              <TrendingDown className="w-3.5 h-3.5 text-gray-400 dark:text-stone-500" />
-              <span className="text-xs text-gray-500 dark:text-stone-400">
+              <TrendingDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {formattedUsage}
               </span>
             </div>
@@ -186,7 +187,7 @@ function RestockForecastCard({
 
           {/* Data points indicator */}
           {dataPoints > 0 && (
-            <div className="text-[10px] text-gray-400 dark:text-stone-500 mt-1">
+            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
               {t('inventory.restock.basedOn')?.replace('{count}', String(dataPoints)) || `Based on ${dataPoints} data points`}
             </div>
           )}
@@ -314,6 +315,10 @@ export function ViewItemModal({
         return <AlertTriangle className="w-5 h-5 text-red-500" />
       case 'Adjustment':
         return <RefreshCw className="w-5 h-5 text-amber-500" />
+      case 'TransferOut':
+        return <ArrowRightCircle className="w-5 h-5 text-gold-600 dark:text-gold-400" />
+      case 'TransferIn':
+        return <ArrowLeftCircle className="w-5 h-5 text-green-500" />
     }
   }
 
@@ -323,6 +328,8 @@ export function ViewItemModal({
       Usage: t('inventory.usage'),
       Waste: t('inventory.waste'),
       Adjustment: t('inventory.adjustment'),
+      TransferOut: t('inventory.transfer.transferOut'),
+      TransferIn: t('inventory.transfer.transferIn'),
     }
     return labels[type]
   }
@@ -340,26 +347,26 @@ export function ViewItemModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-stone-900 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col animate-fade-in-up">
+      <div className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col animate-fade-in-up">
         {/* Header */}
-        <div className="shrink-0 bg-gray-50 dark:bg-stone-800 z-10 border-b border-gray-200 dark:border-stone-700">
+        <div className="shrink-0 bg-gray-50 dark:bg-gray-800 z-10 border-b border-gray-200 dark:border-gray-700">
           <div className="p-6 pb-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3 flex-1 min-w-0">
                 <div className={`p-3 rounded-lg ${colors.bg} border-l-4 ${colors.border}`}>
-                  <Package className="w-6 h-6 text-gray-600 dark:text-stone-300" />
+                  <Package className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-stone-100 truncate">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
                     {displayName}
                   </h2>
                   {altName && (
-                    <p className="text-sm text-gray-500 dark:text-stone-400 truncate mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
                       {altName}
                     </p>
                   )}
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-lg bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-stone-300">
+                    <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                       {getCategoryLabel(item.category, t)}
                     </span>
                     <StockStatusBadge status={status} />
@@ -368,22 +375,22 @@ export function ViewItemModal({
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-stone-700 transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
-                <X className="w-5 h-5 text-gray-600 dark:text-stone-300" />
+                <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </button>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="px-6 border-t border-gray-100 dark:border-stone-700/50">
+          <div className="px-6 border-t border-gray-100 dark:border-gray-700/50">
             <div className="flex gap-1">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`px-4 py-3 font-medium text-sm transition-colors border-b-2 ${
                   activeTab === 'overview'
-                    ? 'border-gray-900 dark:border-white text-gray-900 dark:text-stone-100'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-stone-400 dark:hover:text-stone-200'
+                    ? 'border-gray-900 dark:border-white text-gray-900 dark:text-gray-100'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 }`}
               >
                 {t('inventory.overview') || 'Overview'}
@@ -392,8 +399,8 @@ export function ViewItemModal({
                 onClick={() => setActiveTab('history')}
                 className={`flex items-center gap-2 px-4 py-3 font-medium text-sm transition-colors border-b-2 ${
                   activeTab === 'history'
-                    ? 'border-gray-900 dark:border-white text-gray-900 dark:text-stone-100'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-stone-400 dark:hover:text-stone-200'
+                    ? 'border-gray-900 dark:border-white text-gray-900 dark:text-gray-100'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 }`}
               >
                 <History className="w-4 h-4" />
@@ -410,14 +417,14 @@ export function ViewItemModal({
               {/* Stock Meter */}
               <div className={`p-4 rounded-lg ${colors.bg}`}>
                 <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-gray-600 dark:text-stone-400 font-medium">
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">
                     {t('inventory.stockLevel') || 'Stock Level'}
                   </span>
-                  <span className="font-bold text-gray-900 dark:text-stone-100 tabular-nums">
+                  <span className="font-bold text-gray-900 dark:text-gray-100 tabular-nums">
                     {Math.round(stockRatio)}%
                   </span>
                 </div>
-                <div className="relative h-2.5 bg-gray-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                <div className="relative h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div
                     className={`absolute left-0 top-0 h-full rounded-full transition-all duration-300 ${colors.meter}`}
                     style={{ width: `${meterWidth}%` }}
@@ -425,19 +432,19 @@ export function ViewItemModal({
                 </div>
                 <div className="flex items-center justify-between mt-3">
                   <div className="text-center flex-1">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-stone-100 tabular-nums">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
                       {item.currentStock}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-stone-400">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       {t('inventory.current') || 'Current'} ({item.unit})
                     </div>
                   </div>
-                  <div className="h-10 w-px bg-gray-200 dark:bg-stone-700" />
+                  <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
                   <div className="text-center flex-1">
-                    <div className="text-2xl font-bold text-gray-700 dark:text-stone-200 tabular-nums">
+                    <div className="text-2xl font-bold text-gray-700 dark:text-gray-200 tabular-nums">
                       {item.minStock}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-stone-400">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       {t('inventory.minimum') || 'Minimum'} ({item.unit})
                     </div>
                   </div>
@@ -456,35 +463,35 @@ export function ViewItemModal({
               {/* Info Grid */}
               <div className="grid grid-cols-2 gap-3">
                 {/* Reorder Point */}
-                <div className="p-3 rounded-lg bg-gray-50 dark:bg-stone-800 border border-gray-200 dark:border-stone-700">
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-stone-400 text-xs font-medium mb-1">
+                <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-medium mb-1">
                     <Package className="w-3.5 h-3.5" />
                     {t('inventory.reorderPoint') || 'Reorder Point'}
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-stone-100 tabular-nums">
+                  <div className="font-semibold text-gray-900 dark:text-gray-100 tabular-nums">
                     {item.reorderPoint} <span className="text-xs font-normal opacity-70">{item.unit}</span>
                   </div>
                 </div>
 
                 {/* Unit Cost */}
-                <div className="p-3 rounded-lg bg-gray-50 dark:bg-stone-800 border border-gray-200 dark:border-stone-700">
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-stone-400 text-xs font-medium mb-1">
+                <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-medium mb-1">
                     <DollarSign className="w-3.5 h-3.5" />
                     {t('inventory.unitCost') || 'Unit Cost'}
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-stone-100 tabular-nums">
+                  <div className="font-semibold text-gray-900 dark:text-gray-100 tabular-nums">
                     {formatCurrency(item.unitCostGNF)}
                   </div>
                 </div>
 
                 {/* Expiry Days */}
                 {item.expiryDays && (
-                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-stone-800 border border-gray-200 dark:border-stone-700">
-                    <div className="flex items-center gap-2 text-gray-500 dark:text-stone-400 text-xs font-medium mb-1">
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-medium mb-1">
                       <Calendar className="w-3.5 h-3.5" />
                       {t('inventory.expiryDays') || 'Expiry Days'}
                     </div>
-                    <div className="font-semibold text-gray-900 dark:text-stone-100 tabular-nums">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100 tabular-nums">
                       {item.expiryDays} <span className="text-xs font-normal opacity-70">{t('common.days')}</span>
                     </div>
                   </div>
@@ -492,12 +499,12 @@ export function ViewItemModal({
 
                 {/* Supplier */}
                 {item.supplier && (
-                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-stone-800 border border-gray-200 dark:border-stone-700">
-                    <div className="flex items-center gap-2 text-gray-500 dark:text-stone-400 text-xs font-medium mb-1">
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-medium mb-1">
                       <Truck className="w-3.5 h-3.5" />
                       {t('inventory.supplier') || 'Supplier'}
                     </div>
-                    <div className="font-semibold text-gray-900 dark:text-stone-100 truncate">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {item.supplier.name}
                     </div>
                   </div>
@@ -505,11 +512,11 @@ export function ViewItemModal({
               </div>
 
               {/* Total Value */}
-              <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-100 dark:bg-stone-800 border border-gray-200 dark:border-stone-700">
-                <span className="text-sm text-gray-600 dark:text-stone-300 font-medium">
+              <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
                   {t('inventory.totalStockValue')}
                 </span>
-                <span className="font-bold text-gray-900 dark:text-stone-100 tabular-nums">
+                <span className="font-bold text-gray-900 dark:text-gray-100 tabular-nums">
                   {formatCurrency(item.currentStock * item.unitCostGNF)}
                 </span>
               </div>
@@ -529,24 +536,24 @@ export function ViewItemModal({
                   <p className="text-red-600 dark:text-red-400 mb-4">{movementError}</p>
                   <button
                     onClick={fetchMovements}
-                    className="text-gray-600 hover:text-gray-900 dark:text-stone-400 dark:hover:text-stone-100 font-medium"
+                    className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 font-medium"
                   >
                     {t('common.retry')}
                   </button>
                 </div>
               ) : movements.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-4">
-                    <History className="w-6 h-6 text-gray-400 dark:text-stone-500" />
+                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                    <History className="w-6 h-6 text-gray-400 dark:text-gray-500" />
                   </div>
-                  <p className="text-gray-600 dark:text-stone-400">{t('common.noData')}</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {movements.map((movement) => (
                     <div
                       key={movement.id}
-                      className="bg-gray-50 dark:bg-stone-800 rounded-lg p-4 border border-gray-200 dark:border-stone-700"
+                      className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
@@ -555,7 +562,7 @@ export function ViewItemModal({
                           </div>
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium text-gray-900 dark:text-stone-100">
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
                                 {getMovementLabel(movement.type)}
                               </span>
                               <span className={`font-semibold ${getQuantityColor(movement.quantity)}`}>
@@ -563,20 +570,20 @@ export function ViewItemModal({
                               </span>
                             </div>
                             {movement.reason && (
-                              <p className="text-sm text-gray-600 dark:text-stone-400 mt-1">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                 {movement.reason}
                               </p>
                             )}
-                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-stone-500">
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-500">
                               <span>{formatDate(movement.createdAt)}</span>
-                              <span className="text-gray-300 dark:text-stone-600">•</span>
+                              <span className="text-gray-300 dark:text-gray-600">•</span>
                               <span>{movement.createdByName || movement.createdBy}</span>
                             </div>
                           </div>
                         </div>
                         {movement.unitCost !== null && movement.type === 'Purchase' && (
                           <div className="text-right text-sm shrink-0 ml-4">
-                            <span className="text-gray-600 dark:text-stone-400 bg-gray-100 dark:bg-stone-700 px-2 py-1 rounded-lg">
+                            <span className="text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg">
                               {new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN').format(movement.unitCost)} GNF/{t(`units.${item.unit}`)}
                             </span>
                           </div>
@@ -591,39 +598,23 @@ export function ViewItemModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="shrink-0 bg-gray-50 dark:bg-stone-800 p-6 border-t border-gray-200 dark:border-stone-700">
-          <div className="flex items-center justify-between gap-3">
-            <button
-              onClick={() => {
-                onAdjust(item)
-                onClose()
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              {t('inventory.adjust') || 'Adjust'}
-            </button>
-
-            <div className="flex items-center gap-2">
-              {isManager && (
-                <button
-                  onClick={() => {
-                    onEdit(item)
-                    onClose()
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-medium transition-colors"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  {t('common.edit') || 'Edit'}
-                </button>
-              )}
+        <div className="shrink-0 bg-gray-50 dark:bg-gray-800 p-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-end gap-3">
+            {isManager && (
               <button
-                onClick={onClose}
-                className="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 font-medium transition-colors"
+                onClick={() => onEdit(item)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-medium transition-colors"
               >
-                {t('common.close') || 'Close'}
+                <Edit2 className="w-4 h-4" />
+                {t('common.edit') || 'Edit'}
               </button>
-            </div>
+            )}
+            <button
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors"
+            >
+              {t('common.close') || 'Close'}
+            </button>
           </div>
         </div>
       </div>

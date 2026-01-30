@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Calendar, DollarSign, Smartphone, CreditCard, Clock, Users, ShoppingBag, FileText, Plus, Trash2, UserCheck, Package, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Calendar, DollarSign, Smartphone, CreditCard, FileText, Plus, Trash2, UserCheck, Package, ChevronDown, ChevronUp } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
@@ -89,10 +89,6 @@ export function AddEditSaleModal({
     cashGNF: 0,
     orangeMoneyGNF: 0,
     cardGNF: 0,
-    itemsCount: '',
-    customersCount: '',
-    openingTime: '',
-    closingTime: '',
     comments: '',
   })
 
@@ -156,10 +152,6 @@ export function AddEditSaleModal({
         cashGNF: sale.cashGNF,
         orangeMoneyGNF: sale.orangeMoneyGNF,
         cardGNF: sale.cardGNF,
-        itemsCount: sale.itemsCount?.toString() || '',
-        customersCount: sale.customersCount?.toString() || '',
-        openingTime: sale.openingTime || '',
-        closingTime: sale.closingTime || '',
         comments: sale.comments || '',
       })
       if (sale.debts && sale.debts.length > 0) {
@@ -185,10 +177,6 @@ export function AddEditSaleModal({
         cashGNF: 0,
         orangeMoneyGNF: 0,
         cardGNF: 0,
-        itemsCount: '',
-        customersCount: '',
-        openingTime: '',
-        closingTime: '',
         comments: '',
       })
       setDebtItems([])
@@ -379,10 +367,6 @@ export function AddEditSaleModal({
       cashGNF: formData.cashGNF,
       orangeMoneyGNF: formData.orangeMoneyGNF,
       cardGNF: formData.cardGNF,
-      itemsCount: formData.itemsCount ? parseInt(formData.itemsCount) : null,
-      customersCount: formData.customersCount ? parseInt(formData.customersCount) : null,
-      openingTime: formData.openingTime || null,
-      closingTime: formData.closingTime || null,
       comments: formData.comments || null,
       debts: debtItems.length > 0 ? debtItems : undefined,
       saleItems: validSaleItems.length > 0 ? validSaleItems : undefined,
@@ -903,66 +887,6 @@ export function AddEditSaleModal({
               <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
                 {t('sales.additionalInfo') || 'Additional Info'} ({t('common.optional') || 'Optional'})
               </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Items Count */}
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
-                    <ShoppingBag className="w-4 h-4" />
-                    {t('sales.itemsSold') || 'Items Sold'}
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.itemsCount}
-                    onChange={(e) => handleChange('itemsCount', e.target.value)}
-                    min="0"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
-                  />
-                </div>
-
-                {/* Customers Count */}
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
-                    <Users className="w-4 h-4" />
-                    {t('sales.customers') || 'Customers'}
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.customersCount}
-                    onChange={(e) => handleChange('customersCount', e.target.value)}
-                    min="0"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
-                  />
-                </div>
-
-                {/* Opening Time */}
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
-                    <Clock className="w-4 h-4" />
-                    {t('sales.openingTime') || 'Opening'}
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.openingTime}
-                    onChange={(e) => handleChange('openingTime', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
-                  />
-                </div>
-
-                {/* Closing Time */}
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
-                    <Clock className="w-4 h-4" />
-                    {t('sales.closingTime') || 'Closing'}
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.closingTime}
-                    onChange={(e) => handleChange('closingTime', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
-                  />
-                </div>
-              </div>
 
               {/* Comments */}
               <div>

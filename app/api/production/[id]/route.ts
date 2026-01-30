@@ -39,6 +39,18 @@ export async function GET(
             },
           },
         },
+        productionItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                nameFr: true,
+                unit: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -115,6 +127,9 @@ export async function PATCH(
       productName,
       productNameFr,
       quantity,
+      productionType,
+      productionItems,
+      ingredientDetails,
     } = body as {
       preparationStatus?: ProductionStatus
       status?: SubmissionStatus
@@ -122,6 +137,15 @@ export async function PATCH(
       productName?: string
       productNameFr?: string
       quantity?: number
+      productionType?: 'Patisserie' | 'Boulangerie'
+      productionItems?: Array<{ productId: string; quantity: number }>
+      ingredientDetails?: Array<{
+        itemId: string
+        itemName: string
+        quantity: number
+        unit: string
+        unitCostGNF: number
+      }>
     }
 
     // Build update data
@@ -132,6 +156,9 @@ export async function PATCH(
       productName?: string
       productNameFr?: string
       quantity?: number
+      productionType?: 'Patisserie' | 'Boulangerie'
+      ingredientDetails?: any
+      estimatedCostGNF?: number
     } = {}
 
     if (preparationStatus) {
@@ -166,6 +193,19 @@ export async function PATCH(
 
     if (quantity !== undefined) {
       updateData.quantity = quantity
+    }
+
+    if (productionType) {
+      updateData.productionType = productionType
+    }
+
+    if (ingredientDetails) {
+      updateData.ingredientDetails = ingredientDetails
+      // Recalculate estimated cost
+      updateData.estimatedCostGNF = ingredientDetails.reduce(
+        (sum, ing) => sum + ing.quantity * ing.unitCostGNF,
+        0
+      )
     }
 
     // Check if we're changing status to Complete and stock hasn't been deducted yet
@@ -263,6 +303,65 @@ export async function PATCH(
 
         return NextResponse.json({ productionLog })
       }
+    }
+
+    // Handle productionItems update if provided
+    if (productionItems) {
+      await prisma.$transaction(async (tx) => {
+        // Delete existing production items
+        await tx.productionItem.deleteMany({
+          where: { productionLogId: id },
+        })
+
+        // Create new production items
+        if (productionItems.length > 0) {
+          await tx.productionItem.createMany({
+            data: productionItems.map((item) => ({
+              productionLogId: id,
+              productId: item.productId,
+              quantity: item.quantity,
+            })),
+          })
+        }
+
+        // Update the production log
+        await tx.productionLog.update({
+          where: { id },
+          data: updateData,
+        })
+      })
+
+      // Fetch and return the updated production log
+      const productionLog = await prisma.productionLog.findUnique({
+        where: { id },
+        include: {
+          stockMovements: {
+            include: {
+              item: {
+                select: {
+                  id: true,
+                  name: true,
+                  unit: true,
+                },
+              },
+            },
+          },
+          productionItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  nameFr: true,
+                  unit: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      return NextResponse.json({ productionLog })
     }
 
     // Normal update (no deferred deduction needed)

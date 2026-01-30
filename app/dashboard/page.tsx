@@ -12,6 +12,7 @@ import {
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canAccessDashboard } from '@/lib/roles'
 import { PeriodSelector, PeriodOption } from '@/components/dashboard/PeriodSelector'
 import { ViewToggle, ViewMode } from '@/components/dashboard/ViewToggle'
 import { RevenueExpensesChart } from '@/components/dashboard/RevenueExpensesChart'
@@ -104,7 +105,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -139,16 +140,16 @@ export default function DashboardPage() {
   }, [currentRestaurant?.id, period, customStartDate, customEndDate, viewMode])
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || restaurantLoading) return
     if (!session) {
       router.push('/login')
       return
     }
-    // Only managers can access dashboard
-    if (session.user?.role !== 'Manager') {
+    // Only Owner (and legacy Manager) can access dashboard
+    if (!canAccessDashboard(currentRole)) {
       router.push('/editor')
     }
-  }, [session, status, router])
+  }, [session, status, router, currentRole, restaurantLoading])
 
   useEffect(() => {
     if (currentRestaurant?.id) {

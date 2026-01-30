@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { ProductionStatus, SubmissionStatus, MovementType, Prisma, ProductCategory } from '@prisma/client'
 import { isValidProductCategory } from '@/lib/constants/product-categories'
 import { parseToUTCDate, parseToUTCEndOfDay } from '@/lib/date-utils'
+import { canRecordProduction } from '@/lib/roles'
 
 interface IngredientDetail {
   itemId: string
@@ -225,18 +226,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate user has access to this bakery
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this bakery and permission to record production
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      restaurantId,
+      canRecordProduction,
+      'Your role does not have permission to record production'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Fetch bakery to check stock deduction mode

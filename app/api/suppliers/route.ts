@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canApprove } from '@/lib/roles'
 
 // GET /api/suppliers - List suppliers (active or all)
 export async function GET(request: NextRequest) {
@@ -48,15 +49,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    // Check if user is an Owner (via any restaurant)
+    const userRestaurant = await prisma.userRestaurant.findFirst({
+      where: { userId: session.user.id },
       select: { role: true }
     })
 
-    if (user?.role !== 'Manager') {
+    if (!userRestaurant || !canApprove(userRestaurant.role)) {
       return NextResponse.json(
-        { error: 'Only managers can create suppliers' },
+        { error: 'Only owners can create suppliers' },
         { status: 403 }
       )
     }

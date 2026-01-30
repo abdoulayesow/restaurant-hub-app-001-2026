@@ -220,8 +220,7 @@ export async function POST(
           method: paymentMethod,
           reason: 'ExpensePayment',
           description: `Payment for expense: ${expense.categoryName}${expense.description ? ` - ${expense.description}` : ''}`,
-          status: 'Confirmed', // Expense payments are confirmed immediately
-          confirmedAt: new Date(),
+          status: 'Pending', // Requires Manager confirmation
           receiptUrl: receiptUrl?.trim() || null,
           createdBy: session.user.id,
           createdByName: user?.name || null

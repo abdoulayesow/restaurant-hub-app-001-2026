@@ -6,27 +6,30 @@ import { useRouter } from 'next/navigation'
 import { Settings } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { RestaurantSettings } from '@/components/settings/RestaurantSettings'
 import { RestaurantConfigSettings } from '@/components/settings/RestaurantConfigSettings'
+import { canAccessSettings } from '@/lib/roles'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t } = useLocale()
+  const { currentRole, loading: restaurantLoading } = useRestaurant()
 
-  const isManager = session?.user?.role === 'Manager'
+  const hasAccess = canAccessSettings(currentRole)
 
-  // Redirect if not authenticated or not a manager
+  // Redirect if not authenticated or doesn't have access
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || restaurantLoading) return
     if (!session) {
       router.push('/login')
-    } else if (!isManager) {
+    } else if (!hasAccess) {
       router.push('/dashboard')
     }
-  }, [session, status, isManager, router])
+  }, [session, status, hasAccess, restaurantLoading, router])
 
-  if (status === 'loading' || !session || !isManager) {
+  if (status === 'loading' || restaurantLoading || !session || !hasAccess) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
         <NavigationHeader />

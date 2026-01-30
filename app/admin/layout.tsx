@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
+import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canAccessAdmin } from '@/lib/roles'
 
 export default function AdminLayout({
   children,
@@ -12,20 +14,21 @@ export default function AdminLayout({
 }) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { currentRole, loading: restaurantLoading } = useRestaurant()
 
-  const isManager = session?.user?.role === 'Manager'
+  const hasAccess = canAccessAdmin(currentRole)
 
-  // Redirect if not authenticated or not a manager
+  // Redirect if not authenticated or doesn't have access
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || restaurantLoading) return
     if (!session) {
       router.push('/login')
-    } else if (!isManager) {
+    } else if (!hasAccess) {
       router.push('/dashboard')
     }
-  }, [session, status, isManager, router])
+  }, [session, status, hasAccess, restaurantLoading, router])
 
-  if (status === 'loading' || !session || !isManager) {
+  if (status === 'loading' || restaurantLoading || !session || !hasAccess) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
         <NavigationHeader />

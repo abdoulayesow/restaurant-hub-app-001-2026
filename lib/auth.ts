@@ -3,6 +3,74 @@ import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './prisma'
 import type { Adapter } from 'next-auth/adapters'
+import type { UserRole } from '@prisma/client'
+
+// =============================================================================
+// AUTHORIZATION HELPERS
+// =============================================================================
+
+export type AuthorizeResult =
+  | { authorized: true; role: UserRole }
+  | { authorized: false; error: string; status: 401 | 403 }
+
+/**
+ * Authorize a user for a restaurant-scoped action.
+ *
+ * @param userId - The authenticated user's ID
+ * @param restaurantId - The restaurant to check access for
+ * @param permissionCheck - Optional function to verify role has required permission
+ * @returns AuthorizeResult with role on success, or error details on failure
+ *
+ * @example
+ * // Basic restaurant access check
+ * const auth = await authorizeRestaurantAccess(session.user.id, restaurantId)
+ * if (!auth.authorized) {
+ *   return NextResponse.json({ error: auth.error }, { status: auth.status })
+ * }
+ * // auth.role is now available
+ *
+ * @example
+ * // With permission check
+ * const auth = await authorizeRestaurantAccess(
+ *   session.user.id,
+ *   restaurantId,
+ *   canRecordSales
+ * )
+ */
+export async function authorizeRestaurantAccess(
+  userId: string | undefined,
+  restaurantId: string,
+  permissionCheck?: (role: UserRole) => boolean,
+  permissionErrorMessage?: string
+): Promise<AuthorizeResult> {
+  if (!userId) {
+    return { authorized: false, error: 'Unauthorized', status: 401 }
+  }
+
+  const userRestaurant = await prisma.userRestaurant.findUnique({
+    where: {
+      userId_restaurantId: {
+        userId,
+        restaurantId,
+      },
+    },
+    select: { role: true },
+  })
+
+  if (!userRestaurant) {
+    return { authorized: false, error: 'You do not have access to this restaurant', status: 403 }
+  }
+
+  if (permissionCheck && !permissionCheck(userRestaurant.role)) {
+    return {
+      authorized: false,
+      error: permissionErrorMessage || 'Your role does not have permission for this action',
+      status: 403,
+    }
+  }
+
+  return { authorized: true, role: userRestaurant.role }
+}
 
 const ALLOWED_EMAILS = process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim()) || []
 

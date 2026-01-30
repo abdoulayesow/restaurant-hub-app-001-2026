@@ -19,6 +19,7 @@ import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { QuickActionsMenu } from '@/components/layout/QuickActionsMenu'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canApprove } from '@/lib/roles'
 import { getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
 
 // Dynamic imports for heavy components to reduce initial bundle size
@@ -88,7 +89,7 @@ export default function DebtsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   const [loading, setLoading] = useState(true)
   const [debts, setDebts] = useState<Debt[]>([])
@@ -104,7 +105,8 @@ export default function DebtsPage() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  const isManager = session?.user?.role === 'Manager'
+  // Permission check for approval actions (Owner or legacy Manager)
+  const canApproveItems = canApprove(currentRole)
 
   // Auth check
   useEffect(() => {
@@ -372,7 +374,7 @@ export default function DebtsPage() {
         {/* Filters & Actions Section */}
         <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
           {/* Create Debt Button - Manager Only */}
-          {isManager && (
+          {canApproveItems && (
             <div className="mb-4">
               <button
                 onClick={() => setIsCreateModalOpen(true)}
@@ -444,7 +446,7 @@ export default function DebtsPage() {
             debts={filteredDebts}
             onViewDetails={handleViewDetails}
             onRecordPayment={handleRecordPayment}
-            isManager={isManager}
+            isManager={canApproveItems}
             loading={loading}
           />
         </div>
@@ -460,7 +462,7 @@ export default function DebtsPage() {
           }}
           debt={selectedDebt}
           onUpdate={handleDebtUpdate}
-          isManager={isManager}
+          isManager={canApproveItems}
         />
       )}
 

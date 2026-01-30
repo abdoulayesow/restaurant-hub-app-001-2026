@@ -7,8 +7,9 @@ import { Plus, Utensils, Calendar, RefreshCw, ChevronDown, CheckCircle2, Search 
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canApprove } from '@/lib/roles'
 import { BakingDashboard, AddProductionModal } from '@/components/baking'
-import { ProductionDetailModal } from '@/components/production'
+import { ProductionDetailModal, EditProductionModal } from '@/components/production'
 import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
 import { ProductionStatus } from '@prisma/client'
 
@@ -42,6 +43,7 @@ interface ProductionDetail {
   createdByName: string | null
   createdAt: string
   updatedAt: string
+  productionType?: 'Patisserie' | 'Boulangerie' | null
   ingredientDetails: Array<{
     itemId: string
     itemName: string
@@ -50,17 +52,28 @@ interface ProductionDetail {
     unitCostGNF: number
     currentStock?: number
   }>
+  productionItems?: Array<{
+    productId: string
+    quantity: number
+    product: {
+      id: string
+      name: string
+      nameFr?: string | null
+      unit: string
+    }
+  }>
 }
 
 export default function BakingProductionPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   // Modal state
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedProduction, setSelectedProduction] = useState<ProductionDetail | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
 
@@ -69,8 +82,8 @@ export default function BakingProductionPage() {
   const [loadingLogs, setLoadingLogs] = useState(false)
   const [selectedDateRange, setSelectedDateRange] = useState<'today' | 'week' | 'month'>('week')
 
-  // Check if user is manager
-  const isManager = session?.user?.role === 'Manager'
+  // Permission check for manager actions (Owner or legacy Manager)
+  const isManager = canApprove(currentRole)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -204,6 +217,44 @@ export default function BakingProductionPage() {
       }
     } catch (error) {
       console.error('Error updating production status:', error)
+    }
+  }
+
+  // Handle delete from modal
+  const handleDelete = async (productionId: string) => {
+    try {
+      const response = await fetch(`/api/production/${productionId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        // Refresh the production logs list
+        fetchProductionLogs()
+      } else {
+        const data = await response.json()
+        console.error('Error deleting production:', data.error)
+        throw new Error(data.error || 'Failed to delete production')
+      }
+    } catch (error) {
+      console.error('Error deleting production:', error)
+      throw error
+    }
+  }
+
+  // Handle edit from modal
+  const handleEdit = (productionId: string) => {
+    // The selectedProduction already has all the data we need
+    setDetailModalOpen(false)
+    setEditModalOpen(true)
+    // Keep selectedProduction to pass to edit modal
+  }
+
+  // Handle production updated
+  const handleProductionUpdated = () => {
+    fetchProductionLogs()
+    // Also refresh the detail if it's still open
+    if (selectedProduction) {
+      fetchProductionDetail(selectedProduction.id)
     }
   }
 
@@ -507,9 +558,22 @@ export default function BakingProductionPage() {
           setDetailModalOpen(false)
           setSelectedProduction(null)
         }}
-        isManager={isManager}
+        userRole={currentRole}
         onStatusChange={handleStatusChange}
+        onDelete={handleDelete}
+        onEdit={handleEdit}
         onUpdate={fetchProductionLogs}
+      />
+
+      {/* Edit Production Modal */}
+      <EditProductionModal
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false)
+          setSelectedProduction(null)
+        }}
+        onSuccess={handleProductionUpdated}
+        production={selectedProduction}
       />
     </div>
   )

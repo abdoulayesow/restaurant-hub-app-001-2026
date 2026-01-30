@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { parseToUTCDate, parseToUTCEndOfDay } from '@/lib/date-utils'
+import { canRecordSales } from '@/lib/roles'
 
 // GET /api/sales - List sales for a bakery
 export async function GET(request: NextRequest) {
@@ -65,7 +66,13 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { date: 'desc' },
       include: {
-        cashDeposit: true,
+        bankTransaction: {
+          select: {
+            id: true,
+            status: true,
+            confirmedAt: true
+          }
+        },
         saleItems: {
           include: {
             product: {
@@ -218,18 +225,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and permission to record sales
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      restaurantId,
+      canRecordSales,
+      'Your role does not have permission to record sales'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Get user details for debt creation
@@ -430,7 +434,13 @@ export async function POST(request: NextRequest) {
       const saleWithRelations = await tx.sale.findUnique({
         where: { id: sale.id },
         include: {
-          cashDeposit: true,
+          bankTransaction: {
+            select: {
+              id: true,
+              status: true,
+              confirmedAt: true
+            }
+          },
           saleItems: {
             include: {
               product: {

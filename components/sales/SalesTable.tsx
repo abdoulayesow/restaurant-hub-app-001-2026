@@ -19,9 +19,10 @@ interface Sale {
   itemsCount?: number | null
   customersCount?: number | null
   activeDebtsCount?: number
-  cashDeposit?: {
+  bankTransaction?: {
     id: string
-    status: string
+    status: 'Pending' | 'Confirmed'
+    confirmedAt?: string | null
   } | null
 }
 
@@ -238,8 +239,8 @@ export function SalesTable({
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-end gap-2">
-                  {/* If cash has been deposited, show only View */}
-                  {sale.cashDeposit ? (
+                  {/* If cash has been deposited (via cashDeposit or bankTransaction), show only View */}
+                  {sale.bankTransaction ? (
                     <button
                       onClick={() => onView(sale)}
                       className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"

@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import ProductionDetail from '@/components/production/ProductionDetail'
+import { canApprove } from '@/lib/roles'
 
 export const metadata: Metadata = {
   title: 'Production Details | Bakery Hub',
@@ -34,10 +35,10 @@ export default async function ProductionDetailPage({ params }: PageProps) {
     redirect('/auth/signin')
   }
 
-  // Get user's default restaurant and role
+  // Get user's default restaurant
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { defaultRestaurantId: true, role: true },
+    select: { defaultRestaurantId: true },
   })
 
   if (!user?.defaultRestaurantId) {
@@ -45,7 +46,19 @@ export default async function ProductionDetailPage({ params }: PageProps) {
   }
 
   const restaurantId = user.defaultRestaurantId
-  const isManager = user.role === 'Manager'
+
+  // Get user's role at this restaurant
+  const userRestaurant = await prisma.userRestaurant.findUnique({
+    where: {
+      userId_restaurantId: {
+        userId: session.user.id,
+        restaurantId: restaurantId,
+      },
+    },
+    select: { role: true },
+  })
+
+  const hasEditAccess = canApprove(userRestaurant?.role)
 
   // Fetch production log with all details
   const productionLog = await prisma.productionLog.findUnique({
@@ -142,7 +155,7 @@ export default async function ProductionDetailPage({ params }: PageProps) {
       {/* Production Detail Component */}
       <ProductionDetail
         production={serializedProduction}
-        canEdit={isManager}
+        canEdit={hasEditAccess}
       />
     </div>
   )

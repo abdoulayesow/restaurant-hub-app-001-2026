@@ -27,9 +27,8 @@ async function main() {
     { name: 'Sales', model: prisma.sale },
     { name: 'Debts', model: prisma.debt },
     { name: 'DebtPayments', model: prisma.debtPayment },
-    { name: 'CashDeposits', model: prisma.cashDeposit },
-    { name: 'BankTransactions (NEW)', model: prisma.bankTransaction },
-    { name: 'ExpensePayments (NEW)', model: prisma.expensePayment },
+    { name: 'BankTransactions', model: prisma.bankTransaction },
+    { name: 'ExpensePayments', model: prisma.expensePayment },
   ]
 
   console.log('📊 Table Row Counts:\n')

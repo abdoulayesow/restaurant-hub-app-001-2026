@@ -8,7 +8,7 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { BlissLogo } from '@/components/brand/BlissLogo'
 
 export default function LoginPage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const { t, locale, setLocale } = useLocale()
   const [isLoading, setIsLoading] = useState(false)
@@ -16,14 +16,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      const role = session?.user?.role
-      if (role === 'Manager') {
-        router.push('/dashboard')
-      } else {
-        router.push('/editor')
-      }
+      // Redirect to root page which handles role-based routing via RestaurantProvider
+      router.push('/')
     }
-  }, [session, status, router])
+  }, [status, router])
 
   const handleSignIn = async () => {
     setIsLoading(true)

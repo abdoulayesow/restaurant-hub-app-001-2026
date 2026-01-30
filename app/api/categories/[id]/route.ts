@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canApprove } from '@/lib/roles'
 
 // PUT /api/categories/[id] - Update category
 export async function PUT(
@@ -15,15 +16,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    // Check if user is an Owner (via any restaurant)
+    const userRestaurant = await prisma.userRestaurant.findFirst({
+      where: { userId: session.user.id },
       select: { role: true }
     })
 
-    if (user?.role !== 'Manager') {
+    if (!userRestaurant || !canApprove(userRestaurant.role)) {
       return NextResponse.json(
-        { error: 'Only managers can update categories' },
+        { error: 'Only owners can update categories' },
         { status: 403 }
       )
     }
@@ -108,15 +109,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    // Check if user is an Owner (via any restaurant)
+    const userRestaurant = await prisma.userRestaurant.findFirst({
+      where: { userId: session.user.id },
       select: { role: true }
     })
 
-    if (user?.role !== 'Manager') {
+    if (!userRestaurant || !canApprove(userRestaurant.role)) {
       return NextResponse.json(
-        { error: 'Only managers can delete categories' },
+        { error: 'Only owners can delete categories' },
         { status: 403 }
       )
     }

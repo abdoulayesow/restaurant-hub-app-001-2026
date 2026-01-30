@@ -6,6 +6,9 @@ import { PaletteName, colorPalettes } from '@/components/brand/Logo'
 import { Toast } from '@/components/ui/Toast'
 import { useLocale } from './LocaleProvider'
 
+// UserRole enum values (must match Prisma schema)
+export type UserRole = 'Owner' | 'RestaurantManager' | 'Baker' | 'PastryChef' | 'Cashier' | 'Editor' | 'Manager'
+
 interface Restaurant {
   id: string
   name: string
@@ -13,6 +16,7 @@ interface Restaurant {
   restaurantType: string
   inventoryEnabled: boolean
   productionEnabled: boolean
+  role?: UserRole // User's role at this restaurant (from UserRestaurant)
 }
 
 type ToastState = {
@@ -23,6 +27,7 @@ type ToastState = {
 interface RestaurantContextType {
   restaurants: Restaurant[]
   currentRestaurant: Restaurant | null
+  currentRole: UserRole | null // User's role at current restaurant
   currentPalette: PaletteName
   setCurrentRestaurant: (restaurant: Restaurant) => void
   loading: boolean
@@ -79,8 +84,9 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
             selectedRestaurant = savedRestaurant
             selectedIndex = fetchedRestaurants.findIndex((r: Restaurant) => r.id === savedRestaurant.id)
           } else if (data.defaultRestaurant) {
-            selectedRestaurant = data.defaultRestaurant
+            // Find the restaurant in fetchedRestaurants to get the role (defaultRestaurant doesn't include role)
             selectedIndex = fetchedRestaurants.findIndex((r: Restaurant) => r.id === data.defaultRestaurant.id)
+            selectedRestaurant = selectedIndex >= 0 ? fetchedRestaurants[selectedIndex] : data.defaultRestaurant
           } else if (fetchedRestaurants.length > 0) {
             selectedRestaurant = fetchedRestaurants[0]
             selectedIndex = 0
@@ -127,10 +133,14 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const inventoryEnabled = currentRestaurant?.inventoryEnabled ?? true
   const productionEnabled = currentRestaurant?.productionEnabled ?? true
 
+  // Get user's role at current restaurant
+  const currentRole: UserRole | null = currentRestaurant?.role || null
+
   return (
     <RestaurantContext.Provider value={{
       restaurants,
       currentRestaurant,
+      currentRole,
       currentPalette,
       setCurrentRestaurant,
       loading,
