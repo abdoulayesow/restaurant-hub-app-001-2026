@@ -7,23 +7,26 @@ import { Target, TrendingUp, Calendar, ArrowUpRight, ArrowDownRight, Activity } 
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canAccessDashboard } from '@/lib/roles'
 
 export default function ProjectionPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
+
+  const hasAccess = canAccessDashboard(currentRole)
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || restaurantLoading) return
     if (!session) {
       router.push('/login')
       return
     }
-    if (session.user?.role !== 'Manager') {
+    if (!hasAccess) {
       router.push('/editor')
     }
-  }, [session, status, router])
+  }, [session, status, hasAccess, restaurantLoading, router])
 
   // Format currency
   const formatCurrency = (amount: number) => {

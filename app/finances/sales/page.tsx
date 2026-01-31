@@ -9,12 +9,17 @@ import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { QuickActionsMenu } from '@/components/layout/QuickActionsMenu'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canApprove } from '@/lib/roles'
 import { SalesTable } from '@/components/sales/SalesTable'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
 
 // Dynamic imports for heavy components to reduce initial bundle size
 const AddEditSaleModal = dynamic(
   () => import('@/components/sales/AddEditSaleModal').then(mod => ({ default: mod.AddEditSaleModal })),
+  { ssr: false }
+)
+const ConfirmDepositModal = dynamic(
+  () => import('@/components/sales/ConfirmDepositModal').then(mod => ({ default: mod.ConfirmDepositModal })),
   { ssr: false }
 )
 const SalesTrendChart = dynamic(
@@ -43,6 +48,11 @@ interface Sale {
   comments?: string | null
   activeDebtsCount?: number
   outstandingDebtAmount?: number
+  bankTransaction?: {
+    id: string
+    status: 'Pending' | 'Confirmed'
+    confirmedAt?: string | null
+  } | null
   debts?: Array<{
     customerId: string
     amountGNF: number
@@ -87,7 +97,7 @@ export default function FinancesSalesPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   const [loading, setLoading] = useState(true)
   const [sales, setSales] = useState<Sale[]>([])
@@ -101,7 +111,13 @@ export default function FinancesSalesPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  const isManager = session?.user?.role === 'Manager'
+  // Deposit modal state
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false)
+  const [saleForDeposit, setSaleForDeposit] = useState<Sale | null>(null)
+  const [isConfirmingDeposit, setIsConfirmingDeposit] = useState(false)
+
+  // Permission check for approval actions (Owner or legacy Manager)
+  const canApproveItems = canApprove(currentRole)
 
   // Auth check
   useEffect(() => {
@@ -244,6 +260,60 @@ export default function FinancesSalesPage() {
   const handleEdit = (sale: Sale) => {
     setSelectedSale(sale)
     setIsModalOpen(true)
+  }
+
+  // Handle confirm deposit - opens modal to capture bank ref and comments
+  const handleConfirmDeposit = (sale: Sale) => {
+    if (!currentRestaurant?.id) return
+
+    // Only allow if sale has cash amount
+    if (sale.cashGNF <= 0) {
+      alert(t('sales.noCashToDeposit') || 'This sale has no cash to deposit.')
+      return
+    }
+
+    setSaleForDeposit(sale)
+    setIsDepositModalOpen(true)
+  }
+
+  // Submit deposit from modal
+  const handleSubmitDeposit = async (data: {
+    bankRef: string
+    comments?: string
+    receiptUrl?: string
+  }) => {
+    if (!currentRestaurant?.id || !saleForDeposit) return
+
+    setIsConfirmingDeposit(true)
+    try {
+      const res = await fetch('/api/cash-deposits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId: currentRestaurant.id,
+          saleId: saleForDeposit.id,
+          date: saleForDeposit.date,
+          amount: saleForDeposit.cashGNF,
+          bankRef: data.bankRef,
+          comments: data.comments,
+          receiptUrl: data.receiptUrl,
+        }),
+      })
+
+      if (res.ok) {
+        setIsDepositModalOpen(false)
+        setSaleForDeposit(null)
+        fetchSales()
+      } else {
+        const errorData = await res.json()
+        throw new Error(errorData.error || t('errors.failedToSave') || 'Failed to confirm deposit')
+      }
+    } catch (error) {
+      console.error('Error confirming deposit:', error)
+      throw error
+    } finally {
+      setIsConfirmingDeposit(false)
+    }
   }
 
   // Get today's sales from summary
@@ -478,9 +548,10 @@ export default function FinancesSalesPage() {
             sales={sales}
             onView={handleView}
             onEdit={handleEdit}
-            onApprove={isManager ? handleApprove : undefined}
-            onReject={isManager ? handleReject : undefined}
-            isManager={isManager}
+            onApprove={canApproveItems ? handleApprove : undefined}
+            onReject={canApproveItems ? handleReject : undefined}
+            onConfirmDeposit={canApproveItems ? handleConfirmDeposit : undefined}
+            isManager={canApproveItems}
             loading={loading}
           />
         ) : (
@@ -520,6 +591,18 @@ export default function FinancesSalesPage() {
         loading={isSaving}
         error={saveError}
         existingDates={sales.map(s => s.date)}
+      />
+
+      {/* Confirm Deposit Modal */}
+      <ConfirmDepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => {
+          setIsDepositModalOpen(false)
+          setSaleForDeposit(null)
+        }}
+        onSubmit={handleSubmitDeposit}
+        sale={saleForDeposit}
+        isLoading={isConfirmingDeposit}
       />
 
       {/* Quick Actions Menu - Floating */}

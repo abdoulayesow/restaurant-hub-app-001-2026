@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canApprove } from '@/lib/roles'
 
-// POST /api/debts/[id]/write-off - Write off debt as bad debt (Manager only)
+// POST /api/debts/[id]/write-off - Write off debt as bad debt (Owner only)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,23 +16,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can write off debts' },
-        { status: 403 }
-      )
-    }
-
     const { id } = await params
     const body = await request.json()
 
-    // Check if debt exists
+    // Check if debt exists first to get restaurantId
     const existingDebt = await prisma.debt.findUnique({
       where: { id },
       include: {
@@ -51,19 +39,28 @@ export async function POST(
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
           userId: session.user.id,
           restaurantId: existingDebt.restaurantId
         }
-      }
+      },
+      select: { role: true }
     })
 
     if (!userRestaurant) {
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    // Only Owner can write off debts
+    if (!canApprove(userRestaurant.role)) {
+      return NextResponse.json(
+        { error: 'errors.onlyOwnerCanWriteOff' },
         { status: 403 }
       )
     }

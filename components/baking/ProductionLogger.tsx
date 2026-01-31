@@ -79,25 +79,38 @@ interface ProductionLoggerProps {
   date?: string
   onSuccess?: () => void
   onCancel?: () => void
+  // Edit mode props
+  editMode?: boolean
+  productionId?: string
+  initialProductionType?: ProductCategoryValue | null
+  initialProductionItems?: ProductionItemRow[]
+  initialIngredients?: IngredientRow[]
+  initialNotes?: string
 }
 
 export function ProductionLogger({
   date,
   onSuccess,
   onCancel,
+  editMode = false,
+  productionId,
+  initialProductionType = null,
+  initialProductionItems = [],
+  initialIngredients = [],
+  initialNotes = '',
 }: ProductionLoggerProps) {
   const { t, locale } = useLocale()
   const { currentRestaurant } = useRestaurant()
 
   // Production type and products state
-  const [productionType, setProductionType] = useState<ProductCategoryValue | null>(null)
+  const [productionType, setProductionType] = useState<ProductCategoryValue | null>(initialProductionType)
   const [products, setProducts] = useState<Product[]>([])
-  const [productionItems, setProductionItems] = useState<ProductionItemRow[]>([])
+  const [productionItems, setProductionItems] = useState<ProductionItemRow[]>(initialProductionItems)
   const [loadingProducts, setLoadingProducts] = useState(false)
 
   // Form state
-  const [notes, setNotes] = useState('')
-  const [ingredients, setIngredients] = useState<IngredientRow[]>([])
+  const [notes, setNotes] = useState(initialNotes)
+  const [ingredients, setIngredients] = useState<IngredientRow[]>(initialIngredients)
 
   // UI state
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
@@ -325,8 +338,8 @@ export function ProductionLogger({
       return
     }
 
-    // Check availability
-    if (availability && !availability.available) {
+    // Check availability (only for create mode or if ingredients changed in edit)
+    if (!editMode && availability && !availability.available) {
       setError(
         t('production.insufficientStock') ||
           'Insufficient stock for one or more ingredients'
@@ -353,11 +366,14 @@ export function ProductionLogger({
           unitCostGNF: ing.unitCostGNF,
         })),
         notes: notes || null,
-        deductStock: true,
+        deductStock: !editMode, // Don't deduct stock again in edit mode
       }
 
-      const response = await fetch('/api/production', {
-        method: 'POST',
+      const url = editMode ? `/api/production/${productionId}` : '/api/production'
+      const method = editMode ? 'PATCH' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -996,7 +1012,7 @@ export function ProductionLogger({
         )}
         <button
           onClick={handleSubmit}
-          disabled={submitting || (availability !== null && !availability.available)}
+          disabled={submitting || (!editMode && availability !== null && !availability.available)}
           className="
             flex-1 px-6 py-3.5 rounded-lg font-semibold
             bg-gray-900 dark:bg-white text-white dark:text-gray-900
@@ -1014,7 +1030,7 @@ export function ProductionLogger({
           ) : (
             <>
               <ChefHat className="w-5 h-5" />
-              {t('production.logProduction') || 'Log Production'}
+              {editMode ? (t('common.update') || 'Update') : (t('production.logProduction') || 'Log Production')}
             </>
           )}
         </button>
@@ -1022,5 +1038,3 @@ export function ProductionLogger({
     </div>
   )
 }
-
-export default ProductionLogger

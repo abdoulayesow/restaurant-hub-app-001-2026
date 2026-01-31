@@ -16,6 +16,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const restaurantId = searchParams.get('restaurantId')
     const period = parseInt(searchParams.get('period') || '30', 10)
+    const customStartDate = searchParams.get('startDate')
+    const customEndDate = searchParams.get('endDate')
+    const viewMode = searchParams.get('viewMode') || 'business' // 'business' or 'cash'
 
     if (!restaurantId) {
       return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
@@ -35,17 +38,39 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Calculate date range
-    const endDate = new Date()
-    endDate.setHours(23, 59, 59, 999)
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - period)
-    startDate.setHours(0, 0, 0, 0)
+    // Calculate date range (custom dates take priority over period)
+    let endDate: Date
+    let startDate: Date
+    let periodDays: number
+
+    if (customStartDate && customEndDate) {
+      startDate = new Date(customStartDate)
+      startDate.setHours(0, 0, 0, 0)
+      endDate = new Date(customEndDate)
+      endDate.setHours(23, 59, 59, 999)
+      periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+    } else {
+      endDate = new Date()
+      endDate.setHours(23, 59, 59, 999)
+      startDate = new Date()
+      startDate.setDate(startDate.getDate() - period)
+      startDate.setHours(0, 0, 0, 0)
+      periodDays = period
+    }
+
+    // Calculate previous period for comparison
+    const prevEndDate = new Date(startDate)
+    prevEndDate.setMilliseconds(-1) // Just before current period starts
+    const prevStartDate = new Date(prevEndDate)
+    prevStartDate.setDate(prevStartDate.getDate() - periodDays)
+    prevStartDate.setHours(0, 0, 0, 0)
 
     // Fetch all data in parallel
     const [
       approvedSales,
       approvedExpenses,
+      prevPeriodSales,
+      prevPeriodExpenses,
       pendingSalesCount,
       pendingExpensesCount,
       lowStockItems,
@@ -53,6 +78,8 @@ export async function GET(request: NextRequest) {
       unpaidExpenses,
       inventoryItems,
       perishableItems,
+      stockConsumption,
+      bankTransactions,
     ] = await Promise.all([
       // Approved sales in period
       prisma.sale.findMany({
@@ -63,7 +90,7 @@ export async function GET(request: NextRequest) {
         },
         orderBy: { date: 'asc' },
       }),
-      // Approved expenses in period with category
+      // Approved expenses in period with category AND expenseGroup
       prisma.expense.findMany({
         where: {
           restaurantId,
@@ -77,9 +104,34 @@ export async function GET(request: NextRequest) {
               name: true,
               nameFr: true,
               color: true,
+              expenseGroup: {
+                select: {
+                  key: true,
+                  label: true,
+                  labelFr: true,
+                },
+              },
             },
           },
         },
+      }),
+      // Previous period sales for comparison
+      prisma.sale.aggregate({
+        where: {
+          restaurantId,
+          status: 'Approved',
+          date: { gte: prevStartDate, lte: prevEndDate },
+        },
+        _sum: { totalGNF: true },
+      }),
+      // Previous period expenses for comparison
+      prisma.expense.aggregate({
+        where: {
+          restaurantId,
+          status: 'Approved',
+          date: { gte: prevStartDate, lte: prevEndDate },
+        },
+        _sum: { amountGNF: true },
       }),
       // Pending sales count
       prisma.sale.count({
@@ -163,13 +215,101 @@ export async function GET(request: NextRequest) {
           expiryDays: true,
         },
       }),
+      // Stock consumption (Usage movements) in period
+      prisma.stockMovement.findMany({
+        where: {
+          restaurantId,
+          type: 'Usage',
+          createdAt: { gte: startDate, lte: endDate },
+        },
+        select: {
+          itemId: true,
+          quantity: true,
+          unitCost: true,
+          item: {
+            select: {
+              name: true,
+              nameFr: true,
+              unit: true,
+            },
+          },
+        },
+      }),
+      // Bank transactions for cash flow view
+      viewMode === 'cash'
+        ? prisma.bankTransaction.findMany({
+            where: {
+              restaurantId,
+              status: 'Confirmed',
+              date: { gte: startDate, lte: endDate },
+            },
+            orderBy: { date: 'asc' },
+          })
+        : Promise.resolve([]),
     ])
 
-    // Calculate KPIs
-    const totalRevenue = approvedSales.reduce((sum, s) => sum + s.totalGNF, 0)
-    const totalExpenses = approvedExpenses.reduce((sum, e) => sum + e.amountGNF, 0)
+    // Calculate KPIs based on view mode
+    let totalRevenue: number
+    let totalExpenses: number
+    let revenueByDayData: Array<{ date: Date; amount: number }>
+    let expensesByDayData: Array<{ date: Date; amount: number }>
+
+    if (viewMode === 'cash') {
+      // Cash flow view: based on actual deposits/withdrawals
+      const deposits = bankTransactions.filter(t => t.type === 'Deposit')
+      const withdrawals = bankTransactions.filter(t => t.type === 'Withdrawal')
+      totalRevenue = deposits.reduce((sum, t) => sum + t.amount, 0)
+      totalExpenses = withdrawals.reduce((sum, t) => sum + t.amount, 0)
+      revenueByDayData = deposits.map(t => ({ date: t.date, amount: t.amount }))
+      expensesByDayData = withdrawals.map(t => ({ date: t.date, amount: t.amount }))
+    } else {
+      // Business view: based on sales/expenses creation date
+      totalRevenue = approvedSales.reduce((sum, s) => sum + s.totalGNF, 0)
+      totalExpenses = approvedExpenses.reduce((sum, e) => sum + e.amountGNF, 0)
+      revenueByDayData = approvedSales.map(s => ({ date: s.date, amount: s.totalGNF }))
+      expensesByDayData = approvedExpenses.map(e => ({ date: e.date, amount: e.amountGNF }))
+    }
+
     const profit = totalRevenue - totalExpenses
     const profitMargin = totalRevenue > 0 ? Math.round((profit / totalRevenue) * 100) : 0
+
+    // Previous period comparison
+    const prevRevenue = prevPeriodSales._sum.totalGNF || 0
+    const prevExpenses = prevPeriodExpenses._sum.amountGNF || 0
+    const revenueChange = prevRevenue > 0 ? Math.round(((totalRevenue - prevRevenue) / prevRevenue) * 100) : 0
+    const expensesChange = prevExpenses > 0 ? Math.round(((totalExpenses - prevExpenses) / prevExpenses) * 100) : 0
+
+    // Calculate food expense ratio (food expenses / revenue)
+    const foodExpenses = approvedExpenses
+      .filter(e => e.category?.expenseGroup?.key === 'food')
+      .reduce((sum, e) => sum + e.amountGNF, 0)
+    const foodCostRatio = totalRevenue > 0 ? Math.round((foodExpenses / totalRevenue) * 100) : 0
+    const foodCostTarget = 30 // 30% target
+
+    // Calculate stock consumption value
+    const stockConsumptionValue = stockConsumption.reduce(
+      (sum, m) => sum + (m.quantity * (m.unitCost || 0)),
+      0
+    )
+
+    // Aggregate consumption by item for top consumed list
+    const consumptionByItem = new Map<string, { name: string; nameFr: string; quantity: number; unit: string }>()
+    stockConsumption.forEach(m => {
+      const existing = consumptionByItem.get(m.itemId)
+      if (existing) {
+        existing.quantity += m.quantity
+      } else {
+        consumptionByItem.set(m.itemId, {
+          name: m.item.name,
+          nameFr: m.item.nameFr || m.item.name,
+          quantity: m.quantity,
+          unit: m.item.unit,
+        })
+      }
+    })
+    const topConsumedItems = Array.from(consumptionByItem.values())
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5)
 
     // Calculate balance (initial + revenue - expenses)
     const initialBalance =
@@ -178,13 +318,19 @@ export async function GET(request: NextRequest) {
       (restaurant?.initialCardBalance || 0)
     const balance = initialBalance + totalRevenue - totalExpenses
 
-    // Aggregate revenue by day
-    const revenueByDay: { date: string; amount: number }[] = []
+    // Aggregate revenue and expenses by day for combined chart
+    const revenueByDay: { date: string; revenue: number; expenses: number }[] = []
     const revenueMap = new Map<string, number>()
+    const expensesMap = new Map<string, number>()
 
-    approvedSales.forEach((sale) => {
-      const dateKey = sale.date.toISOString().split('T')[0]
-      revenueMap.set(dateKey, (revenueMap.get(dateKey) || 0) + sale.totalGNF)
+    revenueByDayData.forEach((item) => {
+      const dateKey = item.date.toISOString().split('T')[0]
+      revenueMap.set(dateKey, (revenueMap.get(dateKey) || 0) + item.amount)
+    })
+
+    expensesByDayData.forEach((item) => {
+      const dateKey = item.date.toISOString().split('T')[0]
+      expensesMap.set(dateKey, (expensesMap.get(dateKey) || 0) + item.amount)
     })
 
     // Fill in all days in the period (even zeros)
@@ -192,11 +338,12 @@ export async function GET(request: NextRequest) {
       const dateKey = d.toISOString().split('T')[0]
       revenueByDay.push({
         date: dateKey,
-        amount: revenueMap.get(dateKey) || 0,
+        revenue: revenueMap.get(dateKey) || 0,
+        expenses: expensesMap.get(dateKey) || 0,
       })
     }
 
-    // Aggregate expenses by category
+    // Aggregate expenses by category (for detailed view)
     const expensesByCategoryMap = new Map<string, { name: string; nameFr: string; amount: number; color: string }>()
 
     approvedExpenses.forEach((expense) => {
@@ -219,6 +366,40 @@ export async function GET(request: NextRequest) {
     })
 
     const expensesByCategory = Array.from(expensesByCategoryMap.values())
+      .sort((a, b) => b.amount - a.amount)
+
+    // Aggregate expenses by expense group (for dashboard overview)
+    const expenseGroupColors: Record<string, string> = {
+      food: '#059669',      // Emerald
+      transport: '#2563EB', // Blue
+      utilities: '#7C3AED', // Violet
+      salaries: '#EA580C',  // Orange
+      other: '#6B7280',     // Gray
+    }
+
+    const expensesByGroupMap = new Map<string, { key: string; label: string; labelFr: string; amount: number; color: string }>()
+
+    approvedExpenses.forEach((expense) => {
+      const groupKey = expense.category?.expenseGroup?.key || 'other'
+      const groupLabel = expense.category?.expenseGroup?.label || 'Other'
+      const groupLabelFr = expense.category?.expenseGroup?.labelFr || 'Autre'
+      const color = expenseGroupColors[groupKey] || '#6B7280'
+
+      const existing = expensesByGroupMap.get(groupKey)
+      if (existing) {
+        existing.amount += expense.amountGNF
+      } else {
+        expensesByGroupMap.set(groupKey, {
+          key: groupKey,
+          label: groupLabel,
+          labelFr: groupLabelFr,
+          amount: expense.amountGNF,
+          color,
+        })
+      }
+    })
+
+    const expensesByGroup = Array.from(expensesByGroupMap.values())
       .sort((a, b) => b.amount - a.amount)
 
     // Filter and format low stock items
@@ -353,9 +534,15 @@ export async function GET(request: NextRequest) {
         profitMargin,
         balance,
         inventoryValue,
+        revenueChange,
+        expensesChange,
+        foodCostRatio,
+        foodCostTarget,
+        foodExpenses,
       },
       revenueByDay,
       expensesByCategory,
+      expensesByGroup,
       lowStockItems: lowStockItemsFiltered,
       pendingApprovals: {
         sales: pendingSalesCount,
@@ -377,11 +564,16 @@ export async function GET(request: NextRequest) {
         totalValue: inventoryValue,
         byCategory: inventoryByCategory,
       },
+      stockConsumption: {
+        totalValue: stockConsumptionValue,
+        topItems: topConsumedItems,
+      },
       expiringItems: {
         items: expiringItems.slice(0, 10), // Top 10 most urgent
         expiredCount,
         warningCount,
       },
+      viewMode,
     })
   } catch (error) {
     console.error('Error fetching dashboard data:', error)

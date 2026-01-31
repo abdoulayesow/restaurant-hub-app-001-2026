@@ -6,6 +6,14 @@ import { StockStatusBadge, StockStatus, getStockStatus } from './StockStatusBadg
 import { getCategoryLabel } from './CategoryFilter'
 import { ExpiryStatus } from '@/lib/inventory-helpers'
 
+export interface RestockPrediction {
+  dailyUsage: number
+  daysUntilReorder: number | null
+  status: 'reorder_now' | 'reorder_soon' | 'stable' | 'no_data'
+  confidence: 'high' | 'medium' | 'low'
+  dataPoints: number
+}
+
 export interface InventoryItem {
   id: string
   name: string
@@ -25,6 +33,7 @@ export interface InventoryItem {
   expiryDate?: string | null
   daysUntilExpiry?: number | null
   lastPurchaseDate?: string | null
+  restockPrediction?: RestockPrediction | null
   createdAt: string
   updatedAt: string
 }

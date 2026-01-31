@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canEditApproved, canRecordExpenses } from '@/lib/roles'
 import { normalizePaymentMethod, PAYMENT_METHOD_VALUES } from '@/lib/constants/payment-methods'
 
 // GET /api/expenses/[id] - Get a single expense
@@ -100,26 +100,21 @@ export async function PUT(
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 })
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: existingExpense.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and permission to record expenses
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      existingExpense.restaurantId,
+      canRecordExpenses,
+      'Your role does not have permission to edit expenses'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
-    const isManager = isManagerRole(session.user.role)
-
-    // Editors can only edit Pending expenses, Managers can edit any
-    if (!isManager && existingExpense.status !== 'Pending') {
+    // Non-owners can only edit Pending expenses
+    if (!canEditApproved(auth.role) && existingExpense.status !== 'Pending') {
       return NextResponse.json(
-        { error: 'Only pending expenses can be edited by non-managers' },
+        { error: 'Only pending expenses can be edited. Contact the owner to modify approved records.' },
         { status: 403 }
       )
     }
@@ -209,8 +204,8 @@ export async function PUT(
           transactionRef: transactionRef !== undefined ? (transactionRef || null) : existingExpense.transactionRef,
           supplierId: supplierId !== undefined ? (supplierId || null) : existingExpense.supplierId,
           isInventoryPurchase: finalIsInventoryPurchase,
-          // If a non-manager edits, reset to Pending for re-approval
-          status: !isManager && existingExpense.status === 'Pending' ? 'Pending' : existingExpense.status,
+          // Keep existing status (editors can only edit Pending records anyway)
+          status: existingExpense.status,
           lastModifiedBy: session.user.id,
           lastModifiedByName: session.user.name || session.user.email,
           lastModifiedAt: new Date(),

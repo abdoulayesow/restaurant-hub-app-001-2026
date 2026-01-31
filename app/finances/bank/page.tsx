@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet, Smartphone } from 'lucide-react'
+import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet, Smartphone, Clock, Search, ReceiptText } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canAccessBank } from '@/lib/roles'
 import { TransactionFormModal } from '@/components/bank/TransactionFormModal'
-import { TransactionList } from '@/components/bank/TransactionList'
+import { TransactionsTable } from '@/components/bank/TransactionsTable'
+import { TransactionDetailModal } from '@/components/bank/TransactionDetailModal'
 import { Toast } from '@/components/ui/Toast'
 
 type TransactionType = 'Deposit' | 'Withdrawal'
@@ -38,6 +40,11 @@ interface Transaction {
     id: string
     amount: number
     paymentDate: string
+    debt?: {
+      customer?: {
+        name: string
+      } | null
+    } | null
   } | null
   expensePayment?: {
     id: string
@@ -46,21 +53,30 @@ interface Transaction {
       id: string
       categoryName: string
       amountGNF: number
+      supplierName?: string | null
     } | null
   } | null
+  createdAt?: string
+  receiptUrl?: string | null
 }
 
 export default function BankPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   // Data state
   const [balances, setBalances] = useState({ cash: 0, orangeMoney: 0, card: 0, total: 0 })
+  const [pending, setPending] = useState({ totalPendingDeposits: 0, totalPendingWithdrawals: 0 })
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [, setError] = useState<string | null>(null)
+
+  // Transaction detail modal state
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   // Modal state
   const [transactionModalOpen, setTransactionModalOpen] = useState(false)
@@ -70,7 +86,27 @@ export default function BankPage() {
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  const isManager = session?.user?.role === 'Manager'
+  // Filter state
+  const [typeFilter, setTypeFilter] = useState<'' | 'Deposit' | 'Withdrawal'>('')
+  const [statusFilter, setStatusFilter] = useState<'' | 'Pending' | 'Confirmed'>('')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Permission check for bank access (Owner or legacy Manager)
+  const canManageBank = canAccessBank(currentRole)
+
+  // Filter transactions
+  const filteredTransactions = transactions.filter(txn => {
+    if (typeFilter && txn.type !== typeFilter) return false
+    if (statusFilter && txn.status !== statusFilter) return false
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      const matchesDescription = txn.description?.toLowerCase().includes(query)
+      const matchesRef = txn.bankRef?.toLowerCase().includes(query)
+      const matchesCreator = txn.createdByName?.toLowerCase().includes(query)
+      if (!matchesDescription && !matchesRef && !matchesCreator) return false
+    }
+    return true
+  })
 
   useEffect(() => {
     if (status === 'loading') return
@@ -89,6 +125,7 @@ export default function BankPage() {
 
       const data = await response.json()
       setBalances(data.balances)
+      setPending(data.pending || { totalPendingDeposits: 0, totalPendingWithdrawals: 0 })
     } catch (err) {
       console.error('Error fetching balances:', err)
       setError(t('errors.fetchFailed') || 'Failed to load data')
@@ -163,12 +200,16 @@ export default function BankPage() {
   }
 
   // Confirm transaction handler
-  const handleConfirmTransaction = async (transactionId: string) => {
+  const handleConfirmTransaction = async (transactionId: string, additionalData?: { bankRef?: string; comments?: string }) => {
     try {
       const response = await fetch(`/api/bank/transactions/${transactionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Confirmed' }),
+        body: JSON.stringify({
+          status: 'Confirmed',
+          ...(additionalData?.bankRef && { bankRef: additionalData.bankRef }),
+          ...(additionalData?.comments && { comments: additionalData.comments }),
+        }),
       })
 
       if (!response.ok) {
@@ -183,8 +224,28 @@ export default function BankPage() {
         message: err instanceof Error ? err.message : t('errors.generic') || 'An error occurred',
         type: 'error'
       })
+      throw err // Re-throw so modal can handle it
     }
   }
+
+  // Handle confirm from detail modal
+  const handleConfirmFromModal = async (transactionId: string, data?: { bankRef?: string; comments?: string }) => {
+    setConfirming(true)
+    try {
+      await handleConfirmTransaction(transactionId, data)
+      setDetailModalOpen(false)
+      setSelectedTransaction(null)
+    } finally {
+      setConfirming(false)
+    }
+  }
+
+  // Handle transaction click to open detail modal
+  const handleTransactionClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction)
+    setDetailModalOpen(true)
+  }
+
 
   // Open modal for deposit
   const openDepositModal = () => {
@@ -237,7 +298,7 @@ export default function BankPage() {
             </p>
           </div>
 
-          {isManager && (
+          {canManageBank && (
             <button
               onClick={openDepositModal}
               className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
@@ -248,13 +309,13 @@ export default function BankPage() {
           )}
         </div>
 
-        {/* Balance Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          {/* Total Balance */}
+        {/* Balance Cards - Row 1 */}
+        <div className="grid md:grid-cols-4 gap-6 mb-4">
+          {/* Total Balance - Cyan theme */}
           <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-lg bg-gray-100 dark:bg-stone-700">
-                <Wallet className="w-5 h-5 text-gray-700 dark:text-stone-300" />
+              <div className="p-2.5 rounded-lg bg-cyan-50 dark:bg-cyan-900/30">
+                <Wallet className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
               </div>
               <h3 className="font-medium text-gray-500 dark:text-stone-400">
                 {t('bank.totalBalance') || 'Total Balance'}
@@ -323,27 +384,130 @@ export default function BankPage() {
           </div>
         </div>
 
-        {/* Transactions Section */}
-        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-stone-100">
-              {t('bank.transactions') || 'Transactions'}
-            </h3>
-            <button
-              onClick={() => fetchTransactions()}
-              className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
-            >
-              <RefreshCw className="w-5 h-5" />
-            </button>
+        {/* Pending Cards - Row 2 */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* Pending Deposits */}
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-lg bg-cyan-50 dark:bg-cyan-900/30">
+                <ArrowUpRight className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+              </div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-gray-500 dark:text-stone-400">
+                  {t('bank.pendingDeposits') || 'Pending Deposits'}
+                </h3>
+                <Clock className="w-4 h-4 text-amber-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mb-1">
+              +{formatCurrency(pending.totalPendingDeposits)}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-stone-400">
+              {t('bank.awaitingConfirmation') || 'Awaiting confirmation'}
+            </p>
           </div>
 
-          <TransactionList
-            transactions={transactions}
-            onConfirm={handleConfirmTransaction}
-            canEdit={isManager}
+          {/* Pending Withdrawals */}
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-900/30">
+                <ArrowDownRight className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-gray-500 dark:text-stone-400">
+                  {t('bank.pendingWithdrawals') || 'Pending Withdrawals'}
+                </h3>
+                <Clock className="w-4 h-4 text-amber-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-rose-600 dark:text-rose-400 mb-1">
+              -{formatCurrency(pending.totalPendingWithdrawals)}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-stone-400">
+              {t('bank.awaitingConfirmation') || 'Awaiting confirmation'}
+            </p>
+          </div>
+        </div>
+
+        {/* Filters Row */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('bank.searchPlaceholder') || 'Search transactions...'}
+              className="w-full pl-10 pr-4 py-2.5 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
+            />
+          </div>
+
+          {/* Type Filter */}
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+            className="px-4 py-2.5 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+          >
+            <option value="">{t('bank.allTypes') || 'All Types'}</option>
+            <option value="Deposit">{t('bank.deposits') || 'Deposits'}</option>
+            <option value="Withdrawal">{t('bank.withdrawals') || 'Withdrawals'}</option>
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+            className="px-4 py-2.5 border border-stone-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+          >
+            <option value="">{t('bank.allStatuses') || 'All Statuses'}</option>
+            <option value="Pending">{t('bank.pending') || 'Pending'}</option>
+            <option value="Confirmed">{t('bank.confirmed') || 'Confirmed'}</option>
+          </select>
+
+          {/* Refresh Button */}
+          <button
+            onClick={() => fetchTransactions()}
+            className="p-2.5 rounded-lg border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        {/* Transactions Table */}
+        {filteredTransactions.length > 0 ? (
+          <TransactionsTable
+            transactions={filteredTransactions}
+            onTransactionClick={handleTransactionClick}
+            onConfirm={handleTransactionClick}
+            canEdit={canManageBank}
             loading={loading}
           />
-        </div>
+        ) : (
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 p-12 text-center mb-8">
+            <ReceiptText className="w-16 h-16 mx-auto mb-4 text-stone-300 dark:text-stone-600" />
+            <h3 className="text-lg font-medium text-stone-900 dark:text-stone-100 mb-2">
+              {t('bank.noTransactions') || 'No Transactions'}
+            </h3>
+            <p className="text-stone-500 dark:text-stone-400 mb-6 max-w-md mx-auto">
+              {searchQuery || typeFilter || statusFilter
+                ? (t('bank.noMatchingTransactions') || 'No transactions match your filters.')
+                : (t('bank.noTransactionsYet') || 'Record your first transaction to start tracking bank activity.')}
+            </p>
+            {canManageBank && !searchQuery && !typeFilter && !statusFilter && (
+              <button
+                onClick={openDepositModal}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                {t('bank.recordFirstTransaction') || 'Record First Transaction'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Spacer before Quick Actions */}
+        <div className="mb-8"></div>
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -363,7 +527,7 @@ export default function BankPage() {
               </div>
             </div>
             <button
-              disabled={!isManager}
+              disabled={!canManageBank}
               onClick={openDepositModal}
               className="w-full px-4 py-2.5 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
@@ -387,7 +551,7 @@ export default function BankPage() {
               </div>
             </div>
             <button
-              disabled={!isManager}
+              disabled={!canManageBank}
               onClick={openWithdrawalModal}
               className="w-full px-4 py-2.5 border-2 border-rose-500 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
@@ -404,6 +568,18 @@ export default function BankPage() {
         onSubmit={handleCreateTransaction}
         isLoading={saving}
         defaultType={defaultTransactionType}
+      />
+
+      <TransactionDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false)
+          setSelectedTransaction(null)
+        }}
+        transaction={selectedTransaction}
+        onConfirm={handleConfirmFromModal}
+        canConfirm={canManageBank}
+        isConfirming={confirming}
       />
 
       {/* Toast */}

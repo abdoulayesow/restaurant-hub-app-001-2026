@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { canApprove } from '@/lib/roles'
 
 // GET /api/debts/[id] - Get debt details with payment history
 export async function GET(
@@ -107,19 +108,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can update debts' },
-        { status: 403 }
-      )
-    }
-
     const { id } = await params
     const body = await request.json()
 
@@ -138,19 +126,27 @@ export async function PUT(
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
           userId: session.user.id,
           restaurantId: existingDebt.restaurantId
         }
-      }
+      },
+      select: { role: true }
     })
 
     if (!userRestaurant) {
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    if (!canApprove(userRestaurant.role)) {
+      return NextResponse.json(
+        { error: 'Only owners can update debts' },
         { status: 403 }
       )
     }
@@ -252,19 +248,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can delete debts' },
-        { status: 403 }
-      )
-    }
-
     const { id } = await params
 
     // Check if debt exists
@@ -282,19 +265,27 @@ export async function DELETE(
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
           userId: session.user.id,
           restaurantId: existingDebt.restaurantId
         }
-      }
+      },
+      select: { role: true }
     })
 
     if (!userRestaurant) {
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    if (!canApprove(userRestaurant.role)) {
+      return NextResponse.json(
+        { error: 'Only owners can delete debts' },
         { status: 403 }
       )
     }

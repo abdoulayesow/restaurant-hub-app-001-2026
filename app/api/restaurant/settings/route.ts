@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canApprove } from '@/lib/roles'
 
 // GET /api/restaurant/settings - Fetch restaurant settings
 export async function GET(request: NextRequest) {
@@ -74,19 +75,6 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is a Manager
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can update restaurant settings' },
-        { status: 403 }
-      )
-    }
-
     const body = await request.json()
     const { restaurantId, stockDeductionMode } = body
 
@@ -109,7 +97,7 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
@@ -117,10 +105,18 @@ export async function PATCH(request: NextRequest) {
           restaurantId: restaurantId,
         },
       },
+      select: { role: true },
     })
 
     if (!userRestaurant) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+    }
+
+    if (!canApprove(userRestaurant.role)) {
+      return NextResponse.json(
+        { error: 'Only owners can update restaurant settings' },
+        { status: 403 }
+      )
     }
 
     // Update restaurant settings

@@ -4,27 +4,29 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canAccessDashboard } from '@/lib/roles'
 
 export default function Home() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { currentRole, loading: restaurantLoading } = useRestaurant()
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || restaurantLoading) return
 
     if (!session) {
       router.push('/login')
       return
     }
 
-    // Redirect based on role
-    const role = session.user?.role
-    if (role === 'Manager') {
+    // Redirect based on role at current restaurant
+    if (canAccessDashboard(currentRole)) {
       router.push('/dashboard')
     } else {
       router.push('/editor')
     }
-  }, [session, status, router])
+  }, [session, status, router, currentRole, restaurantLoading])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">

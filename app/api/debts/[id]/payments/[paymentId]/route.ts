@@ -3,8 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { canApprove } from '@/lib/roles'
 
-// PUT /api/debts/[id]/payments/[paymentId] - Update payment (Manager only)
+// PUT /api/debts/[id]/payments/[paymentId] - Update payment (Owner only)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; paymentId: string }> }
@@ -14,19 +15,6 @@ export async function PUT(
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can update payments' },
-        { status: 403 }
-      )
     }
 
     const { id: debtId, paymentId } = await params
@@ -52,19 +40,27 @@ export async function PUT(
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
           userId: session.user.id,
           restaurantId: existingPayment.restaurantId
         }
-      }
+      },
+      select: { role: true }
     })
 
     if (!userRestaurant) {
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    if (!canApprove(userRestaurant.role)) {
+      return NextResponse.json(
+        { error: 'Only owners can update payments' },
         { status: 403 }
       )
     }
@@ -93,7 +89,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/debts/[id]/payments/[paymentId] - Delete payment (Manager only)
+// DELETE /api/debts/[id]/payments/[paymentId] - Delete payment (Owner only)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; paymentId: string }> }
@@ -103,19 +99,6 @@ export async function DELETE(
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check Manager role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    if (user?.role !== 'Manager') {
-      return NextResponse.json(
-        { error: 'Only managers can delete payments' },
-        { status: 403 }
-      )
     }
 
     const { id: debtId, paymentId } = await params
@@ -140,19 +123,27 @@ export async function DELETE(
       )
     }
 
-    // Verify user has access to this restaurant
+    // Verify user has access to this restaurant and check role
     const userRestaurant = await prisma.userRestaurant.findUnique({
       where: {
         userId_restaurantId: {
           userId: session.user.id,
           restaurantId: existingPayment.restaurantId
         }
-      }
+      },
+      select: { role: true }
     })
 
     if (!userRestaurant) {
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
+        { status: 403 }
+      )
+    }
+
+    if (!canApprove(userRestaurant.role)) {
+      return NextResponse.json(
+        { error: 'Only owners can delete payments' },
         { status: 403 }
       )
     }
@@ -169,8 +160,13 @@ export async function DELETE(
       )
     }
 
-    // Use transaction to delete payment and update debt atomically
+    // Use transaction to delete payment, related bank transaction, and update debt atomically
     await prisma.$transaction(async (tx) => {
+      // First, delete any associated bank transaction (DebtCollection)
+      await tx.bankTransaction.deleteMany({
+        where: { debtPaymentId: paymentId }
+      })
+
       // Delete payment
       await tx.debtPayment.delete({
         where: { id: paymentId }

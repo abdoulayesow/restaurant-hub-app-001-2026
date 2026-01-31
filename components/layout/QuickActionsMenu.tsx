@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Users, Zap, X, Plus } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { colorPalettes } from '@/components/brand/Logo'
-import { CustomerQuickCreate } from './CustomerQuickCreate'
 
 interface QuickAction {
   id: string
@@ -16,21 +16,21 @@ interface QuickAction {
 }
 
 export function QuickActionsMenu() {
+  const router = useRouter()
   const { locale } = useLocale()
   const { currentPalette } = useRestaurant()
   const [isOpen, setIsOpen] = useState(false)
-  const [customerModalOpen, setCustomerModalOpen] = useState(false)
 
   const accentColor = colorPalettes[currentPalette].primary
 
   const quickActions: QuickAction[] = [
     {
       id: 'customers',
-      label: 'Add Customer',
-      labelFr: 'Ajouter Client',
+      label: 'Manage Clients',
+      labelFr: 'Gérer les Clients',
       icon: Users,
       onClick: () => {
-        setCustomerModalOpen(true)
+        router.push('/finances/clients')
         setIsOpen(false)
       },
     },
@@ -115,8 +115,8 @@ export function QuickActionsMenu() {
                       <p className="text-xs text-gray-600/60 dark:text-stone-300/60 mt-0.5">
                         {action.id === 'customers' &&
                           (locale === 'fr'
-                            ? 'Créer nouveau client'
-                            : 'Create new customer')}
+                            ? 'Voir et gérer tous les clients'
+                            : 'View and manage all clients')}
                       </p>
                     </div>
                     <Plus className="w-4 h-4 text-gray-400/40 dark:text-stone-400/40 group-hover:text-gray-600 dark:group-hover:text-stone-200 transition-colors" />
@@ -181,12 +181,6 @@ export function QuickActionsMenu() {
           </>
         )}
       </div>
-
-      {/* Customer Quick Create Modal */}
-      <CustomerQuickCreate
-        isOpen={customerModalOpen}
-        onClose={() => setCustomerModalOpen(false)}
-      />
     </>
   )
 }

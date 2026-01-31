@@ -9,6 +9,8 @@ import {
   Trash2,
   Settings,
   ExternalLink,
+  ArrowRightCircle,
+  ArrowLeftCircle,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
@@ -99,6 +101,10 @@ export default function StockMovementHistory({
         return Trash2
       case 'Adjustment':
         return Settings
+      case 'TransferOut':
+        return ArrowRightCircle
+      case 'TransferIn':
+        return ArrowLeftCircle
       default:
         return Package
     }
@@ -114,8 +120,23 @@ export default function StockMovementHistory({
         return 'text-red-600 dark:text-red-400'
       case 'Adjustment':
         return 'text-orange-600 dark:text-orange-400'
+      case 'TransferOut':
+        return 'text-gold-600 dark:text-gold-400'
+      case 'TransferIn':
+        return 'text-green-600 dark:text-green-400'
       default:
         return 'text-gray-600 dark:text-gray-400'
+    }
+  }
+
+  const getMovementLabel = (type: MovementType) => {
+    switch (type) {
+      case 'TransferOut':
+        return t('inventory.transfer.transferOut')
+      case 'TransferIn':
+        return t('inventory.transfer.transferIn')
+      default:
+        return t(`inventory.${type.toLowerCase()}`)
     }
   }
 
@@ -259,7 +280,7 @@ export default function StockMovementHistory({
                     <div className="flex items-center gap-2">
                       <Icon className={`w-4 h-4 ${color}`} />
                       <span className={`text-sm font-medium ${color}`}>
-                        {t(`inventory.${movement.type.toLowerCase()}`)}
+                        {getMovementLabel(movement.type)}
                       </span>
                     </div>
                   </td>

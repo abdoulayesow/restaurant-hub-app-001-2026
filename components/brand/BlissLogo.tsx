@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useTheme } from '@/components/providers/ThemeProvider'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    BLISS PATISSERIE LOGO COMPONENT
@@ -16,6 +17,10 @@ export interface BlissPalette {
   cream: string        // Background
   warm: string         // Warm accent
   decorative: string   // Sparkle/detail color
+  // Dark mode variants
+  darkAccent: string   // Script/text color in dark mode
+  darkPrimary: string  // Primary text in dark mode
+  darkWarm: string     // Warm accent in dark mode
 }
 
 export const blissPalettes: Record<string, BlissPalette> = {
@@ -27,6 +32,10 @@ export const blissPalettes: Record<string, BlissPalette> = {
     cream: '#FFFEFE',
     warm: '#6B5744',
     decorative: '#9B4D9F',
+    // Dark mode: cream/gold tones for visibility
+    darkAccent: '#FFF8F0',
+    darkPrimary: '#E8D4F0',
+    darkWarm: '#D4B896',
   },
   cafeCreme: {
     name: 'Café Crème',
@@ -36,6 +45,10 @@ export const blissPalettes: Record<string, BlissPalette> = {
     cream: '#FFF8F0',
     warm: '#8B7355',
     decorative: '#A0826D',
+    // Dark mode: warm cream tones
+    darkAccent: '#FFF8F0',
+    darkPrimary: '#E8DCD0',
+    darkWarm: '#D4C4B0',
   },
   rosePetal: {
     name: 'Rose Petal',
@@ -45,6 +58,10 @@ export const blissPalettes: Record<string, BlissPalette> = {
     cream: '#FFF5F7',
     warm: '#D4A5B8',
     decorative: '#C48FA5',
+    // Dark mode: soft pink tones
+    darkAccent: '#FFF5F7',
+    darkPrimary: '#F0D4E0',
+    darkWarm: '#E8C4D4',
   },
   pistache: {
     name: 'Pistache',
@@ -54,6 +71,10 @@ export const blissPalettes: Record<string, BlissPalette> = {
     cream: '#FAFFF5',
     warm: '#A8C4A5',
     decorative: '#9FB89D',
+    // Dark mode: soft green tones
+    darkAccent: '#F0FFF0',
+    darkPrimary: '#D4E8D6',
+    darkWarm: '#C4D8C6',
   },
 }
 
@@ -440,6 +461,7 @@ export function BlissLogoHero({
 
 /* ─────────────────────────────────────────────────────────────────────────────
    NAVIGATION LOGO - Compact version for headers
+   Dark mode aware: switches to light text colors on dark backgrounds
    ───────────────────────────────────────────────────────────────────────────── */
 export function BlissLogoNav({
   palette = 'royalPlum',
@@ -449,10 +471,16 @@ export function BlissLogoNav({
   className?: string
 }) {
   const colors = blissPalettes[palette]
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  // Select colors based on theme
+  const textAccent = isDark ? colors.darkAccent : colors.accent
+  const textPrimary = isDark ? colors.darkPrimary : colors.primary
 
   return (
     <div className={`inline-flex items-center gap-2.5 ${className}`}>
-      {/* Compact icon */}
+      {/* Compact icon - always uses the colored version for brand recognition */}
       <svg
         width="36"
         height="36"
@@ -491,20 +519,20 @@ export function BlissLogoNav({
         </text>
       </svg>
 
-      {/* Text */}
+      {/* Text - switches to light colors in dark mode */}
       <div className="flex flex-col -space-y-0.5">
         <span
-          className="bliss-script leading-none"
+          className="bliss-script leading-none transition-colors duration-200"
           style={{
             fontSize: '20px',
-            color: colors.accent,
+            color: textAccent,
           }}
         >
           Bliss
         </span>
         <span
-          className="bliss-elegant uppercase tracking-[0.2em] text-[9px] leading-tight"
-          style={{ color: colors.primary }}
+          className="bliss-elegant uppercase tracking-[0.2em] text-[9px] leading-tight transition-colors duration-200"
+          style={{ color: textPrimary }}
         >
           Patisserie
         </span>

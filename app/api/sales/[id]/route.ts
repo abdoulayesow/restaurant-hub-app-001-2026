@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canEditApproved, canRecordSales } from '@/lib/roles'
 
 // GET /api/sales/[id] - Get a single sale
 export async function GET(
@@ -22,7 +22,13 @@ export async function GET(
       where: { id },
       include: {
         restaurant: true,
-        cashDeposit: true,
+        bankTransaction: {
+          select: {
+            id: true,
+            status: true,
+            confirmedAt: true
+          }
+        },
         saleItems: {
           include: {
             product: {
@@ -86,26 +92,21 @@ export async function PUT(
       return NextResponse.json({ error: 'Sale not found' }, { status: 404 })
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: existingSale.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and permission to record sales
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      existingSale.restaurantId,
+      canRecordSales,
+      'Your role does not have permission to edit sales'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
-    const isManager = isManagerRole(session.user.role)
-
-    // Editors can only edit Pending sales, Managers can edit any
-    if (!isManager && existingSale.status !== 'Pending') {
+    // Non-owners can only edit Pending sales
+    if (!canEditApproved(auth.role) && existingSale.status !== 'Pending') {
       return NextResponse.json(
-        { error: 'Only pending sales can be edited by non-managers' },
+        { error: 'Only pending sales can be edited. Contact the owner to modify approved records.' },
         { status: 403 }
       )
     }
@@ -179,8 +180,8 @@ export async function PUT(
           openingTime: openingTime !== undefined ? openingTime : existingSale.openingTime,
           closingTime: closingTime !== undefined ? closingTime : existingSale.closingTime,
           comments: comments !== undefined ? comments : existingSale.comments,
-          // If a non-manager edits, reset to Pending for re-approval
-          status: !isManager && existingSale.status === 'Pending' ? 'Pending' : existingSale.status,
+          // Keep existing status (editors can only edit Pending records anyway)
+          status: existingSale.status,
           lastModifiedBy: session.user.id,
           lastModifiedByName: session.user.name || session.user.email,
         },
@@ -212,7 +213,13 @@ export async function PUT(
       return tx.sale.findUnique({
         where: { id },
         include: {
-          cashDeposit: true,
+          bankTransaction: {
+            select: {
+              id: true,
+              status: true,
+              confirmedAt: true
+            }
+          },
           saleItems: {
             include: {
               product: {

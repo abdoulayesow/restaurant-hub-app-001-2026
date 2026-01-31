@@ -11,6 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Product Vision & MVP**: [docs/product/PRODUCT-VISION.md](docs/product/PRODUCT-VISION.md)
 - **Technical Specification**: [docs/product/TECHNICAL-SPEC.md](docs/product/TECHNICAL-SPEC.md)
 - **Feature Requirements (Jan 2026)**: [docs/product/FEATURE-REQUIREMENTS-JAN2026.md](docs/product/FEATURE-REQUIREMENTS-JAN2026.md)
+- **Bank Transaction Unification**: [docs/product/BANK-TRANSACTION-UNIFICATION.md](docs/product/BANK-TRANSACTION-UNIFICATION.md) *(In Progress)*
+- **Role-Based Access Control**: [docs/product/ROLE-BASED-ACCESS-CONTROL.md](docs/product/ROLE-BASED-ACCESS-CONTROL.md) *(Planned)*
 - **Reference Application**: [docs/bakery-app-reference/](docs/bakery-app-reference/)
 - **Design System**: [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md)
 
@@ -69,7 +71,12 @@ public/
 
 ### Key Patterns
 
-**Role-based access**: Manager (full access, approvals) vs Editor (submit only)
+**Role-based access**: Currently Manager vs Editor. See [ROLE-BASED-ACCESS-CONTROL.md](docs/product/ROLE-BASED-ACCESS-CONTROL.md) for planned role expansion:
+- **Owner**: Full access to all pages (analytics, approvals, settings)
+- **RestaurantManager**: Can record production, sales, expenses
+- **Baker/Pastry Chef**: Can record production only
+- **Cashier**: Can record sales and expenses only
+- All employees access `/editor` pages only; Owner accesses everything except `/editor`
 
 **Approval workflow**: Items start as Pending, Manager approves/rejects
 
@@ -82,6 +89,34 @@ public/
 **Stock alerts**: Low stock (below minimum), critical (near zero), expiry warnings
 
 **Sales constraints**: One sale per restaurant per date (no duplicates)
+
+**Bank Transaction Workflow**: Bank transactions are created when money physically moves, not when records are created. See [BANK-TRANSACTION-UNIFICATION.md](docs/product/BANK-TRANSACTION-UNIFICATION.md) for details.
+
+**When Bank Transactions Are Created:**
+
+| Action | Creates Bank Transaction? | Type |
+|--------|--------------------------|------|
+| Record a sale | ❌ No | - |
+| Record an expense | ❌ No | - |
+| Record a debt | ❌ No | - |
+| Deposit sales cash to bank | ✅ Yes | Deposit (Pending) |
+| Collect debt payment | ✅ Yes | Deposit (Pending) |
+| Pay an expense | ✅ Yes | Withdrawal (Pending) |
+| Manual entry from Bank page | ✅ Yes | Deposit/Withdrawal (Pending) |
+
+**Transaction Types by Source:**
+
+| Source | Created By | Editable? | Deletable? |
+|--------|-----------|-----------|------------|
+| Sales deposit | Staff (from Sales page) | View only | No |
+| Debt collection | Staff (from Debts page) | View only | No |
+| Expense payment | Staff (from Expenses page) | View only | No |
+| Manual entry | Owner (from Bank page) | Yes, until confirmed | Yes, until confirmed |
+
+**Confirmation Workflow:**
+1. Staff/Owner creates transaction → Status: `Pending`
+2. Owner reviews and confirms via modal form → Status: `Confirmed`
+3. Once confirmed: view-only (no edit/delete)
 
 ### Multi-Restaurant Support
 
@@ -110,20 +145,29 @@ const { currentRestaurant, currentPalette, setCurrentRestaurant } = useRestauran
 
 ## Design System
 
-Terracotta theme (#C45C26) as default, with four preset palettes for multi-restaurant support. Dark mode fully supported. Key Tailwind patterns:
+Terracotta theme (#C45C26) as default, with four preset palettes for multi-restaurant support. Dark mode fully supported using warm `stone-*` palette (not `gray-*`). Key Tailwind patterns:
 
 ```tsx
 // Card
-"bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+"bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 p-6"
 
 // Primary button
 "px-4 py-2 bg-gold-600 text-white rounded-lg hover:bg-gold-700"
 
 // Input
-"w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 dark:bg-gray-700 dark:text-white"
+"w-full px-3 py-2 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-gold-500 dark:bg-stone-700 dark:text-stone-100"
+
+// Text colors
+"text-stone-900 dark:text-stone-100"  // Primary text
+"text-stone-600 dark:text-stone-400"  // Secondary text
+"text-stone-500 dark:text-stone-400"  // Muted text
+
+// Semantic colors (use emerald for success, not green)
+"text-emerald-600 dark:text-emerald-400"  // Success/confirm actions
+"text-red-600 dark:text-red-400"          // Error/destructive actions
 ```
 
-Always pair light/dark mode classes. See [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md) for complete design system.
+Always pair light/dark mode classes. Use `stone-*` for dark mode backgrounds and borders (warm bakery aesthetic). See [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md) for complete design system.
 
 ## Internationalization
 
@@ -172,6 +216,54 @@ See [FEATURE-REQUIREMENTS-JAN2026.md](docs/product/FEATURE-REQUIREMENTS-JAN2026.
    - Clear error messages for duplicates
 
 **Implementation Order:** Payment Methods → Production Types → Sales Improvements → Branding Page
+
+## API Performance Optimization (Pending)
+
+**Status:** Planned - See `.claude/plans/sleepy-puzzling-whale.md` for detailed implementation plan.
+
+**Problem:** Several API endpoints have N+1 query problems causing 8-54 second response times.
+
+| API | Issue | Impact |
+|-----|-------|--------|
+| `GET /api/customers` | N+1: fetches debts per customer | 9-11s response |
+| `POST /api/sales` | N+1: validates debts/products individually | 54s response |
+| `GET /api/sales` | O(n²) JS aggregation | 8s response |
+| `GET /api/products` | No pagination | 6-8s response |
+
+**Planned Fixes:**
+
+1. **Customers API:** Replace `Promise.all` + individual queries with `prisma.debt.groupBy()` aggregation
+2. **Sales POST:** Batch validate all customers/products with `findMany({ where: { id: { in: [...] }}})`
+3. **Sales GET:** Use `Map` for O(n) aggregation instead of `.find()` in reduce
+4. **All list APIs:** Add cursor-based pagination via `lib/pagination.ts`
+5. **Database:** Add `@@index([customerId, status])` to Debt model
+
+**Key Patterns for Optimization:**
+
+```typescript
+// BAD: N+1 query pattern
+const results = await Promise.all(
+  items.map(async (item) => {
+    const data = await prisma.model.findUnique({ where: { id: item.id } })
+    return { ...item, data }
+  })
+)
+
+// GOOD: Batch query pattern
+const allData = await prisma.model.findMany({
+  where: { id: { in: items.map(i => i.id) } }
+})
+const dataMap = new Map(allData.map(d => [d.id, d]))
+const results = items.map(item => ({ ...item, data: dataMap.get(item.id) }))
+
+// GOOD: Use groupBy for aggregations
+const aggregations = await prisma.debt.groupBy({
+  by: ['customerId'],
+  where: { status: { in: ['Outstanding', 'PartiallyPaid'] } },
+  _sum: { remainingAmount: true },
+  _count: true
+})
+```
 
 ## Skill & Agent Usage Guidelines
 

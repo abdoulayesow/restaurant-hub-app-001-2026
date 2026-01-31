@@ -165,5 +165,3 @@ export function CriticalIngredientsCard({
     </div>
   )
 }
-
-export default CriticalIngredientsCard

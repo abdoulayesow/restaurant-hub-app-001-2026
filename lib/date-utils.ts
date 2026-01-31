@@ -87,33 +87,38 @@ export function formatDateForDisplay(
 }
 
 /**
- * Parses a YYYY-MM-DD string to a UTC Date object at midnight
+ * Parses a YYYY-MM-DD string or ISO datetime to a UTC Date object at midnight
  * Use this for database storage to avoid timezone shifts
  *
- * @param dateString - Date string in YYYY-MM-DD format
+ * @param dateString - Date string in YYYY-MM-DD format or full ISO datetime
  * @returns Date object set to midnight UTC
  *
  * @example
- * // User inputs: "2026-01-26"
  * parseToUTCDate("2026-01-26") // Date: 2026-01-26T00:00:00.000Z
+ * parseToUTCDate("2026-01-26T06:00:00.000Z") // Date: 2026-01-26T00:00:00.000Z
  */
 export function parseToUTCDate(dateString: string): Date {
-  const [year, month, day] = dateString.split('-').map(Number)
+  // Handle ISO datetime strings (extract just the date portion)
+  const datePart = dateString.includes('T') ? dateString.split('T')[0] : dateString
+  const [year, month, day] = datePart.split('-').map(Number)
   return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0))
 }
 
 /**
- * Parses a YYYY-MM-DD string to a UTC Date object at end of day (23:59:59.999)
+ * Parses a YYYY-MM-DD string or ISO datetime to a UTC Date object at end of day (23:59:59.999)
  * Use this for date range queries (end date)
  *
- * @param dateString - Date string in YYYY-MM-DD format
+ * @param dateString - Date string in YYYY-MM-DD format or full ISO datetime
  * @returns Date object set to end of day UTC
  *
  * @example
  * parseToUTCEndOfDay("2026-01-26") // Date: 2026-01-26T23:59:59.999Z
+ * parseToUTCEndOfDay("2026-01-26T05:59:59.999Z") // Date: 2026-01-26T23:59:59.999Z
  */
 export function parseToUTCEndOfDay(dateString: string): Date {
-  const [year, month, day] = dateString.split('-').map(Number)
+  // Handle ISO datetime strings (extract just the date portion)
+  const datePart = dateString.includes('T') ? dateString.split('T')[0] : dateString
+  const [year, month, day] = datePart.split('-').map(Number)
   return new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999))
 }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isOwner } from '@/lib/roles'
 
 // Default notification preferences
 const defaultPreferences = {
@@ -25,14 +26,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is a Manager
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    // Check if user is an Owner (via any restaurant)
+    const userRestaurant = await prisma.userRestaurant.findFirst({
+      where: { userId: session.user.id },
       select: { role: true },
     })
 
-    if (user?.role !== 'Manager') {
-      return NextResponse.json({ error: 'Only managers can access notification preferences' }, { status: 403 })
+    if (!userRestaurant || !isOwner(userRestaurant.role)) {
+      return NextResponse.json({ error: 'Only owners can access notification preferences' }, { status: 403 })
     }
 
     // Fetch existing preferences or return defaults
@@ -69,14 +70,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is a Manager
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    // Check if user is an Owner (via any restaurant)
+    const userRestaurant = await prisma.userRestaurant.findFirst({
+      where: { userId: session.user.id },
       select: { role: true },
     })
 
-    if (user?.role !== 'Manager') {
-      return NextResponse.json({ error: 'Only managers can update notification preferences' }, { status: 403 })
+    if (!userRestaurant || !isOwner(userRestaurant.role)) {
+      return NextResponse.json({ error: 'Only owners can update notification preferences' }, { status: 403 })
     }
 
     const body = await request.json()

@@ -127,18 +127,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Editor or Manager role
+    // Get user name for record keeping
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true, name: true }
+      select: { name: true }
     })
-
-    if (!user || (user.role !== 'Manager' && user.role !== 'Editor')) {
-      return NextResponse.json(
-        { error: 'Only managers and editors can create debts' },
-        { status: 403 }
-      )
-    }
 
     const body = await request.json()
 
@@ -267,7 +260,7 @@ export async function POST(request: NextRequest) {
         description: body.description?.trim() || null,
         notes: body.notes?.trim() || null,
         createdBy: session.user.id,
-        createdByName: user.name || null
+        createdByName: user?.name || null
       },
       include: {
         customer: {

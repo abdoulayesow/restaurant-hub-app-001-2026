@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { Settings, Store, Settings2, Building2, LayoutGrid, Bell } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canAccessSettings } from '@/lib/roles'
 import { RestaurantTypeSettings } from '@/components/settings/RestaurantTypeSettings'
 import { RestaurantSettings } from '@/components/settings/RestaurantSettings'
 import { RestaurantConfigSettings } from '@/components/settings/RestaurantConfigSettings'
@@ -34,10 +36,11 @@ export default function SettingsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t, locale } = useLocale()
+  const { currentRole, loading: restaurantLoading } = useRestaurant()
   const [activeTab, setActiveTab] = useState<TabId>('type')
   const [isTransitioning, setIsTransitioning] = useState(false)
 
-  const isManager = session?.user?.role === 'Manager'
+  const canAccess = canAccessSettings(currentRole)
 
   // Read initial tab from URL hash
   useEffect(() => {
@@ -59,17 +62,17 @@ export default function SettingsPage() {
     }, 150)
   }
 
-  // Redirect if not authenticated or not a manager
+  // Redirect if not authenticated or not authorized
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || restaurantLoading) return
     if (!session) {
       router.push('/login')
-    } else if (!isManager) {
-      router.push('/dashboard')
+    } else if (!canAccess) {
+      router.push('/editor')
     }
-  }, [session, status, isManager, router])
+  }, [session, status, canAccess, router, restaurantLoading])
 
-  if (status === 'loading' || !session || !isManager) {
+  if (status === 'loading' || restaurantLoading || !session || !canAccess) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-stone-900">
         <NavigationHeader />

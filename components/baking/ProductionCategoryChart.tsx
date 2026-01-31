@@ -218,5 +218,3 @@ export function ProductionCategoryChart({
     </div>
   )
 }
-
-export default ProductionCategoryChart

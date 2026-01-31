@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canApprove } from '@/lib/roles'
 import { sendNotification } from '@/lib/notification-service'
 
 // POST /api/sales/[id]/approve - Approve or reject a sale (Manager only)
@@ -17,14 +17,6 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only managers can approve/reject
-    if (!isManagerRole(session.user.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden - Manager role required' },
-        { status: 403 }
-      )
-    }
-
     const { id } = await params
 
     const existingSale = await prisma.sale.findUnique({
@@ -35,18 +27,15 @@ export async function POST(
       return NextResponse.json({ error: 'Sale not found' }, { status: 404 })
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: existingSale.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access and permission to approve sales
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      existingSale.restaurantId,
+      canApprove,
+      'Your role does not have permission to approve sales'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     const body = await request.json()
@@ -76,7 +65,13 @@ export async function POST(
       },
       include: {
         restaurant: true,
-        cashDeposit: true,
+        bankTransaction: {
+          select: {
+            id: true,
+            status: true,
+            confirmedAt: true
+          }
+        },
       },
     })
 

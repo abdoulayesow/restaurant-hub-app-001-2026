@@ -11,12 +11,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user with their restaurants
+    // Get user with their restaurants and roles
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
         restaurants: {
-          include: {
+          select: {
+            role: true, // UserRole from UserRestaurant
             restaurant: {
               select: {
                 id: true,
@@ -48,7 +49,11 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const restaurants = user.restaurants.map((ur) => ur.restaurant)
+    // Include role for each restaurant from UserRestaurant junction table
+    const restaurants = user.restaurants.map((ur) => ({
+      ...ur.restaurant,
+      role: ur.role, // UserRole from UserRestaurant
+    }))
 
     return NextResponse.json({
       restaurants,

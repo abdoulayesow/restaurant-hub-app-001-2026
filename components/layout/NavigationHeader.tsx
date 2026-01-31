@@ -16,6 +16,7 @@ import {
   Receipt,
   Building2,
   DollarSign,
+  Users,
   Sun,
   Moon,
   User,
@@ -29,6 +30,7 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { BlissLogoNav, blissPalettes } from '@/components/brand/BlissLogo'
+import { canAccessDashboard, getRoleDisplayName } from '@/lib/roles'
 import { FloatingActionPicker, type FloatingActionItem } from '@/components/ui/FloatingActionPicker'
 import { useFilteredNavigation } from '@/hooks/useFilteredNavigation'
 import { getRestaurantTypeIcon } from '@/config/restaurantTypes'
@@ -78,6 +80,7 @@ const navigationItems: NavItemConfig[] = [
     icon: Wallet,
     subItems: [
       { id: 'sales', label: 'Sales', labelFr: 'Ventes', icon: TrendingUp, href: '/finances/sales' },
+      { id: 'clients', label: 'Clients', labelFr: 'Clients', icon: Users, href: '/finances/clients' },
       { id: 'debts', label: 'Debts', labelFr: 'Dettes', icon: DollarSign, href: '/finances/debts' },
       { id: 'expenses', label: 'Expenses', labelFr: 'Dépenses', icon: Receipt, href: '/finances/expenses' },
       { id: 'bank', label: 'Bank', labelFr: 'Banque', icon: Building2, href: '/finances/bank' },
@@ -95,10 +98,12 @@ const routeToSubItem: Record<string, string> = {
   '/inventory': 'inventory',
   '/production': 'production',
   '/finances/sales': 'sales',
+  '/finances/clients': 'clients',
   '/finances/debts': 'debts',
   '/finances/expenses': 'expenses',
   '/finances/bank': 'bank',
   '/sales': 'sales',
+  '/clients': 'clients',
   '/debts': 'debts',
   '/expenses': 'expenses',
   '/bank': 'bank',
@@ -108,7 +113,7 @@ export function NavigationHeader() {
   const { data: session } = useSession()
   const { t, locale, setLocale } = useLocale()
   const { theme, toggleTheme } = useTheme()
-  const { restaurants, currentRestaurant, currentPalette, setCurrentRestaurant } = useRestaurant()
+  const { restaurants, currentRestaurant, currentRole, currentPalette, setCurrentRestaurant } = useRestaurant()
   const pathname = usePathname()
 
   const [navSheetOpen, setNavSheetOpen] = useState<string | null>(null)
@@ -125,7 +130,8 @@ export function NavigationHeader() {
   }
   const currentBlissPalette = blissPaletteMap[currentPalette] || 'royalPlum'
   const accentColor = blissPalettes[currentBlissPalette].primary
-  const isManager = session?.user?.role === 'Manager'
+  // Use currentRole from RestaurantProvider (per-restaurant role)
+  const isOwnerRole = canAccessDashboard(currentRole)
 
   // Theme-aware button color for floating pickers
   // Light mode: gray-900 (#111827), Dark mode: stone-600 (#57534e)
@@ -340,7 +346,7 @@ export function NavigationHeader() {
                         className="inline-block mt-2 px-2.5 py-0.5 text-[10px] font-medium rounded-full text-white"
                         style={{ backgroundColor: accentColor }}
                       >
-                        {session?.user?.role}
+                        {getRoleDisplayName(currentRole, locale as 'fr' | 'en')}
                       </span>
                     </div>
 
@@ -355,7 +361,7 @@ export function NavigationHeader() {
                         <User className="w-4 h-4 text-gray-500 dark:text-stone-400" />
                         <span>{t('common.profile')}</span>
                       </Link>
-                      {isManager && (
+                      {isOwnerRole && (
                         <Link
                           href="/settings"
                           onClick={() => setUserDropdownOpen(false)}

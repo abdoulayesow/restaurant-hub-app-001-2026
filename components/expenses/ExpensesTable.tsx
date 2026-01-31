@@ -5,6 +5,7 @@ import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, DollarSign, B
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { PAYMENT_METHODS, normalizePaymentMethod } from '@/lib/constants/payment-methods'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface Expense {
   id: string
@@ -69,15 +70,14 @@ export function ExpensesTable({
     }).format(amount) + ' GNF'
   }
 
-  // Format date
+  // Format date - UTC safe
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-FR' : 'en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   // Payment method config - built from centralized constants
@@ -146,11 +146,64 @@ export function ExpensesTable({
 
   if (loading) {
     return (
-      <div className="animate-pulse">
-        <div className="h-12 bg-gray-200 dark:bg-stone-700 rounded-t-xl"></div>
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-16 bg-white dark:bg-stone-800 border-t border-gray-200 dark:border-stone-700"></div>
-        ))}
+      <div className="overflow-x-auto rounded-xl shadow-sm border border-gray-200 dark:border-stone-700">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-100 dark:bg-stone-700">
+              <th className="px-6 py-4 text-left"><div className="h-4 w-16 bg-gray-300 dark:bg-stone-600 rounded animate-pulse" /></th>
+              <th className="px-6 py-4 text-left"><div className="h-4 w-20 bg-gray-300 dark:bg-stone-600 rounded animate-pulse" /></th>
+              <th className="px-6 py-4 text-right"><div className="h-4 w-16 bg-gray-300 dark:bg-stone-600 rounded animate-pulse ml-auto" /></th>
+              <th className="px-6 py-4 text-center hidden md:table-cell"><div className="h-4 w-16 bg-gray-300 dark:bg-stone-600 rounded animate-pulse mx-auto" /></th>
+              <th className="px-6 py-4 text-left hidden lg:table-cell"><div className="h-4 w-20 bg-gray-300 dark:bg-stone-600 rounded animate-pulse" /></th>
+              <th className="px-6 py-4 text-center"><div className="h-4 w-14 bg-gray-300 dark:bg-stone-600 rounded animate-pulse mx-auto" /></th>
+              <th className="px-6 py-4 text-center hidden lg:table-cell"><div className="h-4 w-16 bg-gray-300 dark:bg-stone-600 rounded animate-pulse mx-auto" /></th>
+              <th className="px-6 py-4 text-right"><div className="h-4 w-16 bg-gray-300 dark:bg-stone-600 rounded animate-pulse ml-auto" /></th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-stone-800">
+            {[...Array(5)].map((_, index) => (
+              <tr
+                key={index}
+                className="border-t border-gray-200 dark:border-stone-700 animate-pulse"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <td className="px-6 py-4">
+                  <div className="space-y-2">
+                    <div className="h-4 w-28 bg-gray-200 dark:bg-stone-700 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 dark:bg-stone-600 rounded" />
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-stone-700 rounded" />
+                    <div className="h-3 w-32 bg-gray-100 dark:bg-stone-600 rounded" />
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <div className="h-5 w-24 bg-gray-200 dark:bg-stone-700 rounded ml-auto" />
+                </td>
+                <td className="px-6 py-4 text-center hidden md:table-cell">
+                  <div className="h-5 w-20 bg-gray-200 dark:bg-stone-700 rounded mx-auto" />
+                </td>
+                <td className="px-6 py-4 hidden lg:table-cell">
+                  <div className="h-4 w-20 bg-gray-200 dark:bg-stone-700 rounded" />
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <div className="h-6 w-16 bg-gray-200 dark:bg-stone-700 rounded-full mx-auto" />
+                </td>
+                <td className="px-6 py-4 text-center hidden lg:table-cell">
+                  <div className="h-5 w-14 bg-gray-200 dark:bg-stone-700 rounded-full mx-auto" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex justify-end gap-2">
+                    <div className="h-8 w-8 bg-gray-200 dark:bg-stone-700 rounded-lg" />
+                    <div className="h-8 w-8 bg-gray-200 dark:bg-stone-700 rounded-lg" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     )
   }

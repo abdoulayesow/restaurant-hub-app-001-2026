@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Banknote, Smartphone, CreditCard, Loader2, Receipt, Link } from 'lucide-react'
+import { X, Banknote, Smartphone, CreditCard, Loader2, Receipt, Link, DollarSign, Hash } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 
 type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
@@ -23,15 +23,16 @@ interface RecordPaymentModalProps {
     paymentMethod: PaymentMethod
     notes?: string
     receiptUrl?: string
+    transactionId?: string
   }) => Promise<void>
   expense: Expense | null
   isLoading?: boolean
 }
 
-const METHOD_OPTIONS: { value: PaymentMethod; icon: React.ElementType; label: string }[] = [
-  { value: 'Cash', icon: Banknote, label: 'Cash' },
-  { value: 'OrangeMoney', icon: Smartphone, label: 'Orange Money' },
-  { value: 'Card', icon: CreditCard, label: 'Card' },
+const METHOD_OPTIONS: { value: PaymentMethod; icon: React.ElementType; color: string }[] = [
+  { value: 'Cash', icon: Banknote, color: 'emerald' },
+  { value: 'OrangeMoney', icon: Smartphone, color: 'orange' },
+  { value: 'Card', icon: CreditCard, color: 'blue' },
 ]
 
 export function RecordPaymentModal({
@@ -47,11 +48,23 @@ export function RecordPaymentModal({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash')
   const [notes, setNotes] = useState('')
   const [receiptUrl, setReceiptUrl] = useState('')
+  const [transactionId, setTransactionId] = useState('')
   const [showReceiptInput, setShowReceiptInput] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Calculate remaining amount
   const remainingAmount = expense ? expense.amountGNF - (expense.totalPaidAmount || 0) : 0
+
+  // Show transaction ID for Card and OrangeMoney
+  const showTransactionId = paymentMethod === 'Card' || paymentMethod === 'OrangeMoney'
+
+  // Quick amount percentages
+  const quickAmounts = [
+    { label: '25%', value: 0.25 },
+    { label: '50%', value: 0.5 },
+    { label: '75%', value: 0.75 },
+    { label: t('expenses.payment.payFull') || '100%', value: 1 },
+  ]
 
   // Reset form when modal opens or expense changes
   useEffect(() => {
@@ -60,6 +73,7 @@ export function RecordPaymentModal({
       setPaymentMethod('Cash')
       setNotes('')
       setReceiptUrl('')
+      setTransactionId('')
       setShowReceiptInput(false)
       setError(null)
     }
@@ -89,12 +103,19 @@ export function RecordPaymentModal({
       return
     }
 
+    // Require transaction ID for Card and OrangeMoney
+    if (showTransactionId && !transactionId.trim()) {
+      setError(t('expenses.payment.transactionIdRequired') || 'Transaction ID is required for Card and Orange Money payments')
+      return
+    }
+
     try {
       await onSubmit({
         amount: amountNum,
         paymentMethod,
         notes: notes.trim() || undefined,
         receiptUrl: receiptUrl.trim() || undefined,
+        transactionId: transactionId.trim() || undefined,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -112,23 +133,39 @@ export function RecordPaymentModal({
       <div className="flex min-h-full items-center justify-center p-4">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/50 transition-opacity"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
           onClick={onClose}
+          style={{ animation: 'fadeIn 0.2s ease-out' }}
         />
 
         {/* Modal */}
-        <div className="relative bg-white dark:bg-stone-800 rounded-2xl shadow-xl w-full max-w-md">
+        <div
+          className="relative bg-white dark:bg-stone-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 dark:border-stone-700"
+          style={{ animation: 'slideUp 0.3s ease-out' }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-stone-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-stone-100">
-              {t('expenses.payment.recordPayment') || 'Record Payment'}
-            </h2>
+          <div className="relative px-6 py-5 border-b border-gray-100 dark:border-stone-700 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-t-2xl">
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-gray-500 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
+              disabled={isLoading}
+              className="absolute top-4 right-4 p-2 hover:bg-white/60 dark:hover:bg-stone-700/60 rounded-xl transition-all disabled:opacity-50"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-gray-500 dark:text-stone-400" />
             </button>
+
+            <div className="flex items-center gap-3 pr-10">
+              <div className="p-2.5 bg-emerald-500 rounded-xl shadow-lg shadow-emerald-500/25">
+                <DollarSign className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-stone-100">
+                  {t('expenses.payment.recordPayment') || 'Record Payment'}
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-stone-400">
+                  {t('expenses.payment.for') || 'For'}: {expense?.categoryName}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Body */}
@@ -208,9 +245,23 @@ export function RecordPaymentModal({
                   GNF
                 </span>
               </div>
-              <p className="mt-1 text-sm text-gray-500 dark:text-stone-400">
-                {t('expenses.payment.maxAmount') || 'Max'}: {formatCurrency(remainingAmount)}
+
+              {/* Quick Amount Buttons */}
+              <p className="text-xs text-gray-500 dark:text-stone-400 mt-2 mb-1.5">
+                {t('expenses.payment.quickAmounts') || 'Quick Amounts'}
               </p>
+              <div className="flex gap-2">
+                {quickAmounts.map((qa) => (
+                  <button
+                    key={qa.label}
+                    type="button"
+                    onClick={() => setAmount(Math.floor(remainingAmount * qa.value).toString())}
+                    className="flex-1 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-stone-600 text-gray-600 dark:text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-300 dark:hover:border-emerald-700 hover:text-emerald-700 dark:hover:text-emerald-400 transition-all"
+                  >
+                    {qa.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Payment Method */}
@@ -222,6 +273,17 @@ export function RecordPaymentModal({
                 {METHOD_OPTIONS.map((option) => {
                   const Icon = option.icon
                   const isSelected = paymentMethod === option.value
+                  const label = option.value === 'OrangeMoney'
+                    ? (t('expenses.orangeMoney') || 'Orange Money')
+                    : (t(`expenses.${option.value.toLowerCase()}`) || option.value)
+
+                  // Explicit color classes
+                  const selectedStyles = {
+                    emerald: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+                    orange: 'border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+                    blue: 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+                  }
+
                   return (
                     <button
                       key={option.value}
@@ -229,17 +291,37 @@ export function RecordPaymentModal({
                       onClick={() => setPaymentMethod(option.value)}
                       className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                         isSelected
-                          ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                          ? selectedStyles[option.color as keyof typeof selectedStyles]
                           : 'border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 text-gray-600 dark:text-stone-400'
                       }`}
                     >
                       <Icon className="w-6 h-6" />
-                      <span className="text-xs font-medium">{option.label}</span>
+                      <span className="text-xs font-medium">{label}</span>
                     </button>
                   )
                 })}
               </div>
             </div>
+
+            {/* Transaction ID - Required for Card and OrangeMoney */}
+            {showTransactionId && (
+              <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50">
+                <label className="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">
+                  <Hash className="w-4 h-4" />
+                  {t('expenses.payment.transactionId') || 'Transaction ID'} *
+                </label>
+                <input
+                  type="text"
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                  placeholder={t('expenses.payment.transactionIdPlaceholder') || 'Enter transaction reference'}
+                  className="w-full px-4 py-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-stone-800 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+                <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                  {t('expenses.payment.transactionIdHint') || 'Required for Card and Orange Money payments'}
+                </p>
+              </div>
+            )}
 
             {/* Notes */}
             <div>
@@ -296,19 +378,19 @@ export function RecordPaymentModal({
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-stone-700 mt-2">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="flex-1 px-4 py-3 border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 rounded-xl hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors font-medium disabled:opacity-50"
+                className="flex-1 px-4 py-3 border border-gray-200 dark:border-stone-600 text-gray-700 dark:text-stone-300 rounded-xl hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors font-medium disabled:opacity-50"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25"
               >
                 {isLoading ? (
                   <>
@@ -323,6 +405,17 @@ export function RecordPaymentModal({
           </form>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </div>
   )
 }

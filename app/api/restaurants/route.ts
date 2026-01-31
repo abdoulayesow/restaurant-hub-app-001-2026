@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isOwner } from '@/lib/roles'
 
 // POST /api/restaurants - Create a new restaurant
 export async function POST(request: NextRequest) {
@@ -14,10 +15,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only managers can create restaurants
-    if (session.user.role !== 'Manager') {
+    // Check if user is an Owner (via any restaurant) - only Owners can create new restaurants
+    const userRestaurant = await prisma.userRestaurant.findFirst({
+      where: { userId: session.user.id },
+      select: { role: true }
+    })
+
+    if (!userRestaurant || !isOwner(userRestaurant.role)) {
       return NextResponse.json(
-        { error: 'Only managers can create restaurants' },
+        { error: 'Only owners can create restaurants' },
         { status: 403 }
       )
     }

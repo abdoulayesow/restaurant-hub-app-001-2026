@@ -7,6 +7,7 @@ import { Plus, Search, Receipt, RefreshCw, Filter, Calendar, TrendingUp, ArrowUp
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { canApprove } from '@/lib/roles'
 import { ExpensesTable } from '@/components/expenses/ExpensesTable'
 import { AddEditExpenseModal } from '@/components/expenses/AddEditExpenseModal'
 import { RecordPaymentModal } from '@/components/expenses/RecordPaymentModal'
@@ -96,7 +97,7 @@ export default function ExpensesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { t, locale } = useLocale()
-  const { currentRestaurant, loading: restaurantLoading } = useRestaurant()
+  const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   // Initialize filters from URL params
   const initialPaymentStatus = searchParams.get('paymentStatus') || ''
@@ -122,7 +123,8 @@ export default function ExpensesPage() {
   const [expensesByDay, setExpensesByDay] = useState<ExpenseTrendDataPoint[]>([])
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseCategoryData[]>([])
 
-  const isManager = session?.user?.role === 'Manager'
+  // Permission check for approval actions (Owner or legacy Manager)
+  const canApproveItems = canApprove(currentRole)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -588,7 +590,7 @@ export default function ExpensesPage() {
             onApprove={handleApprove}
             onReject={handleReject}
             onRecordPayment={handleOpenPaymentModal}
-            isManager={isManager}
+            isManager={canApproveItems}
             loading={loading}
           />
         ) : (
