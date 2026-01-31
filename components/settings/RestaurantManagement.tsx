@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Plus,
   Trash2,
@@ -10,6 +11,7 @@ import {
   X,
   Check,
   Building2,
+  Users,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import {
@@ -33,17 +35,21 @@ interface NewRestaurantForm {
 }
 
 export function RestaurantManagement() {
-  const { locale } = useLocale()
+  const { locale, t } = useLocale()
+  const router = useRouter()
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showInactive, setShowInactive] = useState(false)
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [restaurantToDelete, setRestaurantToDelete] = useState<Restaurant | null>(null)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
+  const [showRestoreModal, setShowRestoreModal] = useState(false)
+  const [restaurantToRestore, setRestaurantToRestore] = useState<Restaurant | null>(null)
 
   // Form states
   const [newRestaurant, setNewRestaurant] = useState<NewRestaurantForm>({
@@ -60,7 +66,10 @@ export function RestaurantManagement() {
   const fetchRestaurants = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/restaurants/my-restaurants')
+      const url = showInactive
+        ? '/api/restaurants/my-restaurants?includeInactive=true'
+        : '/api/restaurants/my-restaurants'
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setRestaurants(data.restaurants || [])
@@ -72,7 +81,7 @@ export function RestaurantManagement() {
     } finally {
       setLoading(false)
     }
-  }, [locale])
+  }, [locale, showInactive])
 
   useEffect(() => {
     fetchRestaurants()
@@ -180,6 +189,39 @@ export function RestaurantManagement() {
     setShowDeleteModal(true)
   }
 
+  // Restore restaurant
+  const handleRestoreRestaurant = async () => {
+    if (!restaurantToRestore) return
+
+    setSubmitting(true)
+    try {
+      const response = await fetch(`/api/restaurants/${restaurantToRestore.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: true }),
+      })
+
+      if (response.ok) {
+        setShowRestoreModal(false)
+        setRestaurantToRestore(null)
+        await fetchRestaurants()
+        // Show success toast if there's a toast system
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to restore restaurant')
+      }
+    } catch {
+      setError(locale === 'fr' ? 'Erreur de connexion' : 'Connection error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const openRestoreModal = (restaurant: Restaurant) => {
+    setRestaurantToRestore(restaurant)
+    setShowRestoreModal(true)
+  }
+
   if (loading) {
     return (
       <div className="
@@ -198,7 +240,7 @@ export function RestaurantManagement() {
       <div className="bg-gray-100 dark:bg-stone-800 rounded-2xl shadow overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-gray-200 dark:border-stone-600">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h2
                 className="text-xl font-semibold text-gray-900 dark:text-stone-100"
@@ -230,6 +272,32 @@ export function RestaurantManagement() {
                 {locale === 'fr' ? 'Ajouter' : 'Add Restaurant'}
               </span>
             </button>
+          </div>
+
+          {/* Show Inactive Filter */}
+          <div className="flex items-center gap-2">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={(e) => setShowInactive(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="
+                w-11 h-6 rounded-full
+                bg-gray-200 dark:bg-stone-600
+                peer-checked:bg-gray-900 dark:peer-checked:bg-white
+                peer-focus:ring-2 peer-focus:ring-gray-300 dark:peer-focus:ring-stone-500
+                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                after:bg-white dark:after:bg-stone-900 after:rounded-full after:h-5 after:w-5
+                after:transition-all after:duration-300
+                peer-checked:after:translate-x-full
+                transition-colors duration-300
+              " />
+            </label>
+            <span className="text-sm font-medium text-gray-700 dark:text-stone-200">
+              {locale === 'fr' ? 'Afficher inactifs' : 'Show Inactive'}
+            </span>
           </div>
         </div>
 
@@ -274,7 +342,7 @@ export function RestaurantManagement() {
                 return (
                   <div
                     key={restaurant.id}
-                    className="
+                    className={`
                       group relative
                       bg-white dark:bg-stone-700
                       rounded-xl p-5
@@ -282,7 +350,8 @@ export function RestaurantManagement() {
                       hover:border-gray-200 dark:hover:border-stone-500
                       transition-all duration-300
                       hover:shadow-lg hover:-translate-y-1
-                    "
+                      ${!restaurant.isActive ? 'opacity-60' : ''}
+                    `}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {/* Status indicator bar */}
@@ -304,7 +373,7 @@ export function RestaurantManagement() {
                           w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0
                           ${restaurant.isActive
                             ? 'bg-gray-200 dark:bg-stone-600 text-gray-700 dark:text-stone-200'
-                            : 'bg-gray-100 dark:bg-stone-600 text-gray-400 dark:text-gray-500'
+                            : 'bg-gray-100 dark:bg-stone-600 text-gray-400 dark:text-gray-500 grayscale'
                           }
                           transition-colors duration-300
                         `}
@@ -359,48 +428,92 @@ export function RestaurantManagement() {
                       </span>
                     </div>
 
+                    {/* Manage Staff Button */}
+                    {restaurant.isActive && (
+                      <button
+                        onClick={() => router.push(`/settings/restaurants/${restaurant.id}/staff`)}
+                        className="
+                          w-full mb-4 px-3 py-2 rounded-lg text-sm font-medium
+                          border border-gray-300 dark:border-stone-600
+                          text-gray-700 dark:text-stone-200
+                          hover:bg-gray-100 dark:hover:bg-stone-600
+                          transition-colors duration-200
+                          flex items-center justify-center gap-2
+                        "
+                      >
+                        <Users className="w-4 h-4" />
+                        {t('settings.restaurants.manageStaff')}
+                      </button>
+                    )}
+
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-stone-600">
-                      {/* Toggle switch */}
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={restaurant.isActive}
-                          onChange={() => handleToggleActive(restaurant)}
-                          disabled={togglingId === restaurant.id}
-                          className="sr-only peer"
-                        />
-                        <div className={`
-                          w-11 h-6 rounded-full
-                          bg-gray-200 dark:bg-stone-600
-                          peer-checked:bg-green-500
-                          peer-focus:ring-2 peer-focus:ring-green-300 dark:peer-focus:ring-green-800
-                          after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                          after:bg-white after:rounded-full after:h-5 after:w-5
-                          after:transition-all after:duration-300
-                          peer-checked:after:translate-x-full
-                          ${togglingId === restaurant.id ? 'opacity-50' : ''}
-                          transition-colors duration-300
-                        `} />
-                        {togglingId === restaurant.id && (
-                          <Loader2 className="w-4 h-4 animate-spin text-gray-500 ml-2" />
-                        )}
-                      </label>
+                      {restaurant.isActive ? (
+                        <>
+                          {/* Toggle switch */}
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={restaurant.isActive}
+                              onChange={() => handleToggleActive(restaurant)}
+                              disabled={togglingId === restaurant.id}
+                              className="sr-only peer"
+                            />
+                            <div className={`
+                              w-11 h-6 rounded-full
+                              bg-gray-200 dark:bg-stone-600
+                              peer-checked:bg-green-500
+                              peer-focus:ring-2 peer-focus:ring-green-300 dark:peer-focus:ring-green-800
+                              after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                              after:bg-white after:rounded-full after:h-5 after:w-5
+                              after:transition-all after:duration-300
+                              peer-checked:after:translate-x-full
+                              ${togglingId === restaurant.id ? 'opacity-50' : ''}
+                              transition-colors duration-300
+                            `} />
+                            {togglingId === restaurant.id && (
+                              <Loader2 className="w-4 h-4 animate-spin text-gray-500 ml-2" />
+                            )}
+                          </label>
 
-                      {/* Delete button */}
-                      <button
-                        onClick={() => openDeleteModal(restaurant)}
-                        className="
-                          p-2 rounded-lg
-                          text-gray-400 hover:text-red-500
-                          hover:bg-red-50 dark:hover:bg-red-900/20
-                          transition-all duration-200
-                          opacity-0 group-hover:opacity-100
-                        "
-                        title={locale === 'fr' ? 'Supprimer' : 'Delete'}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                          {/* Delete button */}
+                          <button
+                            onClick={() => openDeleteModal(restaurant)}
+                            className="
+                              p-2 rounded-lg
+                              text-gray-400 hover:text-red-500
+                              hover:bg-red-50 dark:hover:bg-red-900/20
+                              transition-all duration-200
+                              opacity-0 group-hover:opacity-100
+                            "
+                            title={locale === 'fr' ? 'Supprimer' : 'Delete'}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {/* Inactive status */}
+                          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                            {locale === 'fr' ? 'Inactif' : 'Inactive'}
+                          </span>
+
+                          {/* Restore button */}
+                          <button
+                            onClick={() => openRestoreModal(restaurant)}
+                            className="
+                              px-3 py-1.5 rounded-lg text-sm font-medium
+                              text-emerald-600 dark:text-emerald-400
+                              hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+                              transition-all duration-200
+                              flex items-center gap-1.5
+                            "
+                          >
+                            <Check className="w-4 h-4" />
+                            {locale === 'fr' ? 'Restaurer' : 'Restore'}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 )
@@ -682,6 +795,118 @@ export function RestaurantManagement() {
                     <>
                       <Trash2 className="w-5 h-5" />
                       {locale === 'fr' ? 'Supprimer' : 'Delete'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Restore Confirmation Modal */}
+      {showRestoreModal && restaurantToRestore && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              setShowRestoreModal(false)
+              setRestaurantToRestore(null)
+            }}
+          />
+          <div className="
+            relative w-full max-w-md
+            bg-white dark:bg-stone-800
+            rounded-2xl shadow-2xl
+            animate-fade-in-up
+            border-2 border-emerald-200 dark:border-emerald-900/50
+          ">
+            {/* Header */}
+            <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-t-2xl border-b border-emerald-200 dark:border-emerald-900/30">
+              <div className="flex items-center gap-3">
+                <div className="
+                  w-12 h-12 rounded-full
+                  bg-emerald-100 dark:bg-emerald-900/40
+                  flex items-center justify-center
+                ">
+                  <Check className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <h3
+                    className="text-xl font-semibold text-emerald-900 dark:text-emerald-100"
+                    style={{ fontFamily: "var(--font-poppins), 'Poppins', sans-serif" }}
+                  >
+                    {locale === 'fr' ? 'Restaurer le restaurant' : 'Restore Restaurant'}
+                  </h3>
+                  <p className="text-sm text-emerald-600 dark:text-emerald-300">
+                    {locale === 'fr' ? 'Réactiver ce restaurant' : 'Reactivate this restaurant'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Restaurant info */}
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-stone-700 border border-gray-200 dark:border-stone-600">
+                <p className="text-sm text-gray-600 dark:text-stone-300 mb-1">
+                  {locale === 'fr' ? 'Restaurant à restaurer:' : 'Restaurant to restore:'}
+                </p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-stone-100">
+                  {restaurantToRestore.name}
+                </p>
+                {restaurantToRestore.location && (
+                  <p className="text-sm text-gray-500 dark:text-stone-400">
+                    {restaurantToRestore.location}
+                  </p>
+                )}
+              </div>
+
+              {/* Info message */}
+              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                  {locale === 'fr'
+                    ? 'Ce restaurant sera réactivé et disponible pour toutes les opérations. Toutes les données associées seront accessibles à nouveau.'
+                    : 'This restaurant will be reactivated and available for all operations. All associated data will be accessible again.'
+                  }
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRestoreModal(false)
+                    setRestaurantToRestore(null)
+                  }}
+                  className="
+                    flex-1 px-4 py-3 rounded-xl
+                    border border-gray-300 dark:border-stone-600
+                    text-gray-700 dark:text-stone-200
+                    hover:bg-gray-100 dark:hover:bg-stone-700
+                    font-medium transition-colors duration-200
+                  "
+                >
+                  {locale === 'fr' ? 'Annuler' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleRestoreRestaurant}
+                  disabled={submitting}
+                  className="
+                    flex-1 px-4 py-3 rounded-xl
+                    bg-emerald-600 text-white
+                    hover:bg-emerald-700
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    font-medium transition-all duration-200
+                    flex items-center justify-center gap-2
+                  "
+                >
+                  {submitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5" />
+                      {locale === 'fr' ? 'Restaurer' : 'Restore'}
                     </>
                   )}
                 </button>

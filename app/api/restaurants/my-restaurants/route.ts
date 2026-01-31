@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -11,11 +11,16 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Parse query parameters
+    const { searchParams } = new URL(request.url)
+    const includeInactive = searchParams.get('includeInactive') === 'true'
+
     // Get user with their restaurants and roles
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
         restaurants: {
+          where: includeInactive ? {} : { restaurant: { isActive: true } },
           select: {
             role: true, // UserRole from UserRestaurant
             restaurant: {

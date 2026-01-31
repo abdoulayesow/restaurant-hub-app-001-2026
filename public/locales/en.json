@@ -976,7 +976,34 @@
     "quietHoursEnd": "End Time",
     "clearQuietHours": "Clear quiet hours",
     "notificationLanguage": "Notification Language",
-    "notificationLanguageDesc": "Language for SMS notifications"
+    "notificationLanguageDesc": "Language for SMS notifications",
+    "restaurants": {
+      "showInactive": "Show Inactive",
+      "restoreRestaurant": "Restore Restaurant",
+      "confirmRestore": "Are you sure you want to restore this restaurant?",
+      "restoreSuccess": "Restaurant restored successfully",
+      "manageStaff": "Manage Staff",
+      "staffManagement": "Staff Management",
+      "staffMembers": "staff members",
+      "addUser": "Add User",
+      "selectUser": "Select User",
+      "chooseUser": "Choose a user...",
+      "usersAvailable": "users available",
+      "roleAtRestaurant": "Role at Restaurant",
+      "assignUser": "Assign User",
+      "removeUser": "Remove User",
+      "confirmRemoveUser": "Are you sure you want to remove this user?",
+      "cannotRemoveLastOwner": "Cannot remove the last Owner",
+      "cannotChangeLastOwner": "Cannot change role of last Owner",
+      "userAlreadyAssigned": "User is already assigned to this restaurant",
+      "assignedOn": "Assigned On"
+    }
+  },
+  "noAccess": {
+    "title": "No Restaurant Access",
+    "message": "Your account is not assigned to any restaurants yet. Please contact your administrator to grant you access.",
+    "authenticatedAs": "Authenticated as",
+    "signOut": "Sign Out"
   },
   "debts": {
     "title": "Credit Management",
