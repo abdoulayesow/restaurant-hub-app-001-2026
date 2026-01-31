@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")  // Used for migrations, bypasses connection pooler
+  directUrl = env("DIRECT_URL") // Used for migrations, bypasses connection pooler
 }
 
 // ============================================================================
@@ -39,21 +39,21 @@ model Session {
 }
 
 model User {
-  id                  String           @id @default(uuid())
-  email               String           @unique
-  name                String?
-  image               String?
-  emailVerified       DateTime?        // Required by NextAuth Prisma Adapter
-  role                UserRole         @default(Editor)
-  phone               String?
-  address             String?
-  defaultRestaurantId String?          // User's preferred/default restaurant
-  defaultRestaurant   Restaurant?      @relation("DefaultRestaurant", fields: [defaultRestaurantId], references: [id])
-  restaurants         UserRestaurant[] // Restaurants this user can access
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  accounts            Account[]
-  sessions            Session[]
+  id                     String                  @id @default(uuid())
+  email                  String                  @unique
+  name                   String?
+  image                  String?
+  emailVerified          DateTime? // Required by NextAuth Prisma Adapter
+  role                   UserRole                @default(Editor)
+  phone                  String?
+  address                String?
+  defaultRestaurantId    String? // User's preferred/default restaurant
+  defaultRestaurant      Restaurant?             @relation("DefaultRestaurant", fields: [defaultRestaurantId], references: [id])
+  restaurants            UserRestaurant[] // Restaurants this user can access
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  accounts               Account[]
+  sessions               Session[]
   notificationPreference NotificationPreference?
 }
 
@@ -84,11 +84,11 @@ model VerificationToken {
 
 enum UserRole {
   // New RBAC roles
-  Owner           // Full access to all pages (analytics, approvals, settings)
+  Owner // Full access to all pages (analytics, approvals, settings)
   RestaurantManager // Can record production, sales, expenses via /editor
-  Baker           // Can record production only via /editor
-  PastryChef      // Can record production only via /editor
-  Cashier         // Can record sales and expenses only via /editor
+  Baker // Can record production only via /editor
+  PastryChef // Can record production only via /editor
+  Cashier // Can record sales and expenses only via /editor
   // Legacy values (for backward compatibility)
   Editor
   Manager
@@ -106,34 +106,34 @@ enum RestaurantType {
 // ============================================================================
 
 model Restaurant {
-  id                   String           @id @default(uuid())
+  id                   String         @id @default(uuid())
   name                 String
-  restaurantType       RestaurantType   @default(Bakery)
-  inventoryEnabled     Boolean          @default(true)
-  productionEnabled    Boolean          @default(true)
-  location             String?          // e.g., "Conakry - Centre", "Conakry - Kaloum"
+  restaurantType       RestaurantType @default(Bakery)
+  inventoryEnabled     Boolean        @default(true)
+  productionEnabled    Boolean        @default(true)
+  location             String? // e.g., "Conakry - Centre", "Conakry - Kaloum"
   openingDate          DateTime?
-  initialCapital       Float            @default(0)
-  initialCashBalance   Float            @default(0)
-  initialOrangeBalance Float            @default(0)
-  initialCardBalance   Float            @default(0)
+  initialCapital       Float          @default(0)
+  initialCashBalance   Float          @default(0)
+  initialOrangeBalance Float          @default(0)
+  initialCardBalance   Float          @default(0)
   contactPhone         String?
   contactEmail         String?
   managerName          String?
-  currency             String           @default("GNF")
+  currency             String         @default("GNF")
   trackingStartDate    DateTime?
-  stockDeductionMode   String           @default("immediate") // "immediate" | "deferred"
-  isActive             Boolean          @default(true)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  stockDeductionMode   String         @default("immediate") // "immediate" | "deferred"
+  isActive             Boolean        @default(true)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
   // Relations
   users                UserRestaurant[]
-  defaultForUsers      User[]           @relation("DefaultRestaurant")
+  defaultForUsers      User[]                @relation("DefaultRestaurant")
   inventoryItems       InventoryItem[]
   stockMovements       StockMovement[]
   productionLogs       ProductionLog[]
-  products             Product[]        // Product catalog for production
+  products             Product[] // Product catalog for production
   sales                Sale[]
   expenses             Expense[]
   bankTransactions     BankTransaction[]
@@ -144,8 +144,8 @@ model Restaurant {
   debts                Debt[]
   debtPayments         DebtPayment[]
   stockReconciliations StockReconciliation[]
-  transfersOut         InventoryTransfer[]  @relation("TransfersOut")
-  transfersIn          InventoryTransfer[]  @relation("TransfersIn")
+  transfersOut         InventoryTransfer[]   @relation("TransfersOut")
+  transfersIn          InventoryTransfer[]   @relation("TransfersIn")
 
   @@index([isActive])
   @@index([restaurantType])
@@ -156,28 +156,28 @@ model Restaurant {
 // ============================================================================
 
 model InventoryItem {
-  id             String          @id @default(uuid())
-  restaurantId   String
-  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id])
-  name           String
-  nameFr         String?
-  category       String
-  unit           String
-  currentStock   Float           @default(0)
-  minStock       Float           @default(0)
-  reorderPoint   Float           @default(0)
-  unitCostGNF    Float           @default(0)
-  supplierId     String?
-  supplier       Supplier?       @relation(fields: [supplierId], references: [id])
-  expiryDays     Int?
-  isActive             Boolean              @default(true)
-  stockMovements       StockMovement[]
-  expenseItems         ExpenseItem[]
-  reconciliationItems  ReconciliationItem[]
-  transfersFrom        InventoryTransfer[]  @relation("TransfersFrom")
-  transfersTo          InventoryTransfer[]  @relation("TransfersTo")
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  id                  String               @id @default(uuid())
+  restaurantId        String
+  restaurant          Restaurant           @relation(fields: [restaurantId], references: [id])
+  name                String
+  nameFr              String?
+  category            String
+  unit                String
+  currentStock        Float                @default(0)
+  minStock            Float                @default(0)
+  reorderPoint        Float                @default(0)
+  unitCostGNF         Float                @default(0)
+  supplierId          String?
+  supplier            Supplier?            @relation(fields: [supplierId], references: [id])
+  expiryDays          Int?
+  isActive            Boolean              @default(true)
+  stockMovements      StockMovement[]
+  expenseItems        ExpenseItem[]
+  reconciliationItems ReconciliationItem[]
+  transfersFrom       InventoryTransfer[]  @relation("TransfersFrom")
+  transfersTo         InventoryTransfer[]  @relation("TransfersTo")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   @@index([restaurantId])
   @@index([category])
@@ -225,20 +225,20 @@ enum MovementType {
 // ============================================================================
 
 model InventoryTransfer {
-  id                    String       @id @default(uuid())
-  sourceRestaurantId    String
-  sourceRestaurant      Restaurant   @relation("TransfersOut", fields: [sourceRestaurantId], references: [id])
-  targetRestaurantId    String
-  targetRestaurant      Restaurant   @relation("TransfersIn", fields: [targetRestaurantId], references: [id])
-  sourceItemId          String
-  sourceItem            InventoryItem @relation("TransfersFrom", fields: [sourceItemId], references: [id])
-  targetItemId          String?
-  targetItem            InventoryItem? @relation("TransfersTo", fields: [targetItemId], references: [id])
-  quantity              Float
-  reason                String?
-  createdBy             String
-  createdByName         String?
-  createdAt             DateTime     @default(now())
+  id                 String         @id @default(uuid())
+  sourceRestaurantId String
+  sourceRestaurant   Restaurant     @relation("TransfersOut", fields: [sourceRestaurantId], references: [id])
+  targetRestaurantId String
+  targetRestaurant   Restaurant     @relation("TransfersIn", fields: [targetRestaurantId], references: [id])
+  sourceItemId       String
+  sourceItem         InventoryItem  @relation("TransfersFrom", fields: [sourceItemId], references: [id])
+  targetItemId       String?
+  targetItem         InventoryItem? @relation("TransfersTo", fields: [targetItemId], references: [id])
+  quantity           Float
+  reason             String?
+  createdBy          String
+  createdByName      String?
+  createdAt          DateTime       @default(now())
 
   @@index([sourceRestaurantId])
   @@index([targetRestaurantId])
@@ -251,11 +251,11 @@ model InventoryTransfer {
 // ============================================================================
 
 model StockReconciliation {
-  id              String                @id @default(uuid())
+  id              String               @id @default(uuid())
   restaurantId    String
-  restaurant      Restaurant            @relation(fields: [restaurantId], references: [id])
-  date            DateTime              @default(now())
-  status          SubmissionStatus      @default(Pending)
+  restaurant      Restaurant           @relation(fields: [restaurantId], references: [id])
+  date            DateTime             @default(now())
+  status          SubmissionStatus     @default(Pending)
   submittedBy     String
   submittedByName String?
   approvedBy      String?
@@ -263,8 +263,8 @@ model StockReconciliation {
   approvedAt      DateTime?
   notes           String?
   items           ReconciliationItem[]
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   @@index([restaurantId])
   @@index([status])
@@ -276,9 +276,9 @@ model ReconciliationItem {
   reconciliation    StockReconciliation @relation(fields: [reconciliationId], references: [id], onDelete: Cascade)
   inventoryItemId   String
   inventoryItem     InventoryItem       @relation(fields: [inventoryItemId], references: [id])
-  systemStock       Float               // Stock at time of count
-  physicalCount     Float               // Actual counted stock
-  variance          Float               // physicalCount - systemStock
+  systemStock       Float // Stock at time of count
+  physicalCount     Float // Actual counted stock
+  variance          Float // physicalCount - systemStock
   adjustmentApplied Boolean             @default(false)
 
   @@index([reconciliationId])
@@ -290,28 +290,28 @@ model ReconciliationItem {
 // ============================================================================
 
 model ProductionLog {
-  id                  String            @id @default(uuid())
-  restaurantId        String
-  restaurant          Restaurant        @relation(fields: [restaurantId], references: [id])
-  date                DateTime
-  productionType      ProductCategory?  // Patisserie or Boulangerie
-  productName         String            // Legacy: single product name (kept for backward compatibility)
-  productNameFr       String?
-  quantity            Int               // Legacy: single product quantity
-  ingredients         Json              // Basic recipe ingredients list
-  ingredientDetails   Json?             // Detailed breakdown: [{itemId, itemName, plannedQty, actualQty, unit}]
-  estimatedCostGNF    Float?            // Calculated cost from ingredients
-  preparationStatus   ProductionStatus  @default(Planning)
-  notes               String?
-  status              SubmissionStatus  @default(Pending)
-  stockDeducted       Boolean           @default(false)   // Whether stock has been deducted
-  stockDeductedAt     DateTime?                           // When stock was deducted
-  createdBy           String
-  createdByName       String?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  stockMovements      StockMovement[]
-  productionItems     ProductionItem[]  // Multi-product support
+  id                String           @id @default(uuid())
+  restaurantId      String
+  restaurant        Restaurant       @relation(fields: [restaurantId], references: [id])
+  date              DateTime
+  productionType    ProductCategory? // Patisserie or Boulangerie
+  productName       String // Legacy: single product name (kept for backward compatibility)
+  productNameFr     String?
+  quantity          Int // Legacy: single product quantity
+  ingredients       Json // Basic recipe ingredients list
+  ingredientDetails Json? // Detailed breakdown: [{itemId, itemName, plannedQty, actualQty, unit}]
+  estimatedCostGNF  Float? // Calculated cost from ingredients
+  preparationStatus ProductionStatus @default(Planning)
+  notes             String?
+  status            SubmissionStatus @default(Pending)
+  stockDeducted     Boolean          @default(false) // Whether stock has been deducted
+  stockDeductedAt   DateTime? // When stock was deducted
+  createdBy         String
+  createdByName     String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  stockMovements    StockMovement[]
+  productionItems   ProductionItem[] // Multi-product support
 
   @@index([restaurantId])
   @@index([date])
@@ -321,12 +321,12 @@ model ProductionLog {
 }
 
 enum ProductionStatus {
-  Planning    // Production is being planned
-  Complete    // Production finished
+  Planning // Production is being planned
+  Complete // Production finished
 }
 
 enum ProductCategory {
-  Patisserie  // Pastry products (croissants, pain au chocolat, etc.)
+  Patisserie // Pastry products (croissants, pain au chocolat, etc.)
   Boulangerie // Bread products (baguettes, etc.)
 }
 
@@ -339,14 +339,14 @@ model Product {
   nameFr         String?
   category       ProductCategory
   unit           String          @default("piece") // piece, loaf, dozen
-  standardRecipe Json?           // [{ itemId, quantity, unit }]
+  standardRecipe Json? // [{ itemId, quantity, unit }]
   isActive       Boolean         @default(true)
   sortOrder      Int             @default(0)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
   productionItems ProductionItem[]
-  saleItems       SaleItem[]      // Products sold in sales
+  saleItems       SaleItem[] // Products sold in sales
 
   @@index([restaurantId])
   @@index([category])
@@ -372,22 +372,22 @@ model ProductionItem {
 // ============================================================================
 
 model Sale {
-  id                 String           @id @default(uuid())
+  id                 String            @id @default(uuid())
   restaurantId       String
-  restaurant         Restaurant       @relation(fields: [restaurantId], references: [id])
+  restaurant         Restaurant        @relation(fields: [restaurantId], references: [id])
   date               DateTime
   totalGNF           Float
-  totalEUR           Float            @default(0)
-  cashGNF            Float            @default(0)
-  orangeMoneyGNF     Float            @default(0)
-  cardGNF            Float            @default(0)
+  totalEUR           Float             @default(0)
+  cashGNF            Float             @default(0)
+  orangeMoneyGNF     Float             @default(0)
+  cardGNF            Float             @default(0)
   itemsCount         Int?
   customersCount     Int?
   receiptUrl         String?
   openingTime        String?
   closingTime        String?
   comments           String?
-  status             SubmissionStatus @default(Pending)
+  status             SubmissionStatus  @default(Pending)
   submittedBy        String?
   submittedByName    String?
   approvedBy         String?
@@ -395,11 +395,11 @@ model Sale {
   approvedAt         DateTime?
   lastModifiedBy     String?
   lastModifiedByName String?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  bankTransaction    BankTransaction? @relation("BankTransactionSale")
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  bankTransactions   BankTransaction[] @relation("BankTransactionSale") // Multiple transactions per sale (Cash, Orange, Card)
   debts              Debt[]
-  saleItems          SaleItem[]       // Optional product breakdown
+  saleItems          SaleItem[] // Optional product breakdown
 
   @@unique([restaurantId, date]) // One sale per restaurant per day
   @@index([restaurantId])
@@ -409,20 +409,20 @@ model Sale {
 
 // Junction table for Sale <-> Product (optional product sales tracking)
 model SaleItem {
-  id            String   @id @default(uuid())
-  saleId        String
-  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  productId     String?  // Optional: links to Product catalog
-  product       Product? @relation(fields: [productId], references: [id])
+  id        String   @id @default(uuid())
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String? // Optional: links to Product catalog
+  product   Product? @relation(fields: [productId], references: [id])
 
   // Manual entry (if product not in catalog)
   productName   String?
   productNameFr String?
 
-  quantity      Int
-  unitPrice     Float?   // Optional: unit price per item
+  quantity  Int
+  unitPrice Float? // Optional: unit price per item
 
-  createdAt     DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([saleId])
   @@index([productId])
@@ -432,6 +432,7 @@ enum SubmissionStatus {
   Pending
   Approved
   Rejected
+  Deleted
 }
 
 // ============================================================================
@@ -439,22 +440,22 @@ enum SubmissionStatus {
 // ============================================================================
 
 model Customer {
-  id             String          @id @default(uuid())
-  restaurantId   String
-  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id])
-  name           String
-  phone          String?
-  email          String?
-  address        String?
-  company        String?
-  customerType   CustomerType    @default(Individual)
-  creditLimit    Float?
-  notes          String?
-  isActive       Boolean         @default(true)
-  debts          Debt[]
-  debtPayments   DebtPayment[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id           String        @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id])
+  name         String
+  phone        String?
+  email        String?
+  address      String?
+  company      String?
+  customerType CustomerType  @default(Individual)
+  creditLimit  Float?
+  notes        String?
+  isActive     Boolean       @default(true)
+  debts        Debt[]
+  debtPayments DebtPayment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@index([restaurantId])
   @@index([restaurantId, isActive])
@@ -468,30 +469,30 @@ enum CustomerType {
 }
 
 model Debt {
-  id                String        @id @default(uuid())
-  restaurantId      String
-  restaurant        Restaurant    @relation(fields: [restaurantId], references: [id])
-  saleId            String?
-  sale              Sale?         @relation(fields: [saleId], references: [id])
-  customerId        String
-  customer          Customer      @relation(fields: [customerId], references: [id])
+  id           String     @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  saleId       String?
+  sale         Sale?      @relation(fields: [saleId], references: [id])
+  customerId   String
+  customer     Customer   @relation(fields: [customerId], references: [id])
 
-  principalAmount   Float
-  paidAmount        Float         @default(0)
-  remainingAmount   Float
+  principalAmount Float
+  paidAmount      Float @default(0)
+  remainingAmount Float
 
-  dueDate           DateTime?
-  status            DebtStatus    @default(Outstanding)
+  dueDate DateTime?
+  status  DebtStatus @default(Outstanding)
 
-  description       String?
-  notes             String?
+  description String?
+  notes       String?
 
-  createdBy         String
-  createdByName     String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdBy     String
+  createdByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  payments          DebtPayment[]
+  payments DebtPayment[]
 
   @@index([restaurantId])
   @@index([saleId])
@@ -511,24 +512,24 @@ enum DebtStatus {
 }
 
 model DebtPayment {
-  id              String        @id @default(uuid())
-  restaurantId    String
-  restaurant      Restaurant    @relation(fields: [restaurantId], references: [id])
-  debtId          String
-  debt            Debt          @relation(fields: [debtId], references: [id], onDelete: Cascade)
-  customerId      String
-  customer        Customer      @relation(fields: [customerId], references: [id])
+  id           String     @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  debtId       String
+  debt         Debt       @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  customerId   String
+  customer     Customer   @relation(fields: [customerId], references: [id])
 
-  amount          Float
-  paymentMethod   String
-  paymentDate     DateTime
+  amount        Float
+  paymentMethod String
+  paymentDate   DateTime
 
-  receiptNumber   String?
-  notes           String?
+  receiptNumber String?
+  notes         String?
 
-  receivedBy      String
-  receivedByName  String?
-  createdAt       DateTime      @default(now())
+  receivedBy     String
+  receivedByName String?
+  createdAt      DateTime @default(now())
 
   // Link to bank transaction (for DebtCollection deposits)
   bankTransaction BankTransaction?
@@ -553,7 +554,7 @@ model Expense {
   categoryName        String
   amountGNF           Float
   amountEUR           Float            @default(0)
-  paymentMethod       String           // Payment method name (instead of enum)
+  paymentMethod       String // Payment method name (instead of enum)
   description         String?
   receiptUrl          String?
   comments            String?
@@ -576,12 +577,12 @@ model Expense {
   updatedAt           DateTime         @updatedAt
 
   // Payment tracking (supports partial payments)
-  paymentStatus       PaymentStatus    @default(Unpaid)
-  totalPaidAmount     Float            @default(0)  // Sum of all payments
-  fullyPaidAt         DateTime?        // When fully paid
+  paymentStatus   PaymentStatus @default(Unpaid)
+  totalPaidAmount Float         @default(0) // Sum of all payments
+  fullyPaidAt     DateTime? // When fully paid
 
   // Relation to payment records (multiple payments allowed)
-  expensePayments     ExpensePayment[]
+  expensePayments ExpensePayment[]
 
   @@index([restaurantId])
   @@index([date])
@@ -610,9 +611,9 @@ model PaymentMethod {
   id           String     @id @default(uuid())
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  name         String     // "Cash", "Orange Money", "Card", etc.
-  nameFr       String?    // French translation
-  type         String     // "cash", "mobile_money", "card", "bank_transfer"
+  name         String // "Cash", "Orange Money", "Card", etc.
+  nameFr       String? // French translation
+  type         String // "cash", "mobile_money", "card", "bank_transfer"
   icon         String     @default("Wallet") // Lucide icon name
   color        String     @default("#C45C26")
   isActive     Boolean    @default(true)
@@ -686,42 +687,43 @@ model CategorySupplier {
 // ============================================================================
 
 model BankTransaction {
-  id              String                  @id @default(uuid())
-  restaurantId    String
-  restaurant      Restaurant              @relation(fields: [restaurantId], references: [id])
+  id           String     @id @default(uuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
 
   // Transaction details
-  date            DateTime
-  amount          Float                   // Always positive
-  type            BankTransactionType     // Deposit | Withdrawal
-  method          BankPaymentMethod       // Cash | OrangeMoney | Card
+  date   DateTime
+  amount Float // Always positive
+  type   BankTransactionType // Deposit | Withdrawal
+  method BankPaymentMethod // Cash | OrangeMoney | Card
 
   // Categorization
-  reason          TransactionReason       // SalesDeposit | DebtCollection | ExpensePayment | OwnerWithdrawal | CapitalInjection | Other
-  description     String?
+  reason      TransactionReason // SalesDeposit | DebtCollection | ExpensePayment | OwnerWithdrawal | CapitalInjection | Other
+  description String?
 
   // Status tracking
-  status          BankTransactionStatus   @default(Pending)
-  confirmedAt     DateTime?
-  bankRef         String?                 // Bank reference number
-  receiptUrl      String?
+  status      BankTransactionStatus @default(Pending)
+  confirmedAt DateTime?
+  bankRef     String? // Bank reference number
+  receiptUrl  String?
 
-  // Links to source records (optional, mutually exclusive)
-  saleId          String?                 @unique // For SalesDeposit
-  sale            Sale?                   @relation("BankTransactionSale", fields: [saleId], references: [id])
-  debtPaymentId   String?                 @unique // For DebtCollection
-  debtPayment     DebtPayment?            @relation(fields: [debtPaymentId], references: [id])
+  // Links to source records (optional)
+  saleId        String? // For SalesDeposit (multiple transactions per sale allowed)
+  sale          Sale?        @relation("BankTransactionSale", fields: [saleId], references: [id])
+  debtPaymentId String?      @unique // For DebtCollection
+  debtPayment   DebtPayment? @relation(fields: [debtPaymentId], references: [id])
 
   // Back-reference from ExpensePayment (for ExpensePayment reason)
-  expensePayment  ExpensePayment?
+  expensePayment ExpensePayment?
 
   // Audit
-  createdBy       String?
-  createdByName   String?
-  comments        String?
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
+  createdBy     String?
+  createdByName String?
+  comments      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
+  @@unique([saleId, method]) // One transaction per sale per payment method
   @@index([restaurantId])
   @@index([date])
   @@index([type])
@@ -742,17 +744,17 @@ enum BankPaymentMethod {
 }
 
 enum TransactionReason {
-  SalesDeposit      // Cash from daily sales deposited
-  DebtCollection    // Customer paid off debt
-  ExpensePayment    // Withdrew cash to pay supplier
-  OwnerWithdrawal   // Owner took money out
-  CapitalInjection  // Owner added money
-  Other             // Miscellaneous
+  SalesDeposit // Cash from daily sales deposited
+  DebtCollection // Customer paid off debt
+  ExpensePayment // Withdrew cash to pay supplier
+  OwnerWithdrawal // Owner took money out
+  CapitalInjection // Owner added money
+  Other // Miscellaneous
 }
 
 enum BankTransactionStatus {
-  Pending           // Created but not confirmed
-  Confirmed         // Verified/completed
+  Pending // Created but not confirmed
+  Confirmed // Verified/completed
 }
 
 // ============================================================================
@@ -760,37 +762,37 @@ enum BankTransactionStatus {
 // ============================================================================
 
 model ExpensePayment {
-  id                  String              @id @default(uuid())
-  expenseId           String
-  expense             Expense             @relation(fields: [expenseId], references: [id])
+  id        String  @id @default(uuid())
+  expenseId String
+  expense   Expense @relation(fields: [expenseId], references: [id])
 
   // Payment details
-  amount              Float               // Amount paid in this installment
-  paymentMethod       BankPaymentMethod   // Cash | OrangeMoney | Card
-  paidAt              DateTime            @default(now())
+  amount        Float // Amount paid in this installment
+  paymentMethod BankPaymentMethod // Cash | OrangeMoney | Card
+  paidAt        DateTime          @default(now())
 
   // Link to bank transaction (for withdrawal tracking)
-  bankTransactionId   String?             @unique
-  bankTransaction     BankTransaction?    @relation(fields: [bankTransactionId], references: [id])
+  bankTransactionId String?          @unique
+  bankTransaction   BankTransaction? @relation(fields: [bankTransactionId], references: [id])
 
   // Transaction reference (for Card/OrangeMoney payments)
-  transactionId       String?             // External transaction reference from payment processor
+  transactionId String? // External transaction reference from payment processor
 
   // Audit
-  paidBy              String?
-  paidByName          String?
-  notes               String?
-  receiptUrl          String?
-  createdAt           DateTime            @default(now())
+  paidBy     String?
+  paidByName String?
+  notes      String?
+  receiptUrl String?
+  createdAt  DateTime @default(now())
 
   @@index([expenseId])
   @@index([paidAt])
 }
 
 enum PaymentStatus {
-  Unpaid              // totalPaidAmount = 0
-  PartiallyPaid       // 0 < totalPaidAmount < amountGNF
-  Paid                // totalPaidAmount >= amountGNF
+  Unpaid // totalPaidAmount = 0
+  PartiallyPaid // 0 < totalPaidAmount < amountGNF
+  Paid // totalPaidAmount >= amountGNF
 }
 
 // ============================================================================
@@ -827,45 +829,45 @@ model DailySummary {
 // ============================================================================
 
 model NotificationPreference {
-  id                    String   @id @default(uuid())
-  userId                String
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Notification toggles
-  lowStockAlerts        Boolean  @default(true)
-  criticalStockAlerts   Boolean  @default(true)
-  expenseAlerts         Boolean  @default(true)
-  approvalAlerts        Boolean  @default(true)
-  dailySummary          Boolean  @default(true)
-  expiryAlerts          Boolean  @default(true)
+  lowStockAlerts      Boolean @default(true)
+  criticalStockAlerts Boolean @default(true)
+  expenseAlerts       Boolean @default(true)
+  approvalAlerts      Boolean @default(true)
+  dailySummary        Boolean @default(true)
+  expiryAlerts        Boolean @default(true)
 
   // Thresholds
-  largeExpenseThreshold Float?   @default(500000) // GNF threshold for alerts
-  expiryWarningDays     Int      @default(7)      // Days before expiry to trigger alerts
+  largeExpenseThreshold Float? @default(500000) // GNF threshold for alerts
+  expiryWarningDays     Int    @default(7) // Days before expiry to trigger alerts
 
   // Preferences
-  preferredLocale       String   @default("fr") // 'fr' | 'en'
-  quietHoursStart       String?  // e.g., "22:00"
-  quietHoursEnd         String?  // e.g., "07:00"
+  preferredLocale String  @default("fr") // 'fr' | 'en'
+  quietHoursStart String? // e.g., "22:00"
+  quietHoursEnd   String? // e.g., "07:00"
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId])
 }
 
 model NotificationLog {
-  id            String     @id @default(uuid())
-  restaurantId  String
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  id             String     @id @default(uuid())
+  restaurantId   String
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id])
   recipientPhone String
-  messageType   String     // 'low_stock', 'expense_approved', etc.
-  message       String
-  status        String     // 'sent', 'failed', 'delivered'
-  providerMsgId String?    // Twilio message SID
-  errorMessage  String?
-  sentAt        DateTime   @default(now())
-  deliveredAt   DateTime?
+  messageType    String // 'low_stock', 'expense_approved', etc.
+  message        String
+  status         String // 'sent', 'failed', 'delivered'
+  providerMsgId  String? // Twilio message SID
+  errorMessage   String?
+  sentAt         DateTime   @default(now())
+  deliveredAt    DateTime?
 
   @@index([restaurantId])
   @@index([sentAt])

@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const existingTransaction = await prisma.bankTransaction.findUnique({
+      const existingTransaction = await prisma.bankTransaction.findFirst({
         where: { saleId }
       })
 

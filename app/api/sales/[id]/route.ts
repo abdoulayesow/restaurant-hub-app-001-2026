@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { canEditApproved, canRecordSales } from '@/lib/roles'
+import { canApprove, canEditApproved, canRecordSales } from '@/lib/roles'
 
 // GET /api/sales/[id] - Get a single sale
 export async function GET(
@@ -22,11 +22,12 @@ export async function GET(
       where: { id },
       include: {
         restaurant: true,
-        bankTransaction: {
+        bankTransactions: {
           select: {
             id: true,
             status: true,
-            confirmedAt: true
+            confirmedAt: true,
+            method: true
           }
         },
         saleItems: {
@@ -213,11 +214,12 @@ export async function PUT(
       return tx.sale.findUnique({
         where: { id },
         include: {
-          bankTransaction: {
+          bankTransactions: {
             select: {
               id: true,
               status: true,
-              confirmedAt: true
+              confirmedAt: true,
+              method: true
             }
           },
           saleItems: {
@@ -244,5 +246,55 @@ export async function PUT(
   }
 }
 
-// Note: DELETE is intentionally not implemented
-// Sales should be rejected, not deleted, for audit trail
+// DELETE /api/sales/[id] - Soft delete a sale (Owner only)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    const existingSale = await prisma.sale.findUnique({
+      where: { id },
+    })
+
+    if (!existingSale) {
+      return NextResponse.json({ error: 'Sale not found' }, { status: 404 })
+    }
+
+    // Validate user has access and permission (Owner only for deletion)
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      existingSale.restaurantId,
+      canApprove, // Only owners/managers can delete
+      'Your role does not have permission to delete sales'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
+
+    // Soft delete: Set status to 'Deleted'
+    const deletedSale = await prisma.sale.update({
+      where: { id },
+      data: {
+        status: 'Deleted',
+        lastModifiedBy: session.user.id,
+        lastModifiedByName: session.user.name || session.user.email,
+      },
+    })
+
+    return NextResponse.json({
+      message: 'Sale deleted successfully',
+      sale: deletedSale
+    })
+  } catch (error) {
+    console.error('Error deleting sale:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

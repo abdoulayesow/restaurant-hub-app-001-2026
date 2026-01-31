@@ -66,6 +66,7 @@ interface AddEditSaleModalProps {
   onClose: () => void
   onSave: (sale: Partial<Sale>) => void
   sale?: Sale | null
+  mode?: 'view' | 'edit' // View mode = read-only, Edit mode = editable
   loading?: boolean
   error?: string | null
   existingDates?: string[] // Dates that already have sales (YYYY-MM-DD format)
@@ -76,6 +77,7 @@ export function AddEditSaleModal({
   onClose,
   onSave,
   sale,
+  mode = 'edit', // Default to edit mode
   loading = false,
   error = null,
   existingDates = [],
@@ -83,6 +85,7 @@ export function AddEditSaleModal({
   const { t, locale } = useLocale()
   const { currentRestaurant } = useRestaurant()
   const isEditMode = !!sale?.id
+  const isViewMode = mode === 'view'
 
   const [formData, setFormData] = useState({
     date: '',
@@ -404,9 +407,11 @@ export function AddEditSaleModal({
                 id="modal-title"
                 className="text-xl font-bold text-gray-900 dark:text-stone-100"
               >
-                {isEditMode
-                  ? (t('sales.editSale') || 'Edit Sale')
-                  : (t('sales.addSale') || 'Add Sale')
+                {isViewMode
+                  ? (t('sales.viewSale') || 'View Sale')
+                  : isEditMode
+                    ? (t('sales.editSale') || 'Edit Sale')
+                    : (t('sales.addSale') || 'Add Sale')
                 }
               </h2>
               <button
@@ -431,12 +436,15 @@ export function AddEditSaleModal({
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleChange('date', e.target.value)}
+                disabled={isViewMode}
+                placeholder={locale === 'fr' ? 'JJ/MM/AAAA' : 'MM/DD/YYYY'}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
                   border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
                   bg-white dark:bg-stone-900
                   text-gray-900 dark:text-stone-100
                   focus:ring-2 focus:ring-gray-500 focus:border-gray-500
+                  disabled:opacity-60 disabled:cursor-not-allowed
                 `}
               />
               {errors.date && (
@@ -461,7 +469,8 @@ export function AddEditSaleModal({
                   value={formData.cashGNF}
                   onChange={(e) => handleNumberChange('cashGNF', e.target.value)}
                   min="0"
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
+                  disabled={isViewMode}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -476,7 +485,8 @@ export function AddEditSaleModal({
                   value={formData.orangeMoneyGNF}
                   onChange={(e) => handleNumberChange('orangeMoneyGNF', e.target.value)}
                   min="0"
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
+                  disabled={isViewMode}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -491,7 +501,8 @@ export function AddEditSaleModal({
                   value={formData.cardGNF}
                   onChange={(e) => handleNumberChange('cardGNF', e.target.value)}
                   min="0"
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
+                  disabled={isViewMode}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -514,7 +525,7 @@ export function AddEditSaleModal({
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
                   {t('sales.creditSales') || 'Credit Sales'} ({t('common.optional') || 'Optional'})
                 </h3>
-                {!showCreditSection && (
+                {!showCreditSection && !isViewMode && (
                   <button
                     type="button"
                     onClick={addDebtItem}
@@ -543,14 +554,16 @@ export function AddEditSaleModal({
                           <span className="text-sm font-medium text-gray-700 dark:text-stone-200">
                             {t('sales.creditItem')} {index + 1}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => removeDebtItem(index)}
-                            className="p-1 text-red-600 hover:bg-red-500/10 rounded transition-colors"
-                            title={t('common.remove') || 'Remove'}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {!isViewMode && (
+                            <button
+                              type="button"
+                              onClick={() => removeDebtItem(index)}
+                              className="p-1 text-red-600 hover:bg-red-500/10 rounded transition-colors"
+                              title={t('common.remove') || 'Remove'}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -563,11 +576,12 @@ export function AddEditSaleModal({
                             <select
                               value={item.customerId}
                               onChange={(e) => updateDebtItem(index, 'customerId', e.target.value)}
+                              disabled={isViewMode}
                               className={`w-full px-3 py-2 rounded-lg border ${
                                 errors[`debt_${index}_customer`]
                                   ? 'border-red-500'
                                   : 'border-gray-300 dark:border-stone-600'
-                              } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500`}
+                              } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed`}
                             >
                               <option value="">{t('sales.selectCustomer')}</option>
                               {customers.map((c) => (
@@ -597,11 +611,12 @@ export function AddEditSaleModal({
                               value={item.amountGNF || ''}
                               onChange={(e) => updateDebtItem(index, 'amountGNF', parseFloat(e.target.value) || 0)}
                               min="0"
+                              disabled={isViewMode}
                               className={`w-full px-3 py-2 rounded-lg border ${
                                 errors[`debt_${index}_amount`]
                                   ? 'border-red-500'
                                   : 'border-gray-300 dark:border-stone-600'
-                              } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500`}
+                              } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed`}
                             />
                             {errors[`debt_${index}_amount`] && (
                               <p className="mt-1 text-xs text-red-500">{errors[`debt_${index}_amount`]}</p>
@@ -620,7 +635,8 @@ export function AddEditSaleModal({
                               type="date"
                               value={item.dueDate}
                               onChange={(e) => updateDebtItem(index, 'dueDate', e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
+                              disabled={isViewMode}
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             />
                           </div>
 
@@ -635,7 +651,8 @@ export function AddEditSaleModal({
                               value={item.description}
                               onChange={(e) => updateDebtItem(index, 'description', e.target.value)}
                               placeholder={t('sales.optionalNote')}
-                              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
+                              disabled={isViewMode}
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             />
                           </div>
                         </div>
@@ -643,14 +660,16 @@ export function AddEditSaleModal({
                     )
                   })}
 
-                  <button
-                    type="button"
-                    onClick={addDebtItem}
-                    className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-stone-600 rounded-xl text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700/50 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {t('sales.addAnotherCreditSale') || 'Add Another Credit Sale'}
-                  </button>
+                  {!isViewMode && (
+                    <button
+                      type="button"
+                      onClick={addDebtItem}
+                      className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-stone-600 rounded-xl text-gray-600 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700/50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      {t('sales.addAnotherCreditSale') || 'Add Another Credit Sale'}
+                    </button>
+                  )}
 
                   {/* Credit Total */}
                   {creditTotalGNF > 0 && (
@@ -718,23 +737,25 @@ export function AddEditSaleModal({
                     ({t('common.optional') || 'Optional'})
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowProductsSection(!showProductsSection)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
-                >
-                  {showProductsSection ? (
-                    <>
-                      <ChevronUp className="w-4 h-4" />
-                      {t('sales.hideProducts') || 'Hide'}
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4" />
-                      {t('sales.showProducts') || 'Show'}
-                    </>
-                  )}
-                </button>
+{!isViewMode && (
+                  <button
+                    type="button"
+                    onClick={() => setShowProductsSection(!showProductsSection)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
+                  >
+                    {showProductsSection ? (
+                      <>
+                        <ChevronUp className="w-4 h-4" />
+                        {t('sales.hideProducts') || 'Hide'}
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4" />
+                        {t('sales.showProducts') || 'Show'}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               {showProductsSection && (
@@ -749,14 +770,16 @@ export function AddEditSaleModal({
                       <p className="text-sm text-gray-600 dark:text-stone-400">
                         {t('sales.noProductsAdded') || 'No products added'}
                       </p>
-                      <button
-                        type="button"
-                        onClick={addSaleItem}
-                        className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gold-600 hover:bg-gold-700 rounded-lg shadow-sm transition-colors"
-                      >
-                        <Plus className="w-4 h-4" />
-                        {t('sales.addProduct') || 'Add Product'}
-                      </button>
+                      {!isViewMode && (
+                        <button
+                          type="button"
+                          onClick={addSaleItem}
+                          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gold-600 hover:bg-gold-700 rounded-lg shadow-sm transition-colors"
+                        >
+                          <Plus className="w-4 h-4" />
+                          {t('sales.addProduct') || 'Add Product'}
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <>
@@ -778,11 +801,12 @@ export function AddEditSaleModal({
                                   <select
                                     value={item.productId}
                                     onChange={(e) => updateSaleItem(index, 'productId', e.target.value)}
+                                    disabled={isViewMode}
                                     className={`w-full px-3 py-2 text-sm rounded-lg border ${
                                       errors[`saleItem_${index}_product`]
                                         ? 'border-red-500'
                                         : 'border-gray-300 dark:border-stone-600'
-                                    } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500`}
+                                    } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 disabled:opacity-60 disabled:cursor-not-allowed`}
                                   >
                                     <option value="">{t('sales.selectProduct') || 'Select a product'}</option>
                                     {products.map((p) => (
@@ -807,11 +831,12 @@ export function AddEditSaleModal({
                                     value={item.quantity}
                                     onChange={(e) => updateSaleItem(index, 'quantity', parseInt(e.target.value) || 0)}
                                     min="1"
+                                    disabled={isViewMode}
                                     className={`w-full px-3 py-2 text-sm rounded-lg border ${
                                       errors[`saleItem_${index}_quantity`]
                                         ? 'border-red-500'
                                         : 'border-gray-300 dark:border-stone-600'
-                                    } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500`}
+                                    } bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 disabled:opacity-60 disabled:cursor-not-allowed`}
                                   />
                                   {product && (
                                     <p className="mt-1 text-xs text-gray-400 dark:text-stone-500">
@@ -834,34 +859,39 @@ export function AddEditSaleModal({
                                     onChange={(e) => updateSaleItem(index, 'unitPrice', e.target.value ? parseFloat(e.target.value) : null)}
                                     min="0"
                                     placeholder={t('common.optional') || 'Optional'}
-                                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500"
+                                    disabled={isViewMode}
+                                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 disabled:opacity-60 disabled:cursor-not-allowed"
                                   />
                                 </div>
                               </div>
 
                               {/* Remove Button */}
-                              <button
-                                type="button"
-                                onClick={() => removeSaleItem(index)}
-                                className="p-1.5 mt-5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                title={t('common.remove') || 'Remove'}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              {!isViewMode && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeSaleItem(index)}
+                                  className="p-1.5 mt-5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                  title={t('common.remove') || 'Remove'}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         )
                       })}
 
                       {/* Add Another Product Button */}
-                      <button
-                        type="button"
-                        onClick={addSaleItem}
-                        className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-stone-600 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700/50 transition-colors flex items-center justify-center gap-2 text-sm"
-                      >
-                        <Plus className="w-4 h-4" />
-                        {t('sales.addProduct') || 'Add Product'}
-                      </button>
+                      {!isViewMode && (
+                        <button
+                          type="button"
+                          onClick={addSaleItem}
+                          className="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-stone-600 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-700/50 transition-colors flex items-center justify-center gap-2 text-sm"
+                        >
+                          <Plus className="w-4 h-4" />
+                          {t('sales.addProduct') || 'Add Product'}
+                        </button>
+                      )}
 
                       {/* Products Summary */}
                       {saleItems.filter(i => i.productId && i.quantity > 0).length > 0 && (
@@ -898,7 +928,8 @@ export function AddEditSaleModal({
                   value={formData.comments}
                   onChange={(e) => handleChange('comments', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 resize-none"
+                  disabled={isViewMode}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 resize-none disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder={t('sales.commentsPlaceholder') || 'Any notes about today\'s sales...'}
                 />
               </div>
@@ -913,25 +944,37 @@ export function AddEditSaleModal({
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors"
-              >
-                {t('common.cancel') || 'Cancel'}
-              </button>
-              <button
-                type="submit"
-                disabled={loading || Object.keys(errors).length > 0}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading
-                  ? (t('common.saving') || 'Saving...')
-                  : isEditMode
-                    ? (t('common.save') || 'Save')
-                    : (t('sales.addSale') || 'Add Sale')
-                }
-              </button>
+              {isViewMode ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+                >
+                  {t('common.close') || 'Close'}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors"
+                  >
+                    {t('common.cancel') || 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || Object.keys(errors).length > 0}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading
+                      ? (t('common.saving') || 'Saving...')
+                      : isEditMode
+                        ? (t('common.save') || 'Save')
+                        : (t('sales.addSale') || 'Add Sale')
+                    }
+                  </button>
+                </>
+              )}
             </div>
           </form>
         </div>

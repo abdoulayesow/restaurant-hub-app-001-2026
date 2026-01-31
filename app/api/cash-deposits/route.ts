@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 
     // If saleId provided, check it's not already linked to another deposit
     if (body.saleId) {
-      const existingDeposit = await prisma.bankTransaction.findUnique({
+      const existingDeposit = await prisma.bankTransaction.findFirst({
         where: { saleId: body.saleId }
       })
 
