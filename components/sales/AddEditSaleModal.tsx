@@ -158,7 +158,15 @@ export function AddEditSaleModal({
         comments: sale.comments || '',
       })
       if (sale.debts && sale.debts.length > 0) {
-        setDebtItems(sale.debts)
+        // Transform existing debts from DB format to modal format
+        const transformedDebts = sale.debts.map((debt: DebtItem | { principalAmount?: number; dueDate?: string | Date; [key: string]: unknown }) => ({
+          customerId: typeof debt.customerId === 'string' ? debt.customerId : '',
+          // Use principalAmount from DB, but store as amountGNF for the modal
+          amountGNF: ('principalAmount' in debt && typeof debt.principalAmount === 'number' ? debt.principalAmount : ('amountGNF' in debt && typeof debt.amountGNF === 'number' ? debt.amountGNF : 0)),
+          dueDate: debt.dueDate ? formatDateForInput(debt.dueDate) : '',
+          description: typeof debt.description === 'string' ? debt.description : ''
+        }))
+        setDebtItems(transformedDebts)
         setShowCreditSection(true)
       }
       // Initialize saleItems if present

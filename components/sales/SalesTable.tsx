@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, Eye, Banknote, Smartphone, CreditCard, Landmark, Trash2 } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, Banknote, Smartphone, CreditCard, Landmark, Trash2 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { SaleStatusBadge } from './SaleStatusBadge'
 import { DepositStatusBadge } from './DepositStatusBadge'
@@ -180,7 +180,7 @@ export function SalesTable({
                 <SortIcon field="status" />
               </div>
             </th>
-            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-stone-100">
+            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100">
               {t('common.actions') || 'Actions'}
             </th>
           </tr>
@@ -189,9 +189,11 @@ export function SalesTable({
           {sortedSales.map((sale, index) => (
             <tr
               key={sale.id}
+              onClick={() => onView(sale)}
               className={`
                 border-t border-gray-200 dark:border-stone-700
                 hover:bg-gray-50 dark:hover:bg-stone-900/50 transition-colors
+                cursor-pointer
                 ${index === sortedSales.length - 1 ? 'rounded-b-2xl' : ''}
               `}
             >
@@ -251,32 +253,29 @@ export function SalesTable({
                 </div>
               </td>
               <td className="px-6 py-4">
-                <div className="flex items-center justify-end gap-2">
-                  {/* View button */}
-                  <button
-                    onClick={() => onView(sale)}
-                    className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
-                    title={t('common.view') || 'View'}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
+                <div className="flex items-center justify-center gap-2">
                   {/* Edit button for pending sales */}
                   {sale.status === 'Pending' && (
                     <button
-                      onClick={() => onEdit(sale)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEdit(sale)
+                      }}
                       className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
                       title={t('common.edit') || 'Edit'}
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                   )}
-                  {/* Confirm Deposit button (for cash deposits only) */}
-                  {onConfirmDeposit && sale.cashGNF > 0 && sale.status === 'Approved' &&
-                    !sale.bankTransactions?.some(txn => txn.method === 'Cash' && txn.status === 'Confirmed') && (
+                  {/* Confirm Sale button (for pending sales with cash) */}
+                  {onConfirmDeposit && sale.cashGNF > 0 && sale.status === 'Pending' && (
                     <button
-                      onClick={() => onConfirmDeposit(sale)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onConfirmDeposit(sale)
+                      }}
                       className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-500/10 transition-colors"
-                      title={t('sales.confirmDeposit') || 'Confirm Cash Deposit'}
+                      title={t('sales.confirmSale') || 'Confirm Sale'}
                     >
                       <Landmark className="w-4 h-4" />
                     </button>
@@ -284,7 +283,10 @@ export function SalesTable({
                   {/* Delete button (Owner only) */}
                   {onDelete && (
                     <button
-                      onClick={() => onDelete(sale)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete(sale)
+                      }}
                       className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
                       title={t('common.delete') || 'Delete'}
                     >

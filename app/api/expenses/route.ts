@@ -4,6 +4,7 @@ import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { normalizePaymentMethod, PAYMENT_METHOD_VALUES } from '@/lib/constants/payment-methods'
 import { canRecordExpenses } from '@/lib/roles'
+import { parseToUTCDate } from '@/lib/date-utils'
 
 // GET /api/expenses - List expenses for a bakery
 export async function GET(request: NextRequest) {
@@ -304,9 +305,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
-    // Parse date
-    const expenseDate = new Date(date)
-    expenseDate.setHours(0, 0, 0, 0)
+    // Parse date to UTC midnight for consistent storage
+    const expenseDate = parseToUTCDate(date)
 
     // Validate expense items if inventory purchase
     if (isInventoryPurchase && expenseItems.length > 0) {

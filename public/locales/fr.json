@@ -537,6 +537,7 @@
     "hideProducts": "Masquer les produits",
     "productsOptional": "Suivre les produits vendus (optionnel)",
     "confirmDeposit": "Confirmer le dépôt",
+    "confirmSale": "Confirmer la vente",
     "confirmDepositQuestion": "Confirmer le dépôt en espèces ?",
     "noCashToDeposit": "Cette vente n'a pas d'espèces à déposer.",
     "hasDebts": "A des dettes",
@@ -550,6 +551,8 @@
     "cashPendingDeposit": "Espèces en attente de dépôt",
     "deposit": {
       "confirmDeposit": "Confirmer le dépôt en espèces",
+      "confirmSale": "Confirmer la vente",
+      "confirmButton": "Confirmer la vente",
       "forSale": "Pour la vente du",
       "cashToDeposit": "Espèces à déposer",
       "bankRef": "Référence bancaire",
@@ -669,6 +672,8 @@
     "inventoryItems": "Articles d'inventaire",
     "addItem": "Ajouter un article",
     "selectItem": "Sélectionner un article...",
+    "noInventoryItems": "Aucun article d'inventaire disponible",
+    "noInventoryItemsHint": "Veuillez d'abord ajouter des articles d'inventaire depuis la page Inventaire",
     "quantity": "Qté",
     "unitCost": "Coût unitaire",
     "itemsTotal": "Total articles",
@@ -867,6 +872,7 @@
   },
   "categories": {
     "dryGoods": "Produits secs",
+    "dry_goods": "Produits secs",
     "dairy": "Produits laitiers",
     "flavorings": "Arômes",
     "packaging": "Emballages",

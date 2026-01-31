@@ -541,6 +541,7 @@
     "hideProducts": "Hide Products",
     "productsOptional": "Track which products were sold (optional)",
     "confirmDeposit": "Confirm Deposit",
+    "confirmSale": "Confirm Sale",
     "confirmDepositQuestion": "Confirm cash deposit?",
     "noCashToDeposit": "This sale has no cash to deposit.",
     "hasDebts": "Has Debts",
@@ -554,6 +555,8 @@
     "cashPendingDeposit": "Cash awaiting deposit",
     "deposit": {
       "confirmDeposit": "Confirm Cash Deposit",
+      "confirmSale": "Confirm Sale",
+      "confirmButton": "Confirm Sale",
       "forSale": "For sale",
       "cashToDeposit": "Cash to Deposit",
       "bankRef": "Bank Reference",
@@ -673,6 +676,8 @@
     "inventoryItems": "Inventory Items",
     "addItem": "Add Item",
     "selectItem": "Select item...",
+    "noInventoryItems": "No inventory items available",
+    "noInventoryItemsHint": "Please add inventory items first from the Inventory page",
     "quantity": "Qty",
     "unitCost": "Unit Cost",
     "itemsTotal": "Items Total",
@@ -871,6 +876,7 @@
   },
   "categories": {
     "dryGoods": "Dry Goods",
+    "dry_goods": "Dry Goods",
     "dairy": "Dairy",
     "flavorings": "Flavorings",
     "packaging": "Packaging",

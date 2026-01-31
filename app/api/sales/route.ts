@@ -101,6 +101,8 @@ export async function GET(request: NextRequest) {
             customerId: true,
             principalAmount: true,
             remainingAmount: true,
+            dueDate: true,
+            description: true,
             status: true,
             customer: {
               select: {

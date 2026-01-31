@@ -77,9 +77,9 @@ export async function POST(
     })
 
     // If approved, auto-create BankTransactions for Orange Money and Card
+    // Use sale.date directly as it's already stored at UTC midnight
     if (action === 'approve') {
-      const saleDate = new Date(sale.date)
-      saleDate.setHours(0, 0, 0, 0)
+      const saleDate = sale.date
 
       // Auto-create BankTransaction for Orange Money if amount > 0
       if (sale.orangeMoneyGNF > 0) {

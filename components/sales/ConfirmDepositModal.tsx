@@ -126,7 +126,7 @@ export function ConfirmDepositModal({
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-stone-100">
-                  {t('sales.deposit.confirmDeposit') || 'Confirm Cash Deposit'}
+                  {t('sales.deposit.confirmSale') || 'Confirm Sale'}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-stone-400">
                   {t('sales.deposit.forSale') || 'For sale'}: {formatDate(sale.date)}
@@ -292,7 +292,7 @@ export function ConfirmDepositModal({
                 ) : (
                   <>
                     <Landmark className="w-4 h-4" />
-                    {t('sales.deposit.confirm') || 'Confirm Deposit'}
+                    {t('sales.deposit.confirmButton') || 'Confirm Sale'}
                   </>
                 )}
               </button>
