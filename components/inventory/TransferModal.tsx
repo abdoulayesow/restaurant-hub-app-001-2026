@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   X,
   ArrowRight,
@@ -56,31 +56,7 @@ export function TransferModal({
     return restaurants.filter((r: Restaurant) => r.id !== currentRestaurant?.id)
   }, [restaurants, currentRestaurant])
 
-  // Fetch source items when modal opens
-  useEffect(() => {
-    if (isOpen && currentRestaurant) {
-      fetchSourceItems()
-      // Pre-select item if provided
-      if (sourceItem) {
-        setSelectedSourceItem(sourceItem)
-      }
-    }
-  }, [isOpen, currentRestaurant, sourceItem])
-
-  // Reset form when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedSourceItem(sourceItem || null)
-      setTargetRestaurantId('')
-      setQuantity('')
-      setReason('')
-      setSearchQuery('')
-      setErrors({})
-      setSuccess(false)
-    }
-  }, [isOpen, sourceItem])
-
-  const fetchSourceItems = async () => {
+  const fetchSourceItems = useCallback(async () => {
     if (!currentRestaurant) return
 
     setLoadingItems(true)
@@ -97,7 +73,31 @@ export function TransferModal({
     } finally {
       setLoadingItems(false)
     }
-  }
+  }, [currentRestaurant])
+
+  // Fetch source items when modal opens
+  useEffect(() => {
+    if (isOpen && currentRestaurant) {
+      fetchSourceItems()
+      // Pre-select item if provided
+      if (sourceItem) {
+        setSelectedSourceItem(sourceItem)
+      }
+    }
+  }, [isOpen, currentRestaurant, sourceItem, fetchSourceItems])
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedSourceItem(sourceItem || null)
+      setTargetRestaurantId('')
+      setQuantity('')
+      setReason('')
+      setSearchQuery('')
+      setErrors({})
+      setSuccess(false)
+    }
+  }, [isOpen, sourceItem])
 
   // Filter items by search
   const filteredItems = useMemo(() => {

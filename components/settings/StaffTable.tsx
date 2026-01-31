@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Trash2, AlertTriangle, Loader2, UserPlus } from 'lucide-react'
 import { UserRole } from '@prisma/client'
 import { RoleDropdown } from './RoleDropdown'
@@ -128,9 +129,11 @@ export function StaffTable({
                         font-semibold text-sm
                       ">
                         {user.image ? (
-                          <img
+                          <Image
                             src={user.image}
                             alt={user.name || user.email}
+                            width={40}
+                            height={40}
                             className="w-10 h-10 rounded-full"
                           />
                         ) : (

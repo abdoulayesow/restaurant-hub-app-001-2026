@@ -18,10 +18,6 @@ import {
   Edit3,
   Croissant,
   Wheat,
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  Minus,
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ProductionStatus, SubmissionStatus } from '@prisma/client'

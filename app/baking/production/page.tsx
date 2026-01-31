@@ -7,7 +7,7 @@ import { Plus, Utensils, Calendar, RefreshCw, ChevronDown, CheckCircle2, Search 
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { canApprove } from '@/lib/roles'
+// canApprove is available from '@/lib/roles' if needed for manager checks
 import { BakingDashboard, AddProductionModal } from '@/components/baking'
 import { ProductionDetailModal, EditProductionModal } from '@/components/production'
 import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
@@ -82,8 +82,6 @@ export default function BakingProductionPage() {
   const [loadingLogs, setLoadingLogs] = useState(false)
   const [selectedDateRange, setSelectedDateRange] = useState<'today' | 'week' | 'month'>('week')
 
-  // Permission check for manager actions (Owner or legacy Manager)
-  const isManager = canApprove(currentRole)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -242,7 +240,7 @@ export default function BakingProductionPage() {
   }
 
   // Handle edit from modal
-  const handleEdit = (productionId: string) => {
+  const handleEdit = () => {
     // The selectedProduction already has all the data we need
     setDetailModalOpen(false)
     setEditModalOpen(true)

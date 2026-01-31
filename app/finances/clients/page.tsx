@@ -5,11 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import {
   Users,
-  TrendingUp,
   CreditCard,
-  DollarSign,
-  Building2,
-  ShoppingCart,
   AlertTriangle,
   Sparkles
 } from 'lucide-react'

@@ -149,17 +149,8 @@ export async function PATCH(
     }
 
     // Build update data
-    const updateData: {
-      preparationStatus?: ProductionStatus
-      status?: SubmissionStatus
-      notes?: string
-      productName?: string
-      productNameFr?: string
-      quantity?: number
-      productionType?: 'Patisserie' | 'Boulangerie'
-      ingredientDetails?: any
-      estimatedCostGNF?: number
-    } = {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = {}
 
     if (preparationStatus) {
       updateData.preparationStatus = preparationStatus

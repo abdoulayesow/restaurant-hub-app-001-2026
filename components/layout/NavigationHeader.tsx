@@ -6,17 +6,6 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Target,
-  ChefHat,
-  Utensils,
-  Package,
-  Wallet,
-  Receipt,
-  Building2,
-  DollarSign,
-  Users,
   Sun,
   Moon,
   User,
@@ -34,80 +23,10 @@ import { canAccessDashboard, getRoleDisplayName } from '@/lib/roles'
 import { FloatingActionPicker, type FloatingActionItem } from '@/components/ui/FloatingActionPicker'
 import { useFilteredNavigation } from '@/hooks/useFilteredNavigation'
 import { getRestaurantTypeIcon } from '@/config/restaurantTypes'
+import { navigationItems, routeToSubItem } from './nav-config'
 
-// Navigation configuration
-export interface NavSubItem {
-  id: string
-  label: string
-  labelFr: string
-  icon: React.ElementType
-  href: string
-}
-
-export interface NavItemConfig {
-  id: string
-  label: string
-  labelFr: string
-  icon: React.ElementType
-  subItems: NavSubItem[]
-}
-
-const navigationItems: NavItemConfig[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    labelFr: 'Tableau',
-    icon: LayoutDashboard,
-    subItems: [
-      { id: 'current', label: 'Current', labelFr: 'Actuel', icon: TrendingUp, href: '/dashboard' },
-      { id: 'projection', label: 'Projection', labelFr: 'Projection', icon: Target, href: '/dashboard/projection' },
-    ]
-  },
-  {
-    id: 'baking',
-    label: 'Baking',
-    labelFr: 'Boulangerie',
-    icon: ChefHat,
-    subItems: [
-      { id: 'production', label: 'Production', labelFr: 'Production', icon: Utensils, href: '/baking/production' },
-      { id: 'inventory', label: 'Inventory', labelFr: 'Inventaire', icon: Package, href: '/baking/inventory' },
-    ]
-  },
-  {
-    id: 'finances',
-    label: 'Finances',
-    labelFr: 'Finances',
-    icon: Wallet,
-    subItems: [
-      { id: 'sales', label: 'Sales', labelFr: 'Ventes', icon: TrendingUp, href: '/finances/sales' },
-      { id: 'clients', label: 'Clients', labelFr: 'Clients', icon: Users, href: '/finances/clients' },
-      { id: 'debts', label: 'Debts', labelFr: 'Dettes', icon: DollarSign, href: '/finances/debts' },
-      { id: 'expenses', label: 'Expenses', labelFr: 'Dépenses', icon: Receipt, href: '/finances/expenses' },
-      { id: 'bank', label: 'Bank', labelFr: 'Banque', icon: Building2, href: '/finances/bank' },
-    ]
-  },
-]
-
-// Map routes to sub-item IDs for active state
-const routeToSubItem: Record<string, string> = {
-  '/dashboard': 'current',
-  '/dashboard/projection': 'projection',
-  '/baking': 'production',
-  '/baking/production': 'production',
-  '/baking/inventory': 'inventory',
-  '/inventory': 'inventory',
-  '/production': 'production',
-  '/finances/sales': 'sales',
-  '/finances/clients': 'clients',
-  '/finances/debts': 'debts',
-  '/finances/expenses': 'expenses',
-  '/finances/bank': 'bank',
-  '/sales': 'sales',
-  '/clients': 'clients',
-  '/debts': 'debts',
-  '/expenses': 'expenses',
-  '/bank': 'bank',
-}
+// Re-export types for backwards compatibility
+export type { NavSubItem, NavItemConfig } from './nav-config'
 
 export function NavigationHeader() {
   const { data: session } = useSession()

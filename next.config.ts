@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  turbopack: {
+    resolveAlias: {
+      '@/*': './*',
+    },
+  },
 }
 
 export default nextConfig
