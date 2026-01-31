@@ -75,33 +75,28 @@ export async function GET(request: NextRequest) {
       orderBy: { name: 'asc' }
     })
 
-    // Calculate outstanding debt for each customer
-    const customersWithDebt = await Promise.all(
-      customers.map(async (customer) => {
-        const debts = await prisma.debt.findMany({
-          where: {
-            customerId: customer.id,
-            status: {
-              in: ['Outstanding', 'PartiallyPaid', 'Overdue']
-            }
-          },
-          select: {
-            remainingAmount: true
-          }
-        })
+    // Batch fetch outstanding debt aggregation for all customers in a single query
+    const customerIds = customers.map((c) => c.id)
+    const debtAggregations = await prisma.debt.groupBy({
+      by: ['customerId'],
+      where: {
+        customerId: { in: customerIds },
+        status: { in: ['Outstanding', 'PartiallyPaid', 'Overdue'] }
+      },
+      _sum: { remainingAmount: true }
+    })
 
-        const outstandingDebt = debts.reduce(
-          (sum, debt) => sum + debt.remainingAmount,
-          0
-        )
-
-        return {
-          ...customer,
-          outstandingDebt,
-          activeDebtsCount: customer._count.debts
-        }
-      })
+    // Build Map for O(1) lookup
+    const debtByCustomer = new Map(
+      debtAggregations.map((agg) => [agg.customerId, agg._sum.remainingAmount ?? 0])
     )
+
+    // Combine customer data with debt totals
+    const customersWithDebt = customers.map((customer) => ({
+      ...customer,
+      outstandingDebt: debtByCustomer.get(customer.id) ?? 0,
+      activeDebtsCount: customer._count.debts
+    }))
 
     return NextResponse.json({ customers: customersWithDebt })
   } catch (error) {

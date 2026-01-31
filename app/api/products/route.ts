@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { isManagerRole } from '@/lib/roles'
 import { isValidProductCategory, ProductCategoryValue } from '@/lib/constants/product-categories'
 import { ProductCategory, Prisma } from '@prisma/client'
+import { parsePaginationParams, buildPaginatedResult } from '@/lib/pagination'
 
 // GET /api/products - List products for a restaurant
 export async function GET(request: NextRequest) {
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
     const restaurantId = searchParams.get('restaurantId')
     const category = searchParams.get('category') as ProductCategoryValue | null
     const activeOnly = searchParams.get('activeOnly') !== 'false' // Default to true
+    const usePagination = searchParams.has('cursor') || searchParams.has('limit')
+    const paginationParams = usePagination ? parsePaginationParams(searchParams) : null
 
     if (!restaurantId) {
       return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 })
@@ -55,14 +58,35 @@ export async function GET(request: NextRequest) {
       where.category = category as ProductCategory
     }
 
-    const products = await prisma.product.findMany({
+    // Build query with optional pagination
+    const queryArgs: Prisma.ProductFindManyArgs = {
       where,
       orderBy: [
         { category: 'asc' },
         { sortOrder: 'asc' },
         { name: 'asc' },
       ],
-    })
+    }
+
+    if (paginationParams) {
+      queryArgs.take = paginationParams.limit + 1 // Fetch one extra to check for more
+      if (paginationParams.cursor) {
+        queryArgs.cursor = { id: paginationParams.cursor }
+        queryArgs.skip = 1 // Skip the cursor item
+      }
+    }
+
+    const products = await prisma.product.findMany(queryArgs)
+
+    // Return paginated or non-paginated response based on request
+    if (paginationParams) {
+      const result = buildPaginatedResult(products, paginationParams.limit)
+      return NextResponse.json({
+        products: result.items,
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+      })
+    }
 
     return NextResponse.json({ products })
   } catch (error) {

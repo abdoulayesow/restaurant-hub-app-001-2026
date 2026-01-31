@@ -217,6 +217,54 @@ See [FEATURE-REQUIREMENTS-JAN2026.md](docs/product/FEATURE-REQUIREMENTS-JAN2026.
 
 **Implementation Order:** Payment Methods → Production Types → Sales Improvements → Branding Page
 
+## API Performance Optimization (Pending)
+
+**Status:** Planned - See `.claude/plans/sleepy-puzzling-whale.md` for detailed implementation plan.
+
+**Problem:** Several API endpoints have N+1 query problems causing 8-54 second response times.
+
+| API | Issue | Impact |
+|-----|-------|--------|
+| `GET /api/customers` | N+1: fetches debts per customer | 9-11s response |
+| `POST /api/sales` | N+1: validates debts/products individually | 54s response |
+| `GET /api/sales` | O(n²) JS aggregation | 8s response |
+| `GET /api/products` | No pagination | 6-8s response |
+
+**Planned Fixes:**
+
+1. **Customers API:** Replace `Promise.all` + individual queries with `prisma.debt.groupBy()` aggregation
+2. **Sales POST:** Batch validate all customers/products with `findMany({ where: { id: { in: [...] }}})`
+3. **Sales GET:** Use `Map` for O(n) aggregation instead of `.find()` in reduce
+4. **All list APIs:** Add cursor-based pagination via `lib/pagination.ts`
+5. **Database:** Add `@@index([customerId, status])` to Debt model
+
+**Key Patterns for Optimization:**
+
+```typescript
+// BAD: N+1 query pattern
+const results = await Promise.all(
+  items.map(async (item) => {
+    const data = await prisma.model.findUnique({ where: { id: item.id } })
+    return { ...item, data }
+  })
+)
+
+// GOOD: Batch query pattern
+const allData = await prisma.model.findMany({
+  where: { id: { in: items.map(i => i.id) } }
+})
+const dataMap = new Map(allData.map(d => [d.id, d]))
+const results = items.map(item => ({ ...item, data: dataMap.get(item.id) }))
+
+// GOOD: Use groupBy for aggregations
+const aggregations = await prisma.debt.groupBy({
+  by: ['customerId'],
+  where: { status: { in: ['Outstanding', 'PartiallyPaid'] } },
+  _sum: { remainingAmount: true },
+  _count: true
+})
+```
+
 ## Skill & Agent Usage Guidelines
 
 Use these skills and agents automatically based on the task type. Do NOT wait for the user to request them.

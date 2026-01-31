@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
 
     const totalAmount = expenses.reduce((sum, e) => sum + e.amountGNF, 0)
 
-    // Calculate previous period expenses for comparison
+    // Calculate previous period expenses for comparison using aggregate
     let previousPeriodTotal = 0
     let expenseChangePercent = 0
 
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
       const previousStart = new Date(previousEnd)
       previousStart.setDate(previousStart.getDate() - periodDays)
 
-      const previousExpenses = await prisma.expense.findMany({
+      const previousAggregate = await prisma.expense.aggregate({
         where: {
           restaurantId,
           date: {
@@ -164,10 +164,10 @@ export async function GET(request: NextRequest) {
             lte: previousEnd,
           },
         },
-        select: { amountGNF: true },
+        _sum: { amountGNF: true },
       })
 
-      previousPeriodTotal = previousExpenses.reduce((sum, e) => sum + e.amountGNF, 0)
+      previousPeriodTotal = previousAggregate._sum.amountGNF ?? 0
 
       if (previousPeriodTotal > 0) {
         expenseChangePercent = ((totalAmount - previousPeriodTotal) / previousPeriodTotal) * 100
@@ -176,36 +176,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build expensesByDay for trend chart (sorted ascending for chart)
-    const expensesByDay = expenses
-      .reduce((acc: { date: string; amount: number }[], expense) => {
-        const dateStr = new Date(expense.date).toISOString().split('T')[0]
-        const existing = acc.find(d => d.date === dateStr)
-        if (existing) {
-          existing.amount += expense.amountGNF
-        } else {
-          acc.push({ date: dateStr, amount: expense.amountGNF })
-        }
-        return acc
-      }, [])
+    // Build expensesByDay for trend chart using Map for O(n) aggregation
+    const expensesByDayMap = new Map<string, number>()
+    for (const expense of expenses) {
+      const dateStr = new Date(expense.date).toISOString().split('T')[0]
+      expensesByDayMap.set(dateStr, (expensesByDayMap.get(dateStr) ?? 0) + expense.amountGNF)
+    }
+    const expensesByDay = Array.from(expensesByDayMap.entries())
+      .map(([date, amount]) => ({ date, amount }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-    // Build expensesByCategory for category chart
-    const expensesByCategory = expenses
-      .reduce((acc: { categoryName: string; categoryNameFr?: string | null; amount: number; color?: string | null }[], expense) => {
-        const existing = acc.find(c => c.categoryName === expense.categoryName)
-        if (existing) {
-          existing.amount += expense.amountGNF
-        } else {
-          acc.push({
-            categoryName: expense.categoryName,
-            categoryNameFr: expense.category?.nameFr,
-            amount: expense.amountGNF,
-            color: expense.category?.color,
-          })
-        }
-        return acc
-      }, [])
+    // Build expensesByCategory for category chart using Map for O(n) aggregation
+    const expensesByCategoryMap = new Map<string, { categoryName: string; categoryNameFr?: string | null; amount: number; color?: string | null }>()
+    for (const expense of expenses) {
+      const existing = expensesByCategoryMap.get(expense.categoryName)
+      if (existing) {
+        existing.amount += expense.amountGNF
+      } else {
+        expensesByCategoryMap.set(expense.categoryName, {
+          categoryName: expense.categoryName,
+          categoryNameFr: expense.category?.nameFr,
+          amount: expense.amountGNF,
+          color: expense.category?.color,
+        })
+      }
+    }
+    const expensesByCategory = Array.from(expensesByCategoryMap.values())
 
     // Payment status calculations (only for approved expenses)
     const approvedExpenses = expenses.filter(e => e.status === 'Approved')

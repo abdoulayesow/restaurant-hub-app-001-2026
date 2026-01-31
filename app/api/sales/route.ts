@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
       const previousStart = new Date(previousEnd)
       previousStart.setDate(previousStart.getDate() - periodDays)
 
-      const previousSales = await prisma.sale.findMany({
+      const previousAggregate = await prisma.sale.aggregate({
         where: {
           restaurantId,
           date: {
@@ -146,10 +146,10 @@ export async function GET(request: NextRequest) {
             lte: previousEnd,
           },
         },
-        select: { totalGNF: true },
+        _sum: { totalGNF: true },
       })
 
-      previousPeriodRevenue = previousSales.reduce((sum, s) => sum + s.totalGNF, 0)
+      previousPeriodRevenue = previousAggregate._sum.totalGNF ?? 0
 
       if (previousPeriodRevenue > 0) {
         revenueChangePercent = ((totalRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100
@@ -158,18 +158,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build salesByDay for trend chart (sorted ascending for chart)
-    const salesByDay = sales
-      .reduce((acc: { date: string; amount: number }[], sale) => {
-        const dateStr = new Date(sale.date).toISOString().split('T')[0]
-        const existing = acc.find(d => d.date === dateStr)
-        if (existing) {
-          existing.amount += sale.totalGNF
-        } else {
-          acc.push({ date: dateStr, amount: sale.totalGNF })
-        }
-        return acc
-      }, [])
+    // Build salesByDay for trend chart using Map for O(n) aggregation
+    const salesByDayMap = new Map<string, number>()
+    for (const sale of sales) {
+      const dateStr = new Date(sale.date).toISOString().split('T')[0]
+      salesByDayMap.set(dateStr, (salesByDayMap.get(dateStr) ?? 0) + sale.totalGNF)
+    }
+    const salesByDay = Array.from(salesByDayMap.entries())
+      .map(([date, amount]) => ({ date, amount }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
     const summary = {
@@ -265,8 +261,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate debts if provided
+    // Validate debts if provided - batch fetch all customers and their outstanding debts
     if (debts.length > 0) {
+      // First validate basic fields
       for (const debt of debts) {
         if (!debt.customerId) {
           return NextResponse.json(
@@ -274,18 +271,41 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
-
         if (!debt.amountGNF || debt.amountGNF <= 0) {
           return NextResponse.json(
             { error: 'Each debt must have a positive amount' },
             { status: 400 }
           )
         }
+      }
 
-        // Verify customer exists and belongs to this restaurant
-        const customer = await prisma.customer.findUnique({
-          where: { id: debt.customerId }
-        })
+      // Batch fetch all customers in one query
+      const customerIds = debts.map((d: { customerId: string }) => d.customerId)
+      const customers = await prisma.customer.findMany({
+        where: { id: { in: customerIds } },
+        select: { id: true, name: true, restaurantId: true, creditLimit: true }
+      })
+      const customerMap = new Map(customers.map((c) => [c.id, c]))
+
+      // Batch fetch outstanding debt aggregations for customers with credit limits
+      const customersWithLimits = customers.filter((c) => c.creditLimit !== null && c.creditLimit !== undefined)
+      const debtAggregations = customersWithLimits.length > 0
+        ? await prisma.debt.groupBy({
+            by: ['customerId'],
+            where: {
+              customerId: { in: customersWithLimits.map((c) => c.id) },
+              status: { in: ['Outstanding', 'PartiallyPaid', 'Overdue'] }
+            },
+            _sum: { remainingAmount: true }
+          })
+        : []
+      const outstandingByCustomer = new Map(
+        debtAggregations.map((agg) => [agg.customerId, agg._sum.remainingAmount ?? 0])
+      )
+
+      // Validate each debt
+      for (const debt of debts) {
+        const customer = customerMap.get(debt.customerId)
 
         if (!customer) {
           return NextResponse.json(
@@ -303,23 +323,7 @@ export async function POST(request: NextRequest) {
 
         // Check credit limit if set
         if (customer.creditLimit !== null && customer.creditLimit !== undefined) {
-          const existingDebts = await prisma.debt.findMany({
-            where: {
-              customerId: debt.customerId,
-              status: {
-                in: ['Outstanding', 'PartiallyPaid', 'Overdue']
-              }
-            },
-            select: {
-              remainingAmount: true
-            }
-          })
-
-          const currentOutstanding = existingDebts.reduce(
-            (sum, d) => sum + d.remainingAmount,
-            0
-          )
-
+          const currentOutstanding = outstandingByCustomer.get(debt.customerId) ?? 0
           const newTotalOutstanding = currentOutstanding + debt.amountGNF
 
           if (newTotalOutstanding > customer.creditLimit) {
@@ -334,8 +338,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate saleItems if provided
+    // Validate saleItems if provided - batch fetch all products
     if (saleItems.length > 0) {
+      // First validate basic fields
       for (const item of saleItems) {
         if (!item.quantity || item.quantity <= 0) {
           return NextResponse.json(
@@ -343,25 +348,38 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
+      }
 
-        // If productId is provided, verify it exists and belongs to this restaurant
-        if (item.productId) {
-          const product = await prisma.product.findUnique({
-            where: { id: item.productId }
-          })
+      // Batch fetch all products in one query
+      const productIds = saleItems
+        .filter((item: { productId?: string }) => item.productId)
+        .map((item: { productId: string }) => item.productId)
 
-          if (!product) {
-            return NextResponse.json(
-              { error: `Product not found: ${item.productId}` },
-              { status: 404 }
-            )
-          }
+      if (productIds.length > 0) {
+        const products = await prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, restaurantId: true }
+        })
+        const productMap = new Map(products.map((p) => [p.id, p]))
 
-          if (product.restaurantId !== restaurantId) {
-            return NextResponse.json(
-              { error: 'Product does not belong to this restaurant' },
-              { status: 400 }
-            )
+        // Validate each product
+        for (const item of saleItems) {
+          if (item.productId) {
+            const product = productMap.get(item.productId)
+
+            if (!product) {
+              return NextResponse.json(
+                { error: `Product not found: ${item.productId}` },
+                { status: 404 }
+              )
+            }
+
+            if (product.restaurantId !== restaurantId) {
+              return NextResponse.json(
+                { error: 'Product does not belong to this restaurant' },
+                { status: 400 }
+              )
+            }
           }
         }
       }

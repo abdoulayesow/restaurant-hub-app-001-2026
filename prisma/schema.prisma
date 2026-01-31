@@ -499,6 +499,7 @@ model Debt {
   @@index([status])
   @@index([dueDate])
   @@index([restaurantId, status])
+  @@index([customerId, status]) // Optimizes debt aggregation queries
 }
 
 enum DebtStatus {

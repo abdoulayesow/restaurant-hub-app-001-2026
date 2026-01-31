@@ -333,47 +333,47 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Create ProductionItem records for multi-product support
+      // Create ProductionItem records for multi-product support using batch insert
       if (useMultiProduct && productionItems) {
-        for (const item of productionItems) {
-          await tx.productionItem.create({
-            data: {
-              productionLogId: productionLog.id,
-              productId: item.productId,
-              quantity: item.quantity,
-            },
-          })
-        }
+        await tx.productionItem.createMany({
+          data: productionItems.map((item: ProductionItemInput) => ({
+            productionLogId: productionLog.id,
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+        })
       }
 
       // If shouldDeductNow is true and we have ingredient details, create stock movements
       if (shouldDeductNow && ingredientDetails && ingredientDetails.length > 0) {
-        for (const ingredient of ingredientDetails) {
-          // Create stock movement (negative quantity for usage)
-          await tx.stockMovement.create({
-            data: {
-              restaurantId,
-              itemId: ingredient.itemId,
-              type: MovementType.Usage,
-              quantity: -ingredient.quantity, // Negative for usage
-              unitCost: ingredient.unitCostGNF,
-              reason: `Production: ${displayProductName} (qty: ${displayQuantity})`,
-              productionLogId: productionLog.id,
-              createdBy: session.user.id,
-              createdByName: session.user.name || session.user.email || undefined,
-            },
-          })
+        // Batch create all stock movements at once
+        await tx.stockMovement.createMany({
+          data: ingredientDetails.map((ingredient: IngredientDetail) => ({
+            restaurantId,
+            itemId: ingredient.itemId,
+            type: MovementType.Usage,
+            quantity: -ingredient.quantity, // Negative for usage
+            unitCost: ingredient.unitCostGNF,
+            reason: `Production: ${displayProductName} (qty: ${displayQuantity})`,
+            productionLogId: productionLog.id,
+            createdBy: session.user.id,
+            createdByName: session.user.name || session.user.email || undefined,
+          })),
+        })
 
-          // Update inventory item stock
-          await tx.inventoryItem.update({
-            where: { id: ingredient.itemId },
-            data: {
-              currentStock: {
-                decrement: ingredient.quantity,
+        // Update inventory stock levels (must be individual due to decrement operation)
+        await Promise.all(
+          ingredientDetails.map((ingredient: IngredientDetail) =>
+            tx.inventoryItem.update({
+              where: { id: ingredient.itemId },
+              data: {
+                currentStock: {
+                  decrement: ingredient.quantity,
+                },
               },
-            },
-          })
-        }
+            })
+          )
+        )
       }
 
       return productionLog
