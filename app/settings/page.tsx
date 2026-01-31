@@ -3,18 +3,17 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Settings, Store, Settings2, Building2, LayoutGrid, Bell } from 'lucide-react'
+import { Settings, Building2, Settings2, LayoutGrid, Bell } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { canAccessSettings } from '@/lib/roles'
-import { RestaurantTypeSettings } from '@/components/settings/RestaurantTypeSettings'
+import { BakeryProfileSettings } from '@/components/settings/BakeryProfileSettings'
 import { RestaurantSettings } from '@/components/settings/RestaurantSettings'
-import { RestaurantConfigSettings } from '@/components/settings/RestaurantConfigSettings'
 import { RestaurantManagement } from '@/components/settings/RestaurantManagement'
 import { NotificationPreferences } from '@/components/settings/NotificationPreferences'
 
-type TabId = 'type' | 'operations' | 'config' | 'restaurants' | 'notifications'
+type TabId = 'profile' | 'operations' | 'locations' | 'notifications'
 
 interface Tab {
   id: TabId
@@ -22,14 +21,14 @@ interface Tab {
   labelFallback: string
   labelFr: string
   icon: React.ElementType
+  scope: 'restaurant' | 'account'
 }
 
 const tabs: Tab[] = [
-  { id: 'type', labelKey: 'settings.tabType', labelFallback: 'Type & Features', labelFr: 'Type & Options', icon: Store },
-  { id: 'operations', labelKey: 'settings.tabOperations', labelFallback: 'Operations', labelFr: 'Opérations', icon: Settings2 },
-  { id: 'config', labelKey: 'settings.tabConfig', labelFallback: 'Configuration', labelFr: 'Configuration', icon: Building2 },
-  { id: 'restaurants', labelKey: 'settings.tabRestaurants', labelFallback: 'Restaurants', labelFr: 'Restaurants', icon: LayoutGrid },
-  { id: 'notifications', labelKey: 'settings.tabNotifications', labelFallback: 'Notifications', labelFr: 'Notifications', icon: Bell },
+  { id: 'profile', labelKey: 'settings.tabProfile', labelFallback: 'Bakery Profile', labelFr: 'Profil', icon: Building2, scope: 'restaurant' },
+  { id: 'operations', labelKey: 'settings.tabOperations', labelFallback: 'Operations', labelFr: 'Opérations', icon: Settings2, scope: 'restaurant' },
+  { id: 'locations', labelKey: 'settings.tabLocations', labelFallback: 'My Locations', labelFr: 'Mes restaurants', icon: LayoutGrid, scope: 'account' },
+  { id: 'notifications', labelKey: 'settings.tabNotifications', labelFallback: 'Notifications', labelFr: 'Notifications', icon: Bell, scope: 'account' },
 ]
 
 export default function SettingsPage() {
@@ -37,7 +36,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const { t, locale } = useLocale()
   const { currentRole, loading: restaurantLoading } = useRestaurant()
-  const [activeTab, setActiveTab] = useState<TabId>('type')
+  const [activeTab, setActiveTab] = useState<TabId>('profile')
   const [isTransitioning, setIsTransitioning] = useState(false)
 
   const canAccess = canAccessSettings(currentRole)
@@ -84,10 +83,17 @@ export default function SettingsPage() {
               <div className="h-8 bg-gray-200 dark:bg-stone-800 rounded-lg w-48" />
             </div>
             <div className="h-5 bg-gray-200 dark:bg-stone-800 rounded w-72" />
-            <div className="flex gap-2 mt-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-12 w-36 bg-gray-200 dark:bg-stone-800 rounded-lg" />
-              ))}
+            <div className="flex gap-3 mt-6">
+              <div className="flex gap-1 p-1 bg-stone-100 dark:bg-stone-800 rounded-xl">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-10 w-28 bg-stone-200 dark:bg-stone-700 rounded-lg" />
+                ))}
+              </div>
+              <div className="flex gap-1 p-1 bg-stone-100 dark:bg-stone-800 rounded-xl">
+                {[3, 4].map((i) => (
+                  <div key={i} className="h-10 w-28 bg-stone-200 dark:bg-stone-700 rounded-lg" />
+                ))}
+              </div>
             </div>
             <div className="h-96 bg-gray-200 dark:bg-stone-800 rounded-xl mt-6" />
           </div>
@@ -125,30 +131,72 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {/* Tab Bar */}
+        {/* Tab Bar - Grouped by scope */}
         <div className="mb-8">
-          <div className="inline-flex p-1 gap-1 bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-gray-200 dark:border-stone-700">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Restaurant Settings Group */}
+            <div className="inline-flex p-1 gap-1 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+              {tabs.filter(t => t.scope === 'restaurant').map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
 
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`relative flex items-center gap-2.5 px-4 py-2.5 rounded-md font-medium text-sm transition-all ${
-                    isActive
-                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                      : 'text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700'
-                  }`}
-                  aria-selected={isActive}
-                  role="tab"
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'scale-110' : ''} transition-transform`} />
-                  <span className="hidden sm:inline">{getTabLabel(tab)}</span>
-                </button>
-              )
-            })}
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all ${
+                      isActive
+                        ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-900 shadow-sm'
+                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700'
+                    }`}
+                    aria-selected={isActive}
+                    role="tab"
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'scale-110' : ''} transition-transform`} />
+                    <span className="hidden sm:inline">{getTabLabel(tab)}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Separator */}
+            <div className="hidden sm:block w-px h-8 bg-stone-300 dark:bg-stone-600" />
+
+            {/* Account Settings Group */}
+            <div className="inline-flex p-1 gap-1 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+              {tabs.filter(t => t.scope === 'account').map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all ${
+                      isActive
+                        ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-900 shadow-sm'
+                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700'
+                    }`}
+                    aria-selected={isActive}
+                    role="tab"
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'scale-110' : ''} transition-transform`} />
+                    <span className="hidden sm:inline">{getTabLabel(tab)}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Scope Labels */}
+          <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-stone-500 dark:text-stone-500">
+            <span className="pl-2">
+              {t('settings.scopeRestaurant') || (locale === 'fr' ? 'Paramètres restaurant' : 'Restaurant settings')}
+            </span>
+            <span className="hidden sm:inline-block w-px h-3 bg-transparent" />
+            <span className="sm:pl-4">
+              {t('settings.scopeAccount') || (locale === 'fr' ? 'Paramètres compte' : 'Account settings')}
+            </span>
           </div>
         </div>
 
@@ -161,13 +209,11 @@ export default function SettingsPage() {
           role="tabpanel"
           aria-labelledby={`tab-${activeTab}`}
         >
-          {activeTab === 'type' && <RestaurantTypeSettings />}
+          {activeTab === 'profile' && <BakeryProfileSettings />}
 
           {activeTab === 'operations' && <RestaurantSettings />}
 
-          {activeTab === 'config' && <RestaurantConfigSettings />}
-
-          {activeTab === 'restaurants' && <RestaurantManagement />}
+          {activeTab === 'locations' && <RestaurantManagement />}
 
           {activeTab === 'notifications' && <NotificationPreferences />}
         </div>
