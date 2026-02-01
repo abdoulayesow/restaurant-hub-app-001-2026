@@ -467,7 +467,31 @@
     "timelinePending": "En attente",
     "statusApproved": "Approuvé",
     "totalCost": "Coût total",
-    "createdBy": "Créé par"
+    "createdBy": "Créé par",
+    "products": {
+      "title": "Catalogue de Produits",
+      "subtitle": "Gérer les produits de votre boulangerie",
+      "addProduct": "Ajouter un Produit",
+      "editProduct": "Modifier le Produit",
+      "deleteProduct": "Supprimer le Produit",
+      "productName": "Nom du Produit",
+      "productNameFr": "Nom du Produit (Français)",
+      "noProducts": "Aucun produit trouvé",
+      "noProductsDescription": "Créez votre premier produit pour commencer à enregistrer la production",
+      "deleteWarning": "Cela masquera le produit de la production et des ventes. Vous pouvez le réactiver plus tard.",
+      "showInactive": "Afficher Inactifs",
+      "sortOrder": "Ordre de Tri",
+      "sortOrderHint": "Les nombres plus petits apparaissent en premier",
+      "productActivated": "Produit activé",
+      "productDeactivated": "Produit désactivé",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "allCategories": "Toutes les Catégories",
+      "unit": "Unité",
+      "selectCategory": "Sélectionner une catégorie",
+      "selectUnit": "Sélectionner une unité",
+      "confirmDelete": "Êtes-vous sûr de vouloir désactiver ce produit ?"
+    }
   },
   "sales": {
     "title": "Ventes",
