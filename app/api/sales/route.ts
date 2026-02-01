@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { parseToUTCDate, parseToUTCEndOfDay } from '@/lib/date-utils'
+import { parseToUTCDate, parseToUTCEndOfDay, formatDateForInput } from '@/lib/date-utils'
 import { canRecordSales } from '@/lib/roles'
 
 // GET /api/sales - List sales for a bakery
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
     // Build salesByDay for trend chart using Map for O(n) aggregation
     const salesByDayMap = new Map<string, number>()
     for (const sale of sales) {
-      const dateStr = new Date(sale.date).toISOString().split('T')[0]
+      const dateStr = formatDateForInput(sale.date)
       salesByDayMap.set(dateStr, (salesByDayMap.get(dateStr) ?? 0) + sale.totalGNF)
     }
     const salesByDay = Array.from(salesByDayMap.entries())

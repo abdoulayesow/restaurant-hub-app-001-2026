@@ -3,6 +3,7 @@
 import { ArrowLeft, CheckCircle, XCircle, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { getCategoryLabel } from './CategoryFilter'
+import { formatDateForDisplay } from '@/lib/date-utils'
 
 interface ReconciliationItem {
   id: string
@@ -64,8 +65,7 @@ export function VarianceReport({
 
   // Format date
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatDateForDisplay(dateStr, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

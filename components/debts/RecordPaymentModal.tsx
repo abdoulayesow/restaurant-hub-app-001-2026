@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { X, DollarSign, Calendar, FileText, Receipt, Hash, Banknote, CreditCard, Smartphone } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PAYMENT_METHODS, PaymentMethodValue } from '@/lib/constants/payment-methods'
+import { getTodayDateString } from '@/lib/date-utils'
 
 interface Debt {
   id: string
@@ -47,7 +48,7 @@ export default function RecordPaymentModal({
   const [formData, setFormData] = useState({
     amount: '',
     paymentMethod: 'Cash' as PaymentMethodValue,
-    paymentDate: new Date().toISOString().split('T')[0],
+    paymentDate: getTodayDateString(),
     receiptNumber: '',
     transactionId: '',
     notes: ''
@@ -82,7 +83,7 @@ export default function RecordPaymentModal({
       setFormData({
         amount: debt.remainingAmount.toString(),
         paymentMethod: 'Cash',
-        paymentDate: new Date().toISOString().split('T')[0],
+        paymentDate: getTodayDateString(),
         receiptNumber: '',
         transactionId: '',
         notes: ''

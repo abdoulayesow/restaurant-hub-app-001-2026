@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { normalizePaymentMethod, PAYMENT_METHOD_VALUES } from '@/lib/constants/payment-methods'
+import { normalizePaymentMethod } from '@/lib/constants/payment-methods'
 import { canRecordExpenses } from '@/lib/roles'
-import { parseToUTCDate } from '@/lib/date-utils'
+import { parseToUTCDate, formatDateForInput } from '@/lib/date-utils'
 
 // GET /api/expenses - List expenses for a bakery
 export async function GET(request: NextRequest) {
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
     // Build expensesByDay for trend chart using Map for O(n) aggregation
     const expensesByDayMap = new Map<string, number>()
     for (const expense of expenses) {
-      const dateStr = new Date(expense.date).toISOString().split('T')[0]
+      const dateStr = formatDateForInput(expense.date)
       expensesByDayMap.set(dateStr, (expensesByDayMap.get(dateStr) ?? 0) + expense.amountGNF)
     }
     const expensesByDay = Array.from(expensesByDayMap.entries())
@@ -259,32 +259,27 @@ export async function POST(request: NextRequest) {
       categoryName,
       amountGNF,
       amountEUR = 0,
-      paymentMethod,
+      paymentMethod, // Optional: legacy field, now determined at payment time
+      billingRef, // Invoice or receipt reference number
       description,
       receiptUrl,
       comments,
-      transactionRef,
+      transactionRef, // Legacy: kept for backwards compatibility
       supplierId,
       isInventoryPurchase = false,
       expenseItems = [], // Array of { inventoryItemId, quantity, unitCostGNF }
     } = body
 
-    // Validate required fields
-    if (!restaurantId || !date || !categoryName || amountGNF === undefined || !paymentMethod) {
+    // Validate required fields (paymentMethod no longer required - determined at payment time)
+    if (!restaurantId || !date || !categoryName || amountGNF === undefined) {
       return NextResponse.json(
-        { error: 'Missing required fields: restaurantId, date, categoryName, amountGNF, paymentMethod' },
+        { error: 'Missing required fields: restaurantId, date, categoryName, amountGNF' },
         { status: 400 }
       )
     }
 
-    // Validate payment method
-    const normalizedPaymentMethod = normalizePaymentMethod(paymentMethod)
-    if (!normalizedPaymentMethod) {
-      return NextResponse.json(
-        { error: `Invalid payment method: ${paymentMethod}. Allowed methods: ${PAYMENT_METHOD_VALUES.join(', ')}` },
-        { status: 400 }
-      )
-    }
+    // Normalize payment method if provided (for backwards compatibility with legacy expenses)
+    const normalizedPaymentMethod = paymentMethod ? normalizePaymentMethod(paymentMethod) : null
 
     // Validate amount
     if (amountGNF <= 0) {
@@ -350,11 +345,12 @@ export async function POST(request: NextRequest) {
           categoryName,
           amountGNF,
           amountEUR,
-          paymentMethod: normalizedPaymentMethod,
+          paymentMethod: normalizedPaymentMethod, // Optional: for backwards compat with legacy expenses
+          billingRef: billingRef || null, // Invoice or receipt reference
           description: description || null,
           receiptUrl: receiptUrl || null,
           comments: comments || null,
-          transactionRef: transactionRef || null,
+          transactionRef: transactionRef || null, // Legacy field
           supplierId: supplierId || null,
           isInventoryPurchase,
           status: 'Pending',

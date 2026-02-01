@@ -9,6 +9,7 @@ import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { canApprove } from '@/lib/roles'
+import { formatDateForDisplay } from '@/lib/date-utils'
 import { ReconciliationForm } from '@/components/inventory/ReconciliationForm'
 import { VarianceReport } from '@/components/inventory/VarianceReport'
 import { InventoryItem } from '@/components/inventory/InventoryCard'
@@ -200,8 +201,7 @@ export default function ReconciliationPage() {
 
   // Format date
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatDateForDisplay(dateStr, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

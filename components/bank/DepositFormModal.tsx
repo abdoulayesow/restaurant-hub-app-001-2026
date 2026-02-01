@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { getTodayDateString } from '@/lib/date-utils'
 
 interface Sale {
   id: string
@@ -39,7 +40,7 @@ export function DepositFormModal({
   const { currentRestaurant } = useRestaurant()
 
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0], // Today's date
+    date: getTodayDateString(), // Today's date
     amount: '',
     saleId: '',
     comments: '',
@@ -84,7 +85,7 @@ export function DepositFormModal({
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayDateString(),
         amount: '',
         saleId: '',
         comments: '',

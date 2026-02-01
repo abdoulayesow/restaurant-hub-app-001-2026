@@ -270,6 +270,36 @@ export async function POST(
         }
       })
 
+      // Update DailySummary for the PAYMENT date (when money actually moves)
+      const paymentDate = new Date()
+      paymentDate.setUTCHours(0, 0, 0, 0)
+
+      // Calculate expense amount by payment method for this payment
+      const cashExpense = paymentMethod === 'Cash' ? amount : 0
+      const orangeExpense = paymentMethod === 'OrangeMoney' ? amount : 0
+      const cardExpense = paymentMethod === 'Card' ? amount : 0
+
+      await tx.dailySummary.upsert({
+        where: {
+          restaurantId_date: {
+            restaurantId: expense.restaurantId,
+            date: paymentDate,
+          },
+        },
+        update: {
+          dailyCashExpenses: { increment: cashExpense },
+          dailyOrangeExpenses: { increment: orangeExpense },
+          dailyCardExpenses: { increment: cardExpense },
+        },
+        create: {
+          restaurantId: expense.restaurantId,
+          date: paymentDate,
+          dailyCashExpenses: cashExpense,
+          dailyOrangeExpenses: orangeExpense,
+          dailyCardExpenses: cardExpense,
+        },
+      })
+
       return { payment, expense: updatedExpense, bankTransaction }
     })
 

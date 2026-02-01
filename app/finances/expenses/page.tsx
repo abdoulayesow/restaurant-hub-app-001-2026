@@ -22,7 +22,8 @@ interface Expense {
   categoryId?: string | null
   categoryName: string
   amountGNF: number
-  paymentMethod: string
+  paymentMethod?: string | null // Legacy: now optional, determined at payment time
+  billingRef?: string | null // Invoice or receipt reference number
   description?: string | null
   status: 'Pending' | 'Approved' | 'Rejected'
   paymentStatus?: 'Unpaid' | 'PartiallyPaid' | 'Paid'

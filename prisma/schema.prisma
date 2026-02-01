@@ -554,7 +554,8 @@ model Expense {
   categoryName        String
   amountGNF           Float
   amountEUR           Float            @default(0)
-  paymentMethod       String // Payment method name (instead of enum)
+  paymentMethod       String? // Optional: determined at payment time (legacy field for backwards compat)
+  billingRef          String? // Invoice or receipt reference number
   description         String?
   receiptUrl          String?
   comments            String?

@@ -12,7 +12,8 @@ interface Expense {
   date: string
   categoryName: string
   amountGNF: number
-  paymentMethod: string
+  paymentMethod?: string | null // Legacy: now optional, determined at payment time
+  billingRef?: string | null // Invoice or receipt reference number
   description?: string | null
   status: 'Pending' | 'Approved' | 'Rejected'
   paymentStatus?: 'Unpaid' | 'PartiallyPaid' | 'Paid'
@@ -245,7 +246,7 @@ export function ExpensesTable({
               </div>
             </th>
             <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-stone-100 hidden md:table-cell">
-              {t('expenses.paymentMethod') || 'Payment'}
+              {t('expenses.reference') || 'Reference'}
             </th>
             <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-stone-100 hidden lg:table-cell">
               {t('expenses.supplier') || 'Supplier'}
@@ -269,8 +270,9 @@ export function ExpensesTable({
         </thead>
         <tbody className="bg-white dark:bg-stone-800">
           {sortedExpenses.map((expense, index) => {
-            const paymentConfig = getPaymentConfig(expense.paymentMethod)
-            const PaymentIcon = paymentConfig.icon
+            // Only get payment config for legacy expenses with paymentMethod set
+            const paymentConfig = expense.paymentMethod ? getPaymentConfig(expense.paymentMethod) : null
+            const PaymentIcon = paymentConfig?.icon || DollarSign
 
             return (
               <tr
@@ -317,10 +319,20 @@ export function ExpensesTable({
                   {formatCurrency(expense.amountGNF)}
                 </td>
                 <td className="px-6 py-4 text-center hidden md:table-cell">
-                  <div className={`inline-flex items-center gap-1.5 ${paymentConfig.color}`}>
-                    <PaymentIcon className="w-4 h-4" />
-                    <span className="text-sm">{paymentConfig.label}</span>
-                  </div>
+                  {expense.paymentMethod && paymentConfig ? (
+                    // Legacy expenses: show payment method badge
+                    <div className={`inline-flex items-center gap-1.5 ${paymentConfig.color}`}>
+                      <PaymentIcon className="w-4 h-4" />
+                      <span className="text-sm">{paymentConfig.label}</span>
+                    </div>
+                  ) : expense.billingRef ? (
+                    // New expenses: show billing reference
+                    <span className="text-sm text-gray-700 dark:text-stone-300 font-mono">
+                      {expense.billingRef}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 dark:text-stone-500">-</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-gray-700 dark:text-stone-200 hidden lg:table-cell">
                   {expense.supplier?.name || '-'}

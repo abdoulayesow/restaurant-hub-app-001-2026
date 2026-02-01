@@ -82,47 +82,9 @@ export async function POST(
       },
     })
 
-    // If approved, update daily summary and create stock movements for inventory purchases
-    // Use expense.date directly as it's already stored at UTC midnight
+    // If approved, create stock movements for inventory purchases
+    // Note: DailySummary is now updated at payment time (when money actually moves)
     if (action === 'approve') {
-      const expenseDate = expense.date
-
-      // Get existing summary to add to expenses
-      const existingSummary = await prisma.dailySummary.findUnique({
-        where: {
-          restaurantId_date: {
-            restaurantId: expense.restaurantId,
-            date: expenseDate,
-          },
-        },
-      })
-
-      // Calculate expense amount by payment method
-      const cashExpense = expense.paymentMethod === 'Cash' ? expense.amountGNF : 0
-      const orangeExpense = expense.paymentMethod === 'Orange Money' ? expense.amountGNF : 0
-      const cardExpense = expense.paymentMethod === 'Card' ? expense.amountGNF : 0
-
-      await prisma.dailySummary.upsert({
-        where: {
-          restaurantId_date: {
-            restaurantId: expense.restaurantId,
-            date: expenseDate,
-          },
-        },
-        update: {
-          dailyCashExpenses: (existingSummary?.dailyCashExpenses || 0) + cashExpense,
-          dailyOrangeExpenses: (existingSummary?.dailyOrangeExpenses || 0) + orangeExpense,
-          dailyCardExpenses: (existingSummary?.dailyCardExpenses || 0) + cardExpense,
-        },
-        create: {
-          restaurantId: expense.restaurantId,
-          date: expenseDate,
-          dailyCashExpenses: cashExpense,
-          dailyOrangeExpenses: orangeExpense,
-          dailyCardExpenses: cardExpense,
-        },
-      })
-
       // Create stock movements for inventory purchases
       if (existingExpense.isInventoryPurchase) {
         const expenseItems = await prisma.expenseItem.findMany({
