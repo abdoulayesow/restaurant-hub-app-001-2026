@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Settings, Building2, Settings2, LayoutGrid, Bell } from 'lucide-react'
+import { Settings, Building2, Settings2, LayoutGrid, Bell, Database, Trash2 } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
@@ -12,8 +12,10 @@ import { BakeryProfileSettings } from '@/components/settings/BakeryProfileSettin
 import { RestaurantSettings } from '@/components/settings/RestaurantSettings'
 import { RestaurantManagement } from '@/components/settings/RestaurantManagement'
 import { NotificationPreferences } from '@/components/settings/NotificationPreferences'
+import { ReferenceDataSection } from '@/components/settings/ReferenceDataSection'
+import { DataResetSection } from '@/components/settings/DataResetSection'
 
-type TabId = 'profile' | 'operations' | 'locations' | 'notifications'
+type TabId = 'profile' | 'operations' | 'reference' | 'data' | 'locations' | 'notifications'
 
 interface Tab {
   id: TabId
@@ -27,6 +29,8 @@ interface Tab {
 const tabs: Tab[] = [
   { id: 'profile', labelKey: 'settings.tabProfile', labelFallback: 'Bakery Profile', labelFr: 'Profil', icon: Building2, scope: 'restaurant' },
   { id: 'operations', labelKey: 'settings.tabOperations', labelFallback: 'Operations', labelFr: 'Opérations', icon: Settings2, scope: 'restaurant' },
+  { id: 'reference', labelKey: 'settings.tabReference', labelFallback: 'Reference Data', labelFr: 'Données de référence', icon: Database, scope: 'restaurant' },
+  { id: 'data', labelKey: 'settings.tabData', labelFallback: 'Data Management', labelFr: 'Gestion des données', icon: Trash2, scope: 'restaurant' },
   { id: 'locations', labelKey: 'settings.tabLocations', labelFallback: 'My Locations', labelFr: 'Mes restaurants', icon: LayoutGrid, scope: 'account' },
   { id: 'notifications', labelKey: 'settings.tabNotifications', labelFallback: 'Notifications', labelFr: 'Notifications', icon: Bell, scope: 'account' },
 ]
@@ -212,6 +216,10 @@ export default function SettingsPage() {
           {activeTab === 'profile' && <BakeryProfileSettings />}
 
           {activeTab === 'operations' && <RestaurantSettings />}
+
+          {activeTab === 'reference' && <ReferenceDataSection />}
+
+          {activeTab === 'data' && <DataResetSection />}
 
           {activeTab === 'locations' && <RestaurantManagement />}
 
