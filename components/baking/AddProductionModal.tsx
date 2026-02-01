@@ -84,7 +84,7 @@ export function AddProductionModal({
                 value={date}
                 max={maxDate}
                 onChange={(e) => setDate(e.target.value)}
-                className="absolute inset-0 opacity-0"
+                className="absolute inset-0 opacity-0 pointer-events-none"
                 tabIndex={-1}
               />
             </div>
@@ -198,7 +198,7 @@ export function AddProductionModal({
                     value={date}
                     max={maxDate}
                     onChange={(e) => setDate(e.target.value)}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    className="absolute inset-0 opacity-0 pointer-events-none"
                     tabIndex={-1}
                   />
                 </div>

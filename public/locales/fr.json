@@ -1203,7 +1203,8 @@
     "payFull": "Payer Tout",
     "paymentFor": "Paiement pour",
     "paid": "Payé",
-    "left": "Reste"
+    "left": "Reste",
+    "debtDate": "Date de la dette"
   },
   "customers": {
     "customer": "Client",

@@ -31,7 +31,7 @@ export function SubmissionsTable({ submissions, loading = false, onRefresh }: Su
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [filterType, setFilterType] = useState<FilterType>('all')
-  const [displayLimit, setDisplayLimit] = useState(3)
+  const displayLimit = 3 // Show only the 3 most recent submissions
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -81,8 +81,8 @@ export function SubmissionsTable({ submissions, loading = false, onRefresh }: Su
       default:
         return {
           icon: Calendar,
-          color: 'text-stone-600',
-          bg: 'bg-stone-100',
+          color: 'text-stone-600 dark:text-stone-400',
+          bg: 'bg-stone-100 dark:bg-stone-700/30',
           label: type
         }
     }
@@ -125,7 +125,6 @@ export function SubmissionsTable({ submissions, loading = false, onRefresh }: Su
 
   // Paginate
   const displayedSubmissions = sortedSubmissions.slice(0, displayLimit)
-  const hasMore = sortedSubmissions.length > displayLimit
 
   // Determine available submission types (for filter options)
   const availableTypes = new Set(submissions.map(s => s.type))
@@ -310,18 +309,6 @@ export function SubmissionsTable({ submissions, loading = false, onRefresh }: Su
               </tbody>
             </table>
           </div>
-
-          {/* Load More Button */}
-          {hasMore && (
-            <div className="p-4 border-t border-stone-200 dark:border-stone-700 flex justify-center">
-              <button
-                onClick={() => setDisplayLimit(prev => prev + 20)}
-                className="px-4 py-2 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-300 rounded-lg transition-colors font-medium text-sm"
-              >
-                {t('editor.loadMore') || 'Load More'} ({sortedSubmissions.length - displayLimit} {t('editor.remaining') || 'remaining'})
-              </button>
-            </div>
-          )}
         </>
       )}
     </div>

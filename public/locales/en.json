@@ -1207,7 +1207,8 @@
     "payFull": "Pay Full",
     "paymentFor": "Payment for",
     "paid": "Paid",
-    "left": "Left"
+    "left": "Left",
+    "debtDate": "Debt date"
   },
   "customers": {
     "customer": "Customer",
