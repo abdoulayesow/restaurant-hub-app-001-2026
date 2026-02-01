@@ -16,7 +16,7 @@ import {
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { Logo, colorPalettes } from '@/components/brand/Logo'
+import { BlissLogoNav, blissPalettes } from '@/components/brand/BlissLogo'
 import { canAccessDashboard, getRoleDisplayName } from '@/lib/roles'
 
 export function EditorHeader() {
@@ -24,9 +24,18 @@ export function EditorHeader() {
   const { t, locale, setLocale } = useLocale()
   const { theme, toggleTheme } = useTheme()
   const { restaurants, currentRestaurant, currentRole, currentPalette, setCurrentRestaurant } = useRestaurant()
-  const accentColor = colorPalettes[currentPalette].primary
   const [restaurantDropdownOpen, setRestaurantDropdownOpen] = useState(false)
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
+
+  // Map old palette names to new Bliss Patisserie palettes
+  const blissPaletteMap: Record<string, keyof typeof blissPalettes> = {
+    terracotta: 'royalPlum',
+    warmBrown: 'cafeCreme',
+    burntSienna: 'rosePetal',
+    gold: 'pistache',
+  }
+  const currentBlissPalette = blissPaletteMap[currentPalette] || 'royalPlum'
+  const accentColor = blissPalettes[currentBlissPalette].primary
 
   // Use currentRole from RestaurantProvider (per-restaurant role)
   const isOwnerRole = canAccessDashboard(currentRole)
@@ -39,8 +48,7 @@ export function EditorHeader() {
           <div className="flex items-center space-x-4">
             {/* Logo */}
             <Link href={isOwnerRole ? '/dashboard' : '/editor'} className="flex items-center">
-              <Logo size="md" variant="full" palette={currentPalette} className="hidden sm:flex" />
-              <Logo size="md" variant="icon" palette={currentPalette} className="sm:hidden" />
+              <BlissLogoNav palette={currentBlissPalette} />
             </Link>
 
             {/* Restaurant Selector - Always visible */}
@@ -70,7 +78,9 @@ export function EditorHeader() {
                 {restaurantDropdownOpen && restaurants.length > 1 && (
                   <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-stone-800 rounded-lg shadow-lg border border-stone-200 dark:border-stone-700 py-1 z-50">
                     {restaurants.map((restaurant, index) => {
-                      const restaurantPalette = colorPalettes[['terracotta', 'warmBrown', 'burntSienna', 'gold'][index % 4] as keyof typeof colorPalettes]
+                      const paletteKey = ['terracotta', 'warmBrown', 'burntSienna', 'gold'][index % 4] as keyof typeof blissPaletteMap
+                      const blissPaletteName = blissPaletteMap[paletteKey]
+                      const restaurantPalette = blissPalettes[blissPaletteName]
                       return (
                         <button
                           key={restaurant.id}

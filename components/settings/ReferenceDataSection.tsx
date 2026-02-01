@@ -16,21 +16,21 @@ export function ReferenceDataSection() {
     <div className="space-y-6">
       {/* Section Description */}
       <div className="mb-4">
-        <p className="text-gray-600 dark:text-stone-400">
+        <p className="text-stone-600 dark:text-stone-400">
           {t('settings.referenceDataDesc') || 'Manage suppliers, expense categories, and expense groups used across your bakery.'}
         </p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700">
-        <div className="flex border-b border-gray-200 dark:border-stone-700">
+      <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+        <div className="flex border-b border-stone-200 dark:border-stone-700">
           <button
             onClick={() => setActiveTab('suppliers')}
             className={`
               px-6 py-4 font-medium transition-colors
               ${activeTab === 'suppliers'
-                ? 'text-gray-900 dark:text-stone-100 border-b-2 border-gray-900 dark:border-white'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-stone-100'
+                ? 'text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-white'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
               }
             `}
           >
@@ -41,8 +41,8 @@ export function ReferenceDataSection() {
             className={`
               px-6 py-4 font-medium transition-colors
               ${activeTab === 'categories'
-                ? 'text-gray-900 dark:text-stone-100 border-b-2 border-gray-900 dark:border-white'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-stone-100'
+                ? 'text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-white'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
               }
             `}
           >
@@ -53,8 +53,8 @@ export function ReferenceDataSection() {
             className={`
               px-6 py-4 font-medium transition-colors
               ${activeTab === 'expenseGroups'
-                ? 'text-gray-900 dark:text-stone-100 border-b-2 border-gray-900 dark:border-white'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-stone-100'
+                ? 'text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-white'
+                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
               }
             `}
           >

@@ -31,7 +31,7 @@ export function SubmissionsTable({ submissions, loading = false, onRefresh }: Su
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [filterType, setFilterType] = useState<FilterType>('all')
-  const [displayLimit, setDisplayLimit] = useState(20)
+  const [displayLimit, setDisplayLimit] = useState(3)
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -127,6 +127,13 @@ export function SubmissionsTable({ submissions, loading = false, onRefresh }: Su
   const displayedSubmissions = sortedSubmissions.slice(0, displayLimit)
   const hasMore = sortedSubmissions.length > displayLimit
 
+  // Determine available submission types (for filter options)
+  const availableTypes = new Set(submissions.map(s => s.type))
+  const hasSales = availableTypes.has('sale')
+  const hasExpenses = availableTypes.has('expense')
+  const hasProduction = availableTypes.has('production')
+  const showFilter = availableTypes.size > 1 // Only show filter if multiple types exist
+
   // Sort icon
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null
@@ -145,21 +152,23 @@ export function SubmissionsTable({ submissions, loading = false, onRefresh }: Su
           {t('editor.allSubmissions') || 'All Submissions'}
         </h3>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Filter Dropdown */}
-          <div className="relative flex-1 sm:flex-initial">
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as FilterType)}
-              className="w-full sm:w-auto appearance-none pl-9 pr-10 py-2 bg-stone-100 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold-500"
-            >
-              <option value="all">{t('editor.filterAll') || 'All'}</option>
-              <option value="sale">{t('editor.filterSales') || 'Sales Only'}</option>
-              <option value="expense">{t('editor.filterExpenses') || 'Expenses Only'}</option>
-              <option value="production">{t('editor.filterProduction') || 'Production Only'}</option>
-            </select>
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
-          </div>
+          {/* Filter Dropdown - Only show if multiple submission types exist */}
+          {showFilter && (
+            <div className="relative flex-1 sm:flex-initial">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as FilterType)}
+                className="w-full sm:w-auto appearance-none pl-9 pr-10 py-2 bg-stone-100 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold-500"
+              >
+                <option value="all">{t('editor.filterAll') || 'All'}</option>
+                {hasSales && <option value="sale">{t('editor.filterSales') || 'Sales Only'}</option>}
+                {hasExpenses && <option value="expense">{t('editor.filterExpenses') || 'Expenses Only'}</option>}
+                {hasProduction && <option value="production">{t('editor.filterProduction') || 'Production Only'}</option>}
+              </select>
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+            </div>
+          )}
 
           {/* Refresh Button */}
           <button

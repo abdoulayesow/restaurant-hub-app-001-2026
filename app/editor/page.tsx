@@ -86,72 +86,94 @@ export default function EditorPage() {
   // Expense modal state
   const [savingExpense, setSavingExpense] = useState(false)
 
-  // Fetch recent submissions
+  // Fetch recent submissions (filtered by role)
   const fetchRecentSubmissions = useCallback(async () => {
     if (!currentRestaurant?.id) return
 
     setLoadingSubmissions(true)
     try {
-      // Fetch sales, expenses, and production in parallel
-      const [salesRes, expensesRes, productionRes] = await Promise.all([
-        fetch(`/api/sales?restaurantId=${currentRestaurant.id}&limit=100`),
-        fetch(`/api/expenses?restaurantId=${currentRestaurant.id}&limit=100`),
-        fetch(`/api/production?restaurantId=${currentRestaurant.id}&limit=100`),
-      ])
-
       const submissions: RecentSubmission[] = []
 
-      if (salesRes.ok) {
-        const salesData = await salesRes.json()
-        const sales = salesData.sales || []
-        // Store existing sale dates for duplicate prevention
-        setExistingSaleDates(sales.map((s: { date: string }) => s.date.split('T')[0]))
+      // Determine which data to fetch based on role permissions
+      const shouldFetchSales = canRecordSales(currentRole)
+      const shouldFetchExpenses = canRecordExpenses(currentRole)
+      const shouldFetchProduction = canRecordProduction(currentRole)
 
-        sales.forEach((sale: { id: string; date: string; totalGNF: number; status: string; createdAt: string; submittedByName?: string }) => {
-          submissions.push({
-            id: sale.id,
-            type: 'sale',
-            date: sale.date,
-            amount: sale.totalGNF,
-            status: sale.status as 'Pending' | 'Approved' | 'Rejected',
-            createdAt: sale.createdAt,
-            submittedByName: sale.submittedByName,
-          })
-        })
+      // Build parallel fetch array based on permissions
+      const fetchPromises: Promise<Response>[] = []
+      const fetchTypes: ('sales' | 'expenses' | 'production')[] = []
+
+      if (shouldFetchSales) {
+        fetchPromises.push(fetch(`/api/sales?restaurantId=${currentRestaurant.id}&limit=100`))
+        fetchTypes.push('sales')
+      }
+      if (shouldFetchExpenses) {
+        fetchPromises.push(fetch(`/api/expenses?restaurantId=${currentRestaurant.id}&limit=100`))
+        fetchTypes.push('expenses')
+      }
+      if (shouldFetchProduction) {
+        fetchPromises.push(fetch(`/api/production?restaurantId=${currentRestaurant.id}&limit=100`))
+        fetchTypes.push('production')
       }
 
-      if (expensesRes.ok) {
-        const expensesData = await expensesRes.json()
-        const expenses = expensesData.expenses || []
-        expenses.forEach((expense: { id: string; date: string; amountGNF: number; categoryName: string; status: string; createdAt: string; submittedByName?: string }) => {
-          submissions.push({
-            id: expense.id,
-            type: 'expense',
-            date: expense.date,
-            amount: expense.amountGNF,
-            description: expense.categoryName,
-            status: expense.status as 'Pending' | 'Approved' | 'Rejected',
-            createdAt: expense.createdAt,
-            submittedByName: expense.submittedByName,
-          })
-        })
-      }
+      // Fetch only allowed data types
+      const responses = await Promise.all(fetchPromises)
 
-      if (productionRes.ok) {
-        const productionData = await productionRes.json()
-        const logs = productionData.logs || []
-        logs.forEach((log: { id: string; date: string; status: string; createdAt: string; submittedByName?: string; items?: Array<{ quantity: number }> }) => {
-          const totalItems = log.items?.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) || 0
-          submissions.push({
-            id: log.id,
-            type: 'production',
-            date: log.date,
-            description: `${totalItems} ${t('production.itemsProduced') || 'items'}`,
-            status: log.status as 'Pending' | 'Approved' | 'Rejected',
-            createdAt: log.createdAt,
-            submittedByName: log.submittedByName,
+      // Process responses based on what was fetched
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i]
+        const type = fetchTypes[i]
+
+        if (!response.ok) continue
+
+        if (type === 'sales') {
+          const salesData = await response.json()
+          const sales = salesData.sales || []
+          // Store existing sale dates for duplicate prevention
+          setExistingSaleDates(sales.map((s: { date: string }) => s.date.split('T')[0]))
+
+          sales.forEach((sale: { id: string; date: string; totalGNF: number; status: string; createdAt: string; submittedByName?: string }) => {
+            submissions.push({
+              id: sale.id,
+              type: 'sale',
+              date: sale.date,
+              amount: sale.totalGNF,
+              status: sale.status as 'Pending' | 'Approved' | 'Rejected',
+              createdAt: sale.createdAt,
+              submittedByName: sale.submittedByName,
+            })
           })
-        })
+        } else if (type === 'expenses') {
+          const expensesData = await response.json()
+          const expenses = expensesData.expenses || []
+          expenses.forEach((expense: { id: string; date: string; amountGNF: number; categoryName: string; status: string; createdAt: string; submittedByName?: string }) => {
+            submissions.push({
+              id: expense.id,
+              type: 'expense',
+              date: expense.date,
+              amount: expense.amountGNF,
+              description: expense.categoryName,
+              status: expense.status as 'Pending' | 'Approved' | 'Rejected',
+              createdAt: expense.createdAt,
+              submittedByName: expense.submittedByName,
+            })
+          })
+        } else if (type === 'production') {
+          const productionData = await response.json()
+          const logs = productionData.logs || []
+          logs.forEach((log: { id: string; date: string; status: string; createdAt: string; submittedByName?: string; items?: Array<{ quantity: number }> }) => {
+            const totalItems = log.items?.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) || 0
+            submissions.push({
+              id: log.id,
+              type: 'production',
+              date: log.date,
+              description: `${totalItems} ${t('production.itemsProduced') || 'items'}`,
+              status: log.status as 'Pending' | 'Approved' | 'Rejected',
+              createdAt: log.createdAt,
+              submittedByName: log.submittedByName,
+            })
+          })
+        }
       }
 
       // Sort by createdAt descending
@@ -162,7 +184,7 @@ export default function EditorPage() {
     } finally {
       setLoadingSubmissions(false)
     }
-  }, [currentRestaurant?.id, t])
+  }, [currentRestaurant?.id, currentRole, t])
 
   // Fetch categories and suppliers for expense modal
   const fetchExpenseData = useCallback(async () => {

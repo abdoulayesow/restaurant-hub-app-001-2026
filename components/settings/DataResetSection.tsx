@@ -61,11 +61,11 @@ function ResetCard({
             <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">{description}</p>
             <div className="flex items-center gap-3 mt-2">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-300">
-                {count.toLocaleString()} {t('dataReset.records') || 'records'}
+                {count.toLocaleString()} {t('settings.dataReset.records') || 'records'}
               </span>
               {relatedCount > 0 && (
                 <span className="text-xs text-stone-400 dark:text-stone-500">
-                  + {relatedCount.toLocaleString()} {t('dataReset.related') || 'related'}
+                  + {relatedCount.toLocaleString()} {t('settings.dataReset.related') || 'related'}
                 </span>
               )}
             </div>
@@ -84,7 +84,7 @@ function ResetCard({
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            t('dataReset.reset') || 'Reset'
+            t('settings.dataReset.reset') || 'Reset'
           )}
         </button>
       </div>
@@ -146,7 +146,7 @@ function ConfirmationModal({
               <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-              {t('dataReset.confirmTitle') || 'Confirm Data Reset'}
+              {t('settings.dataReset.confirmTitle') || 'Confirm Data Reset'}
             </h2>
           </div>
           <button
@@ -161,14 +161,14 @@ function ConfirmationModal({
         <div className="p-5 space-y-4">
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-700 dark:text-red-300">
-              {t('dataReset.warningMessage') ||
+              {t('settings.dataReset.warningMessage') ||
                 'This action will permanently delete the selected data. This cannot be undone.'}
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-stone-900 dark:text-stone-100 mb-2">
-              {t('dataReset.willDelete') || 'This will delete:'}
+              {t('settings.dataReset.willDelete') || 'This will delete:'}
             </p>
             <ul className="text-sm text-stone-600 dark:text-stone-300 space-y-1">
               {types.map((type) => {
@@ -176,20 +176,20 @@ function ConfirmationModal({
                 return (
                   <li key={type} className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                    {typeData?.records || 0} {type} {t('dataReset.records') || 'records'}
-                    {typeData?.relatedRecords ? ` + ${typeData.relatedRecords} ${t('dataReset.related') || 'related'}` : ''}
+                    {typeData?.records || 0} {type} {t('settings.dataReset.records') || 'records'}
+                    {typeData?.relatedRecords ? ` + ${typeData.relatedRecords} ${t('settings.dataReset.related') || 'related'}` : ''}
                   </li>
                 )
               })}
             </ul>
             <p className="mt-3 text-sm font-medium text-red-600 dark:text-red-400">
-              {t('dataReset.totalRecords') || 'Total'}: {totalRecords.toLocaleString()} {t('dataReset.records') || 'records'}
+              {t('settings.dataReset.totalRecords') || 'Total'}: {totalRecords.toLocaleString()} {t('settings.dataReset.records') || 'records'}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
-              {t('dataReset.typeToConfirm') || 'Type'} <span className="font-mono font-bold">{expectedPhrase}</span> {t('dataReset.toConfirm') || 'to confirm'}:
+              {t('settings.dataReset.typeToConfirm') || 'Type'} <span className="font-mono font-bold">{expectedPhrase}</span> {t('settings.dataReset.toConfirm') || 'to confirm'}:
             </label>
             <input
               type="text"
@@ -236,12 +236,12 @@ function ConfirmationModal({
             {isResetting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                {t('dataReset.resetting') || 'Resetting...'}
+                {t('settings.dataReset.resetting') || 'Resetting...'}
               </>
             ) : (
               <>
                 <RefreshCw className="w-4 h-4" />
-                {t('dataReset.confirmReset') || 'Reset Data'}
+                {t('settings.dataReset.confirmReset') || 'Reset Data'}
               </>
             )}
           </button>
@@ -404,7 +404,7 @@ export function DataResetSection() {
       {/* Description */}
       <div className="mb-4">
         <p className="text-stone-600 dark:text-stone-400">
-          {t('dataReset.sectionDesc') ||
+          {t('settings.dataReset.sectionDesc') ||
             'Reset financial and operational data for this restaurant. Use this feature to start fresh or clear test data.'}
         </p>
       </div>
@@ -415,10 +415,10 @@ export function DataResetSection() {
           <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-              {t('dataReset.warningTitle') || 'Caution: Permanent Action'}
+              {t('settings.dataReset.warningTitle') || 'Caution: Permanent Action'}
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-              {t('dataReset.warningText') ||
+              {t('settings.dataReset.warningText') ||
                 'Data reset is permanent and cannot be undone. Make sure to backup any important data before proceeding.'}
             </p>
           </div>
@@ -473,10 +473,10 @@ export function DataResetSection() {
           "
         >
           <RefreshCw className="w-4 h-4" />
-          {t('dataReset.resetAll') || 'Reset All Data'}
+          {t('settings.dataReset.resetAll') || 'Reset All Data'}
         </button>
         <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">
-          {t('dataReset.resetAllHint') || 'This will reset all data types that have records.'}
+          {t('settings.dataReset.resetAllHint') || 'This will reset all data types that have records.'}
         </p>
       </div>
 
