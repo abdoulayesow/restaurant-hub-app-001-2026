@@ -183,11 +183,12 @@ Use this template when generating session summaries. Copy and adapt as needed.
 ```
 Resume [FEATURE_NAME] session.
 
-IMPORTANT: Follow token optimization patterns from `.claude/skills/summary-generator/guidelines/token-optimization.md`:
-- Use Grep before Read for searches
-- Use Explore agent for multi-file exploration
-- Reference this summary instead of re-reading files
-- Keep responses concise
+IMPORTANT: Follow guidelines from `.claude/skills/summary-generator/guidelines/`:
+- **token-optimization.md**: Use Grep before Read, Explore agent for multi-file searches, reference summaries
+- **command-accuracy.md**: Verify paths with Glob, check import patterns, read types before implementing
+- **build-verification.md**: Run lint/typecheck/build before committing, fix warnings not just errors
+- **refactoring-safety.md**: Zero behavioral changes, preserve exports, verify after each step
+- **code-organization.md**: Use barrel exports, extract config, split large components
 
 ## Context
 Previous session completed:

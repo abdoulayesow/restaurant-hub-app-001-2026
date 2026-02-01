@@ -119,7 +119,25 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ productionLogs })
+    // Transform the data to flatten product information for easier consumption
+    const transformedLogs = productionLogs.map((log) => {
+      // Get the first production item's product details (if using new multi-product format)
+      const firstProductionItem = log.productionItems[0]
+
+      // Use productionItems data if available, otherwise fall back to legacy fields
+      const productName = firstProductionItem?.product.name || log.productName
+      const productNameFr = firstProductionItem?.product.nameFr || log.productNameFr
+      const quantity = firstProductionItem?.quantity || log.quantity
+
+      return {
+        ...log,
+        productName,
+        productNameFr,
+        quantity,
+      }
+    })
+
+    return NextResponse.json({ productionLogs: transformedLogs })
   } catch (error) {
     console.error('Error fetching production logs:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

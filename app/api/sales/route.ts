@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     // Build query filters
     const where: {
       restaurantId: string
-      status?: 'Pending' | 'Approved' | 'Rejected'
+      status?: 'Pending' | 'Approved' | 'Rejected' | { not: 'Deleted' }
       date?: { gte?: Date; lte?: Date }
     } = {
       restaurantId,
@@ -49,6 +49,9 @@ export async function GET(request: NextRequest) {
 
     if (status && ['Pending', 'Approved', 'Rejected'].includes(status)) {
       where.status = status as 'Pending' | 'Approved' | 'Rejected'
+    } else {
+      // Exclude deleted sales by default
+      where.status = { not: 'Deleted' }
     }
 
     if (startDate || endDate) {
@@ -66,11 +69,12 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { date: 'desc' },
       include: {
-        bankTransaction: {
+        bankTransactions: {
           select: {
             id: true,
             status: true,
-            confirmedAt: true
+            confirmedAt: true,
+            method: true
           }
         },
         saleItems: {
@@ -97,6 +101,8 @@ export async function GET(request: NextRequest) {
             customerId: true,
             principalAmount: true,
             remainingAmount: true,
+            dueDate: true,
+            description: true,
             status: true,
             customer: {
               select: {
@@ -452,11 +458,12 @@ export async function POST(request: NextRequest) {
       const saleWithRelations = await tx.sale.findUnique({
         where: { id: sale.id },
         include: {
-          bankTransaction: {
+          bankTransactions: {
             select: {
               id: true,
               status: true,
-              confirmedAt: true
+              confirmedAt: true,
+              method: true
             }
           },
           saleItems: {

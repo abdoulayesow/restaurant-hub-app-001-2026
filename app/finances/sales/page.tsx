@@ -48,11 +48,12 @@ interface Sale {
   comments?: string | null
   activeDebtsCount?: number
   outstandingDebtAmount?: number
-  bankTransaction?: {
+  bankTransactions?: Array<{
     id: string
     status: 'Pending' | 'Confirmed'
     confirmedAt?: string | null
-  } | null
+    method: 'Cash' | 'OrangeMoney' | 'Card'
+  }>
   debts?: Array<{
     customerId: string
     amountGNF: number
@@ -108,6 +109,7 @@ export default function FinancesSalesPage() {
   const [dateRange, setDateRange] = useState<DateRangeValue>('30days')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
+  const [modalMode, setModalMode] = useState<'view' | 'edit'>('edit')
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -251,14 +253,40 @@ export default function FinancesSalesPage() {
     }
   }
 
+  const handleDelete = async (sale: Sale) => {
+    const message = sale.status === 'Approved'
+      ? t('sales.confirmDeleteApproved') || 'This is an approved sale. Are you sure you want to delete it? This will mark it as deleted but preserve all related records (debts, transactions).'
+      : t('sales.confirmDelete') || 'Are you sure you want to delete this sale?'
+
+    if (!confirm(message)) return
+
+    try {
+      const res = await fetch(`/api/sales/${sale.id}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        fetchSales()
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || t('errors.failedToDelete') || 'Failed to delete sale')
+      }
+    } catch (error) {
+      console.error('Error deleting sale:', error)
+      alert(t('errors.failedToDelete') || 'Failed to delete sale')
+    }
+  }
+
   // Handle view/edit
   const handleView = (sale: Sale) => {
     setSelectedSale(sale)
+    setModalMode('view')
     setIsModalOpen(true)
   }
 
   const handleEdit = (sale: Sale) => {
     setSelectedSale(sale)
+    setModalMode('edit')
     setIsModalOpen(true)
   }
 
@@ -551,6 +579,7 @@ export default function FinancesSalesPage() {
             onApprove={canApproveItems ? handleApprove : undefined}
             onReject={canApproveItems ? handleReject : undefined}
             onConfirmDeposit={canApproveItems ? handleConfirmDeposit : undefined}
+            onDelete={canApproveItems ? handleDelete : undefined}
             isManager={canApproveItems}
             loading={loading}
           />
@@ -588,6 +617,7 @@ export default function FinancesSalesPage() {
         }}
         onSave={handleSaveSale}
         sale={selectedSale}
+        mode={modalMode}
         loading={isSaving}
         error={saveError}
         existingDates={sales.map(s => s.date)}

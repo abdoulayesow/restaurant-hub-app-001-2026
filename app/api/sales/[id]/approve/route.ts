@@ -65,21 +65,81 @@ export async function POST(
       },
       include: {
         restaurant: true,
-        bankTransaction: {
+        bankTransactions: {
           select: {
             id: true,
             status: true,
-            confirmedAt: true
+            confirmedAt: true,
+            method: true
           }
         },
       },
     })
 
-    // If approved, update daily summary (optional - can be done via cron job)
+    // If approved, auto-create BankTransactions for Orange Money and Card
+    // Use sale.date directly as it's already stored at UTC midnight
     if (action === 'approve') {
-      const saleDate = new Date(sale.date)
-      saleDate.setHours(0, 0, 0, 0)
+      const saleDate = sale.date
 
+      // Auto-create BankTransaction for Orange Money if amount > 0
+      if (sale.orangeMoneyGNF > 0) {
+        await prisma.bankTransaction.upsert({
+          where: {
+            saleId_method: {
+              saleId: sale.id,
+              method: 'OrangeMoney'
+            }
+          },
+          update: {
+            amount: sale.orangeMoneyGNF,
+            date: saleDate,
+          },
+          create: {
+            restaurantId: sale.restaurantId,
+            date: saleDate,
+            amount: sale.orangeMoneyGNF,
+            type: 'Deposit',
+            method: 'OrangeMoney',
+            reason: 'SalesDeposit',
+            status: 'Confirmed', // Auto-confirmed since owner already verified
+            description: `Orange Money payment from sale on ${saleDate.toLocaleDateString()}`,
+            saleId: sale.id,
+            createdBy: session.user.id,
+            createdByName: session.user.name || session.user.email,
+          }
+        })
+      }
+
+      // Auto-create BankTransaction for Card if amount > 0
+      if (sale.cardGNF > 0) {
+        await prisma.bankTransaction.upsert({
+          where: {
+            saleId_method: {
+              saleId: sale.id,
+              method: 'Card'
+            }
+          },
+          update: {
+            amount: sale.cardGNF,
+            date: saleDate,
+          },
+          create: {
+            restaurantId: sale.restaurantId,
+            date: saleDate,
+            amount: sale.cardGNF,
+            type: 'Deposit',
+            method: 'Card',
+            reason: 'SalesDeposit',
+            status: 'Confirmed', // Auto-confirmed since owner already verified
+            description: `Card payment from sale on ${saleDate.toLocaleDateString()}`,
+            saleId: sale.id,
+            createdBy: session.user.id,
+            createdByName: session.user.name || session.user.email,
+          }
+        })
+      }
+
+      // Update daily summary
       await prisma.dailySummary.upsert({
         where: {
           restaurantId_date: {

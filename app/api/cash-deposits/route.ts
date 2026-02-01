@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 
     // If saleId provided, check it's not already linked to another deposit
     if (body.saleId) {
-      const existingDeposit = await prisma.bankTransaction.findUnique({
+      const existingDeposit = await prisma.bankTransaction.findFirst({
         where: { saleId: body.saleId }
       })
 
@@ -183,33 +183,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create deposit as BankTransaction
-    const bankTransaction = await prisma.bankTransaction.create({
-      data: {
-        restaurantId: body.restaurantId,
-        date: depositDate,
-        amount: body.amount,
-        type: 'Deposit',
-        method: 'Cash',
-        reason: 'SalesDeposit',
-        status: 'Pending',
-        saleId: body.saleId || null,
-        bankRef: body.bankRef?.trim() || null,
-        receiptUrl: body.receiptUrl?.trim() || null,
-        comments: body.comments?.trim() || null,
-        createdBy: session.user.id,
-        createdByName: user?.name || null
-      },
-      include: {
-        sale: {
-          select: {
-            id: true,
-            date: true,
-            totalGNF: true
+    // Create deposit as BankTransaction and approve the sale in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the bank transaction
+      const bankTransaction = await tx.bankTransaction.create({
+        data: {
+          restaurantId: body.restaurantId,
+          date: depositDate,
+          amount: body.amount,
+          type: 'Deposit',
+          method: 'Cash',
+          reason: 'SalesDeposit',
+          status: 'Pending',
+          saleId: body.saleId || null,
+          bankRef: body.bankRef?.trim() || null,
+          receiptUrl: body.receiptUrl?.trim() || null,
+          comments: body.comments?.trim() || null,
+          createdBy: session.user.id,
+          createdByName: user?.name || null
+        },
+        include: {
+          sale: {
+            select: {
+              id: true,
+              date: true,
+              totalGNF: true
+            }
           }
         }
+      })
+
+      // If linked to a sale, approve it
+      if (body.saleId) {
+        await tx.sale.update({
+          where: { id: body.saleId },
+          data: {
+            status: 'Approved',
+            approvedBy: session.user.id,
+            approvedByName: user?.name || null,
+            approvedAt: new Date()
+          }
+        })
       }
+
+      return bankTransaction
     })
+
+    const bankTransaction = result
 
     // Map to legacy deposit format for backward compatibility
     const deposit = {

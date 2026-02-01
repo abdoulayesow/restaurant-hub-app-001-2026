@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, X, Edit3 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ProductionLogger } from '@/components/baking/ProductionLogger'
@@ -72,7 +72,6 @@ export function EditProductionModal({
 }: EditProductionModalProps) {
   const { t, locale } = useLocale()
   const [isMobile, setIsMobile] = useState(false)
-  const dateInputRef = useRef<HTMLInputElement>(null)
 
   // Check for mobile on mount and resize
   useEffect(() => {

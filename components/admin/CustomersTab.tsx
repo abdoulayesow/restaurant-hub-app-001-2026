@@ -329,9 +329,6 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                 {t('clients.phone')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
-                {t('clients.email')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('clients.outstandingDebt')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-stone-400 uppercase tracking-wider">
@@ -348,7 +345,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
           <tbody className="divide-y divide-gray-200 dark:divide-stone-700">
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-stone-400">
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-stone-400">
                   {t('clients.noClients')}
                 </td>
               </tr>
@@ -384,9 +381,6 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-stone-400">
                       {customer.phone || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-stone-400">
-                      {customer.email || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {hasDebt ? (

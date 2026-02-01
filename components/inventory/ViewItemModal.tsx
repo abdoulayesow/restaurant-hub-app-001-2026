@@ -203,7 +203,7 @@ export function ViewItemModal({
   item,
   isManager,
   onEdit,
-  onAdjust,
+  onAdjust: _onAdjust,
   initialTab = 'overview',
 }: ViewItemModalProps) {
   const { t, locale } = useLocale()
@@ -231,9 +231,8 @@ export function ViewItemModal({
 
       const data = await response.json()
       setMovements(data.movements || [])
-    } catch (err) {
+    } catch {
       setMovementError(t('errors.generic'))
-      console.error('Error fetching movements:', err)
     } finally {
       setLoadingMovements(false)
     }
@@ -246,7 +245,7 @@ export function ViewItemModal({
       setMovements([])
       setMovementError(null)
     }
-  }, [isOpen, item?.id, initialTab])
+  }, [isOpen, item, initialTab])
 
   // Fetch movements when switching to history tab
   useEffect(() => {

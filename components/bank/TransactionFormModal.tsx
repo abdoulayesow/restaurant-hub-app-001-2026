@@ -11,7 +11,11 @@ interface Sale {
   date: string
   totalGNF: number
   cashGNF: number
-  bankTransaction?: unknown
+  bankTransactions?: Array<{
+    id: string
+    status: 'Pending' | 'Confirmed'
+    method: 'Cash' | 'OrangeMoney' | 'Card'
+  }>
 }
 
 type TransactionType = 'Deposit' | 'Withdrawal'
@@ -94,8 +98,10 @@ export function TransactionFormModal({
 
         if (response.ok) {
           const data = await response.json()
-          // Filter out sales that already have bank transactions
-          const salesWithoutTransactions = data.sales.filter((sale: Sale) => !sale.bankTransaction)
+          // Filter for sales with cash that haven't been deposited yet
+          const salesWithoutTransactions = data.sales.filter((sale: Sale) =>
+            sale.cashGNF > 0 && !sale.bankTransactions?.some(t => t.method === 'Cash' && t.status === 'Confirmed')
+          )
           setAvailableSales(salesWithoutTransactions)
         }
       } catch (error) {

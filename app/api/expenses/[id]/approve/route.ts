@@ -83,9 +83,9 @@ export async function POST(
     })
 
     // If approved, update daily summary and create stock movements for inventory purchases
+    // Use expense.date directly as it's already stored at UTC midnight
     if (action === 'approve') {
-      const expenseDate = new Date(expense.date)
-      expenseDate.setHours(0, 0, 0, 0)
+      const expenseDate = expense.date
 
       // Get existing summary to add to expenses
       const existingSummary = await prisma.dailySummary.findUnique({

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { canAccessBank } from '@/lib/roles'
 import { Prisma } from '@prisma/client'
+import { parseToUTCDate } from '@/lib/date-utils'
 
 // GET /api/bank/transactions - List bank transactions for a restaurant
 export async function GET(request: NextRequest) {
@@ -282,7 +283,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const existingTransaction = await prisma.bankTransaction.findUnique({
+      const existingTransaction = await prisma.bankTransaction.findFirst({
         where: { saleId }
       })
 
@@ -324,14 +325,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Parse date
-    const transactionDate = new Date(date)
-    if (isNaN(transactionDate.getTime())) {
+    // Validate and parse date to UTC midnight for consistent storage
+    if (!date || !/^\d{4}-\d{2}-\d{2}/.test(date)) {
       return NextResponse.json(
-        { error: 'Invalid date format' },
+        { error: 'Invalid date format. Expected YYYY-MM-DD' },
         { status: 400 }
       )
     }
+    const transactionDate = parseToUTCDate(date)
 
     // Get user name
     const user = await prisma.user.findUnique({

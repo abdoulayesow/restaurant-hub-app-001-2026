@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, Eye, Banknote, Smartphone, CreditCard, Landmark } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, Banknote, Smartphone, CreditCard, Landmark, Trash2 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { SaleStatusBadge } from './SaleStatusBadge'
+import { DepositStatusBadge } from './DepositStatusBadge'
 import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface Sale {
@@ -19,11 +20,12 @@ interface Sale {
   itemsCount?: number | null
   customersCount?: number | null
   activeDebtsCount?: number
-  bankTransaction?: {
+  bankTransactions?: Array<{
     id: string
     status: 'Pending' | 'Confirmed'
     confirmedAt?: string | null
-  } | null
+    method: 'Cash' | 'OrangeMoney' | 'Card'
+  }>
 }
 
 interface SalesTableProps {
@@ -33,6 +35,7 @@ interface SalesTableProps {
   onApprove?: (sale: Sale) => void
   onReject?: (sale: Sale) => void
   onConfirmDeposit?: (sale: Sale) => void
+  onDelete?: (sale: Sale) => void
   isManager?: boolean
   loading?: boolean
 }
@@ -47,6 +50,7 @@ export function SalesTable({
   onApprove: _onApprove,
   onReject: _onReject,
   onConfirmDeposit,
+  onDelete,
   isManager: _isManager = false,
   loading = false,
 }: SalesTableProps) {
@@ -161,6 +165,12 @@ export function SalesTable({
                 {t('sales.card') || 'Card'}
               </div>
             </th>
+            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100">
+              <div className="flex items-center justify-center gap-1.5">
+                <Landmark className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+                {t('sales.depositStatus') || 'Deposit Status'}
+              </div>
+            </th>
             <th
               className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
               onClick={() => handleSort('status')}
@@ -170,7 +180,7 @@ export function SalesTable({
                 <SortIcon field="status" />
               </div>
             </th>
-            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-stone-100">
+            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-stone-100">
               {t('common.actions') || 'Actions'}
             </th>
           </tr>
@@ -179,9 +189,11 @@ export function SalesTable({
           {sortedSales.map((sale, index) => (
             <tr
               key={sale.id}
+              onClick={() => onView(sale)}
               className={`
                 border-t border-gray-200 dark:border-stone-700
                 hover:bg-gray-50 dark:hover:bg-stone-900/50 transition-colors
+                cursor-pointer
                 ${index === sortedSales.length - 1 ? 'rounded-b-2xl' : ''}
               `}
             >
@@ -216,6 +228,9 @@ export function SalesTable({
                 </span>
               </td>
               <td className="px-6 py-4 text-center">
+                <DepositStatusBadge sale={sale} size="sm" />
+              </td>
+              <td className="px-6 py-4 text-center">
                 <div className="flex flex-col items-center gap-1.5">
                   {/* Payment status */}
                   {sale.activeDebtsCount && sale.activeDebtsCount > 0 ? (
@@ -238,37 +253,45 @@ export function SalesTable({
                 </div>
               </td>
               <td className="px-6 py-4">
-                <div className="flex items-center justify-end gap-2">
-                  {/* If cash has been deposited (via cashDeposit or bankTransaction), show only View */}
-                  {sale.bankTransaction ? (
+                <div className="flex items-center justify-center gap-2">
+                  {/* Edit button for pending sales */}
+                  {sale.status === 'Pending' && (
                     <button
-                      onClick={() => onView(sale)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEdit(sale)
+                      }}
                       className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
-                      title={t('common.view') || 'View'}
+                      title={t('common.edit') || 'Edit'}
                     >
-                      <Eye className="w-4 h-4" />
+                      <Edit2 className="w-4 h-4" />
                     </button>
-                  ) : (
-                    <>
-                      {/* Update button for pending sales */}
-                      <button
-                        onClick={() => onEdit(sale)}
-                        className="p-2 rounded-lg text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors"
-                        title={t('common.edit') || 'Edit'}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      {/* Confirm Deposit button */}
-                      {onConfirmDeposit && (
-                        <button
-                          onClick={() => onConfirmDeposit(sale)}
-                          className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-500/10 transition-colors"
-                          title={t('sales.confirmDeposit') || 'Confirm Deposit'}
-                        >
-                          <Landmark className="w-4 h-4" />
-                        </button>
-                      )}
-                    </>
+                  )}
+                  {/* Confirm Sale button (for pending sales with cash) */}
+                  {onConfirmDeposit && sale.cashGNF > 0 && sale.status === 'Pending' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onConfirmDeposit(sale)
+                      }}
+                      className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-500/10 transition-colors"
+                      title={t('sales.confirmSale') || 'Confirm Sale'}
+                    >
+                      <Landmark className="w-4 h-4" />
+                    </button>
+                  )}
+                  {/* Delete button (Owner only) */}
+                  {onDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete(sale)
+                      }}
+                      className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
+                      title={t('common.delete') || 'Delete'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               </td>
