@@ -1,18 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Calendar, FileText, Tag, Building2, Package, Plus, Trash2, History, DollarSign, Banknote, CreditCard, Smartphone, Receipt, Hash } from 'lucide-react'
+import { X, Calendar, FileText, Tag, Building2, Package, Plus, Trash2, History, DollarSign, Receipt, Hash } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PaymentHistory } from './PaymentHistory'
-import { PAYMENT_METHODS, PaymentMethodValue } from '@/lib/constants/payment-methods'
 import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
-
-// Payment method icons mapping
-const paymentMethodIcons: Record<string, typeof Banknote> = {
-  Cash: Banknote,
-  Card: CreditCard,
-  OrangeMoney: Smartphone,
-}
 
 interface Category {
   id: string
@@ -52,9 +44,10 @@ interface Expense {
   categoryId?: string | null
   categoryName: string
   amountGNF: number
-  paymentMethod: string
+  paymentMethod?: string | null // Legacy: now determined at payment time
+  billingRef?: string | null // Invoice or receipt reference number
   description?: string | null
-  transactionRef?: string | null
+  transactionRef?: string | null // Legacy field
   supplierId?: string | null
   isInventoryPurchase?: boolean
   comments?: string | null
@@ -121,9 +114,8 @@ export function AddEditExpenseModal({
     categoryId: '',
     categoryName: '',
     amountGNF: 0,
-    paymentMethod: '',
+    billingRef: '', // Invoice or receipt reference
     description: '',
-    transactionRef: '',
     supplierId: '',
     isInventoryPurchase: false,
     comments: '',
@@ -140,9 +132,8 @@ export function AddEditExpenseModal({
         categoryId: expense.categoryId || '',
         categoryName: expense.categoryName,
         amountGNF: expense.amountGNF,
-        paymentMethod: expense.paymentMethod,
+        billingRef: expense.billingRef || '',
         description: expense.description || '',
-        transactionRef: expense.transactionRef || '',
         supplierId: expense.supplierId || '',
         isInventoryPurchase: expense.isInventoryPurchase || false,
         comments: expense.comments || '',
@@ -164,9 +155,8 @@ export function AddEditExpenseModal({
         categoryId: '',
         categoryName: '',
         amountGNF: 0,
-        paymentMethod: '',
+        billingRef: '',
         description: '',
-        transactionRef: '',
         supplierId: '',
         isInventoryPurchase: false,
         comments: '',
@@ -309,14 +299,8 @@ export function AddEditExpenseModal({
       newErrors.amount = t('expenses.amountMustBePositive') || 'Amount must be greater than 0'
     }
 
-    if (!formData.paymentMethod) {
-      newErrors.paymentMethod = t('validation.required') || 'Required'
-    }
-
-    // Require transaction ref for Card and OrangeMoney payments
-    if ((formData.paymentMethod === 'Card' || formData.paymentMethod === 'OrangeMoney') && !formData.transactionRef.trim()) {
-      newErrors.transactionRef = t('expenses.transactionRefRequired') || 'Transaction reference is required for Card and Orange Money payments'
-    }
+    // Note: paymentMethod is no longer required at creation time
+    // It will be selected when recording the payment
 
     // Validate expense items for inventory purchases
     if (formData.isInventoryPurchase && expenseItems.length === 0) {
@@ -348,9 +332,8 @@ export function AddEditExpenseModal({
       categoryId: formData.categoryId || null,
       categoryName: formData.categoryName,
       amountGNF: formData.amountGNF,
-      paymentMethod: formData.paymentMethod,
+      billingRef: formData.billingRef || null, // Invoice/receipt reference
       description: formData.description || null,
-      transactionRef: formData.transactionRef || null,
       supplierId: formData.supplierId || null,
       isInventoryPurchase: formData.isInventoryPurchase,
       comments: formData.comments || null,
@@ -520,50 +503,6 @@ export function AddEditExpenseModal({
               )}
             </div>
 
-            {/* Payment Method */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
-                <CreditCard className="w-4 h-4" />
-                {t('expenses.paymentMethod') || 'Payment Method'} *
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {PAYMENT_METHODS.map(method => {
-                  const Icon = paymentMethodIcons[method.value] || Banknote
-                  const isSelected = formData.paymentMethod === method.value
-                  const translationKey = method.value === 'OrangeMoney' ? 'expenses.orangeMoney' : `expenses.${method.value.toLowerCase()}`
-                  const label = t(translationKey) || method.displayName
-
-                  // Explicit color classes for each method
-                  const selectedStyles = {
-                    Cash: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-                    OrangeMoney: 'border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
-                    Card: 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-                  }
-
-                  return (
-                    <button
-                      key={method.value}
-                      type="button"
-                      onClick={() => handleChange('paymentMethod', method.value as PaymentMethodValue)}
-                      className={`
-                        flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all
-                        ${isSelected
-                          ? selectedStyles[method.value as keyof typeof selectedStyles]
-                          : 'border-gray-200 dark:border-stone-600 text-gray-500 dark:text-stone-400 hover:bg-gray-50 dark:hover:bg-stone-700 hover:border-gray-300 dark:hover:border-stone-500'
-                        }
-                      `}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="text-xs font-medium">{label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              {errors.paymentMethod && (
-                <p className="mt-1 text-sm text-red-500">{errors.paymentMethod}</p>
-              )}
-            </div>
-
             {/* Optional Fields */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-stone-200 uppercase tracking-wider">
@@ -603,31 +542,23 @@ export function AddEditExpenseModal({
                 />
               </div>
 
-              {/* Transaction Ref - Required for Card and OrangeMoney */}
-              {(formData.paymentMethod === 'OrangeMoney' || formData.paymentMethod === 'Card') && (
-                <div className={`p-4 rounded-xl border ${errors.transactionRef ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50'}`}>
-                  <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${errors.transactionRef ? 'text-red-700 dark:text-red-400' : 'text-amber-800 dark:text-amber-300'}`}>
-                    <Hash className="w-4 h-4" />
-                    {t('expenses.transactionRef') || 'Transaction Reference'} *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.transactionRef}
-                    onChange={(e) => handleChange('transactionRef', e.target.value)}
-                    className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-stone-800 text-gray-900 dark:text-stone-100 focus:ring-2 ${errors.transactionRef ? 'border-red-400 dark:border-red-600 focus:ring-red-500 focus:border-red-500' : 'border-amber-300 dark:border-amber-700 focus:ring-amber-500 focus:border-amber-500'}`}
-                    placeholder={t('expenses.transactionRefPlaceholder') || 'e.g., OM123456'}
-                  />
-                  {errors.transactionRef ? (
-                    <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
-                      {errors.transactionRef}
-                    </p>
-                  ) : (
-                    <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
-                      {t('expenses.transactionRefHint') || 'Required for Card and Orange Money payments'}
-                    </p>
-                  )}
-                </div>
-              )}
+              {/* Billing Reference (Invoice/Receipt) */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
+                  <Hash className="w-4 h-4" />
+                  {t('expenses.billingRef') || 'Invoice/Receipt #'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.billingRef}
+                  onChange={(e) => handleChange('billingRef', e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-stone-600 bg-gray-50 dark:bg-stone-700 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500"
+                  placeholder={t('expenses.billingRefPlaceholder') || 'Invoice or receipt number...'}
+                />
+                <p className="mt-1.5 text-xs text-gray-500 dark:text-stone-400">
+                  {t('expenses.billingRefHint') || 'Reference number from supplier invoice or receipt'}
+                </p>
+              </div>
 
               {/* Is Inventory Purchase */}
               <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-stone-700 border border-gray-300 dark:border-stone-600">

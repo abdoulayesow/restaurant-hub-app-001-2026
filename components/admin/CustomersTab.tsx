@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Edit2, Trash2, Search, Loader2, X, Save, Users, Building2, ShoppingCart, Eye, AlertTriangle } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { formatDateForDisplay } from '@/lib/date-utils'
 
 interface Customer {
   id: string
@@ -777,10 +778,10 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
               <div className="pt-4 border-t border-gray-200 dark:border-stone-700">
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-stone-400">
                   <span>
-                    {t('clients.createdOn')}: {new Date(viewingCustomer.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-GN' : 'en-GN')}
+                    {t('clients.createdOn')}: {formatDateForDisplay(viewingCustomer.createdAt, locale === 'fr' ? 'fr-GN' : 'en-GN')}
                   </span>
                   <span>
-                    {t('clients.lastUpdated')}: {new Date(viewingCustomer.updatedAt).toLocaleDateString(locale === 'fr' ? 'fr-GN' : 'en-GN')}
+                    {t('clients.lastUpdated')}: {formatDateForDisplay(viewingCustomer.updatedAt, locale === 'fr' ? 'fr-GN' : 'en-GN')}
                   </span>
                 </div>
               </div>

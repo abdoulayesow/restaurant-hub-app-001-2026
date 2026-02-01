@@ -4,6 +4,7 @@ import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { canApprove } from '@/lib/roles'
 import { sendNotification } from '@/lib/notification-service'
+import { formatDateForDisplay } from '@/lib/date-utils'
 
 // POST /api/sales/[id]/approve - Approve or reject a sale (Manager only)
 export async function POST(
@@ -102,7 +103,7 @@ export async function POST(
             method: 'OrangeMoney',
             reason: 'SalesDeposit',
             status: 'Confirmed', // Auto-confirmed since owner already verified
-            description: `Orange Money payment from sale on ${saleDate.toLocaleDateString()}`,
+            description: `Orange Money payment from sale on ${formatDateForDisplay(saleDate)}`,
             saleId: sale.id,
             createdBy: session.user.id,
             createdByName: session.user.name || session.user.email,
@@ -131,7 +132,7 @@ export async function POST(
             method: 'Card',
             reason: 'SalesDeposit',
             status: 'Confirmed', // Auto-confirmed since owner already verified
-            description: `Card payment from sale on ${saleDate.toLocaleDateString()}`,
+            description: `Card payment from sale on ${formatDateForDisplay(saleDate)}`,
             saleId: sale.id,
             createdBy: session.user.id,
             createdByName: session.user.name || session.user.email,

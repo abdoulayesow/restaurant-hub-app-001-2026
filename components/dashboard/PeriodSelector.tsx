@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Calendar, ChevronDown, X } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
-import { getTodayDateString, formatDateForInput } from '@/lib/date-utils'
+import { getTodayDateString, formatDateForInput, formatDateForDisplay } from '@/lib/date-utils'
 
 export type PeriodOption = '7' | '30' | 'custom'
 
@@ -50,8 +50,7 @@ export function PeriodSelector({
   const getDisplayLabel = () => {
     if (period === 'custom' && customStartDate && customEndDate) {
       const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr)
-        return date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { month: 'short', day: 'numeric' })
+        return formatDateForDisplay(dateStr, locale === 'fr' ? 'fr-FR' : 'en-US', { month: 'short', day: 'numeric' })
       }
       return `${formatDate(customStartDate)} - ${formatDate(customEndDate)}`
     }

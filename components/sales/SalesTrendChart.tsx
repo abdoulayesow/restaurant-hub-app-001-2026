@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { formatDateForDisplay } from '@/lib/date-utils'
 
 interface SalesTrendDataPoint {
   date: string
@@ -25,8 +26,7 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
 
   // Format date for display
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       month: 'short',
       day: 'numeric',
     })

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Landmark, Loader2, Receipt, Link, Hash, MessageSquare } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { formatDateForDisplay } from '@/lib/date-utils'
 
 interface Sale {
   id: string
@@ -60,8 +61,7 @@ export function ConfirmDepositModal({
   }
 
   const formatDate = (date: string | Date) => {
-    const d = new Date(date)
-    return d.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatDateForDisplay(date, locale === 'fr' ? 'fr-FR' : 'en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
