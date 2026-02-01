@@ -506,7 +506,9 @@
       "unit": "Unit",
       "selectCategory": "Select category",
       "selectUnit": "Select unit",
-      "confirmDelete": "Are you sure you want to deactivate this product?"
+      "confirmDelete": "Are you sure you want to deactivate this product?",
+      "price": "Price",
+      "priceHint": "Default selling price (auto-fills in sales)"
     }
   },
   "sales": {

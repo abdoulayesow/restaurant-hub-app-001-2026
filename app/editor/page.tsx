@@ -20,7 +20,6 @@ import { canRecordSales, canRecordExpenses, canRecordProduction } from '@/lib/ro
 import { AddEditSaleModal } from '@/components/sales/AddEditSaleModal'
 import { AddEditExpenseModal } from '@/components/expenses/AddEditExpenseModal'
 import { AddProductionModal } from '@/components/baking/AddProductionModal'
-import { formatDateForDisplay } from '@/lib/date-utils'
 import { SubmissionsTable } from '@/components/editor/SubmissionsTable'
 
 // Types for recent submissions
@@ -64,7 +63,7 @@ interface InventoryItem {
 export default function EditorPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { t, locale } = useLocale()
+  const { t } = useLocale()
   const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   // Modal states

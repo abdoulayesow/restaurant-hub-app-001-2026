@@ -21,6 +21,7 @@ export interface ProductFormData {
   nameFr: string | null
   category: ProductCategoryValue
   unit: string
+  priceGNF: number | null
   sortOrder: number
   isActive?: boolean
 }
@@ -48,6 +49,7 @@ export function ProductModal({
     nameFr: '',
     category: '' as ProductCategoryValue | '',
     unit: 'piece',
+    priceGNF: '' as string | number,
     sortOrder: 0,
     isActive: true,
   })
@@ -63,6 +65,7 @@ export function ProductModal({
           nameFr: product.nameFr || '',
           category: product.category,
           unit: product.unit,
+          priceGNF: product.priceGNF ?? '',
           sortOrder: product.sortOrder,
           isActive: product.isActive,
         })
@@ -72,6 +75,7 @@ export function ProductModal({
           nameFr: '',
           category: '',
           unit: 'piece',
+          priceGNF: '',
           sortOrder: 0,
           isActive: true,
         })
@@ -110,6 +114,7 @@ export function ProductModal({
       nameFr: formData.nameFr.trim() || null,
       category: formData.category as ProductCategoryValue,
       unit: formData.unit,
+      priceGNF: formData.priceGNF === '' ? null : Number(formData.priceGNF),
       sortOrder: formData.sortOrder,
       isActive: formData.isActive,
     })
@@ -237,6 +242,31 @@ export function ProductModal({
                 {errors.unit && (
                   <p className="mt-1 text-sm text-rose-500">{errors.unit}</p>
                 )}
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
+                  {t('production.products.price')}
+                  <span className="ml-2 text-xs text-stone-500">({t('common.optional')})</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={formData.priceGNF}
+                    onChange={(e) => setFormData({ ...formData, priceGNF: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2 pr-16 border border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-stone-500 dark:text-stone-400">
+                    GNF
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                  {t('production.products.priceHint')}
+                </p>
               </div>
 
               {/* Sort Order */}

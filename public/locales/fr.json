@@ -170,7 +170,19 @@
     "awaitingApproval": "Votre soumission est en attente d'approbation du propriétaire.",
     "noSubmissions": "Aucune soumission",
     "startByAdding": "Commencez par ajouter une vente, dépense ou production",
-    "statusLegend": "Légende des statuts"
+    "statusLegend": "Légende des statuts",
+    "allSubmissions": "Toutes les Soumissions",
+    "type": "Type",
+    "date": "Date",
+    "description": "Description",
+    "amount": "Montant",
+    "submittedBy": "Soumis par",
+    "filterAll": "Tout",
+    "filterSales": "Ventes uniquement",
+    "filterExpenses": "Dépenses uniquement",
+    "filterProduction": "Production uniquement",
+    "loadMore": "Charger plus",
+    "remaining": "restant(s)"
   },
   "inventory": {
     "title": "Gestion des stocks",
@@ -490,7 +502,9 @@
       "unit": "Unité",
       "selectCategory": "Sélectionner une catégorie",
       "selectUnit": "Sélectionner une unité",
-      "confirmDelete": "Êtes-vous sûr de vouloir désactiver ce produit ?"
+      "confirmDelete": "Êtes-vous sûr de vouloir désactiver ce produit ?",
+      "price": "Prix",
+      "priceHint": "Prix de vente par défaut (rempli automatiquement dans les ventes)"
     }
   },
   "sales": {

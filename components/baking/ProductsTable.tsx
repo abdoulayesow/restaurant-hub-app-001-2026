@@ -14,6 +14,7 @@ export interface Product {
   nameFr: string | null
   category: ProductCategoryValue
   unit: string
+  priceGNF: number | null
   isActive: boolean
   sortOrder: number
   createdAt: string
@@ -53,6 +54,9 @@ export function ProductsTable({
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('production.products.unit')}
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                {t('production.products.price')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">
                 {t('common.status')}
@@ -100,6 +104,16 @@ export function ProductsTable({
                   </td>
                   <td className="px-6 py-4 text-sm text-stone-600 dark:text-stone-400">
                     {t(`units.${product.unit}`) || product.unit}
+                  </td>
+                  <td className="px-6 py-4 text-right text-sm font-medium text-stone-900 dark:text-stone-100">
+                    {product.priceGNF != null ? (
+                      <span>
+                        {new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN').format(product.priceGNF)}
+                        <span className="ml-1 text-xs text-stone-500 dark:text-stone-400">GNF</span>
+                      </span>
+                    ) : (
+                      <span className="text-stone-400 dark:text-stone-500">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     {product.isActive ? (
