@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Calendar, ChevronDown, X } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { getTodayDateString, formatDateForInput } from '@/lib/date-utils'
 
 export type PeriodOption = '7' | '30' | 'custom'
 
@@ -65,8 +66,8 @@ export function PeriodSelector({
         const end = new Date()
         const start = new Date()
         start.setDate(start.getDate() - 30)
-        setTempStartDate(start.toISOString().split('T')[0])
-        setTempEndDate(end.toISOString().split('T')[0])
+        setTempStartDate(formatDateForInput(start))
+        setTempEndDate(formatDateForInput(end))
       }
     } else {
       onPeriodChange(value)
@@ -160,7 +161,7 @@ export function PeriodSelector({
                     value={tempEndDate}
                     onChange={(e) => setTempEndDate(e.target.value)}
                     min={tempStartDate || undefined}
-                    max={new Date().toISOString().split('T')[0]}
+                    max={getTodayDateString()}
                     className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                   />
                 </div>

@@ -5,6 +5,7 @@ import { X, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { PAYMENT_METHODS as PAYMENT_METHODS_CONFIG, PaymentMethodValue } from '@/lib/constants/payment-methods'
+import { getTodayDateString } from '@/lib/date-utils'
 
 interface Sale {
   id: string
@@ -72,7 +73,7 @@ export function TransactionFormModal({
 
   const [formData, setFormData] = useState({
     type: defaultType as TransactionType,
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayDateString(),
     amount: '',
     method: 'Cash' as PaymentMethod,
     reason: (defaultType === 'Deposit' ? 'SalesDeposit' : 'ExpensePayment') as TransactionReason,
@@ -121,7 +122,7 @@ export function TransactionFormModal({
     if (isOpen) {
       setFormData({
         type: defaultType,
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayDateString(),
         amount: '',
         method: 'Cash',
         reason: defaultType === 'Deposit' ? 'SalesDeposit' : 'ExpensePayment',

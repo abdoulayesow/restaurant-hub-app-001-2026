@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getExpiryInfo } from '@/lib/inventory-helpers'
+import { formatDateForInput } from '@/lib/date-utils'
 
 // GET /api/dashboard - Aggregated dashboard data
 export async function GET(request: NextRequest) {
@@ -324,18 +325,18 @@ export async function GET(request: NextRequest) {
     const expensesMap = new Map<string, number>()
 
     revenueByDayData.forEach((item) => {
-      const dateKey = item.date.toISOString().split('T')[0]
+      const dateKey = formatDateForInput(item.date)
       revenueMap.set(dateKey, (revenueMap.get(dateKey) || 0) + item.amount)
     })
 
     expensesByDayData.forEach((item) => {
-      const dateKey = item.date.toISOString().split('T')[0]
+      const dateKey = formatDateForInput(item.date)
       expensesMap.set(dateKey, (expensesMap.get(dateKey) || 0) + item.amount)
     })
 
     // Fill in all days in the period (even zeros)
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateKey = d.toISOString().split('T')[0]
+      const dateKey = formatDateForInput(d)
       revenueByDay.push({
         date: dateKey,
         revenue: revenueMap.get(dateKey) || 0,
