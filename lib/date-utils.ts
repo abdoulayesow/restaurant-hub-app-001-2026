@@ -167,3 +167,91 @@ export function formatUTCDateForDisplay(
   const date = parseUTCForDisplay(isoString)
   return new Intl.DateTimeFormat(locale, options).format(date)
 }
+
+/**
+ * Formats a date in short numeric format (DD/MM/YYYY for French, MM/DD/YYYY for English)
+ * Handles YYYY-MM-DD strings without timezone conversion issues
+ *
+ * @param date - Date object, ISO string, or YYYY-MM-DD string
+ * @param locale - Locale string (e.g., 'fr' or 'en')
+ * @returns Formatted date string in numeric format
+ *
+ * @example
+ * formatDateShort("2026-01-26", "fr") // "26/01/2026"
+ * formatDateShort("2026-01-26", "en") // "01/26/2026"
+ */
+export function formatDateShort(
+  date: Date | string | null | undefined,
+  locale: string = 'en'
+): string {
+  if (!date) return ''
+
+  // For YYYY-MM-DD strings from date inputs, parse safely without timezone issues
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [year, month, day] = date.split('-')
+    return locale === 'fr' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`
+  }
+
+  // For ISO strings or Date objects, use parseUTCForDisplay to avoid timezone shifts
+  const dateObj = typeof date === 'string' ? parseUTCForDisplay(date) : date
+  const localeCode = locale === 'fr' ? 'fr-FR' : 'en-US'
+
+  return new Intl.DateTimeFormat(localeCode, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(dateObj)
+}
+
+/**
+ * Compares if two dates are on the same day (ignoring time)
+ *
+ * @param date1 - First date to compare
+ * @param date2 - Second date to compare
+ * @returns True if dates are on the same day
+ *
+ * @example
+ * isSameDay(new Date('2026-01-26T10:00:00'), new Date('2026-01-26T15:00:00')) // true
+ * isSameDay(new Date('2026-01-26'), new Date('2026-01-27')) // false
+ */
+export function isSameDay(date1: Date | string, date2: Date | string): boolean {
+  const d1 = typeof date1 === 'string' ? new Date(date1) : date1
+  const d2 = typeof date2 === 'string' ? new Date(date2) : date2
+
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  )
+}
+
+/**
+ * Checks if a date is today
+ *
+ * @param date - Date to check
+ * @returns True if date is today
+ *
+ * @example
+ * isToday(new Date()) // true
+ * isToday(new Date('2026-01-25')) // false (assuming today is not Jan 25)
+ */
+export function isToday(date: Date | string): boolean {
+  return isSameDay(date, new Date())
+}
+
+/**
+ * Checks if a date is yesterday
+ *
+ * @param date - Date to check
+ * @returns True if date is yesterday
+ *
+ * @example
+ * const yesterday = new Date()
+ * yesterday.setDate(yesterday.getDate() - 1)
+ * isYesterday(yesterday) // true
+ */
+export function isYesterday(date: Date | string): boolean {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  return isSameDay(date, yesterday)
+}

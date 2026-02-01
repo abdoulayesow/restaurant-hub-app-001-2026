@@ -12,6 +12,7 @@ import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { canApprove } from '@/lib/roles'
 import { SalesTable } from '@/components/sales/SalesTable'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
+import { isToday } from '@/lib/date-utils'
 
 // Dynamic imports for heavy components to reduce initial bundle size
 const AddEditSaleModal = dynamic(
@@ -345,11 +346,7 @@ export default function FinancesSalesPage() {
   }
 
   // Get today's sales from summary
-  const todaysSales = sales.filter(s => {
-    const saleDate = new Date(s.date).toDateString()
-    const today = new Date().toDateString()
-    return saleDate === today
-  })
+  const todaysSales = sales.filter(s => isToday(s.date))
 
   const todaysTotal = todaysSales.reduce((sum, s) => sum + s.totalGNF, 0)
 

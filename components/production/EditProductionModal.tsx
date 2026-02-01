@@ -5,15 +5,8 @@ import { Calendar, X, Edit3 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ProductionLogger } from '@/components/baking/ProductionLogger'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { formatDateForDisplay, parseDateInput } from '@/lib/date-utils'
+import { formatDateForDisplay, formatDateShort, parseDateInput } from '@/lib/date-utils'
 import { ProductCategoryValue } from '@/lib/constants/product-categories'
-
-// Format date as DD/MM/YYYY for French or MM/DD/YYYY for English
-function formatDateShort(dateString: string, locale: string): string {
-  if (!dateString) return ''
-  const [year, month, day] = dateString.split('-')
-  return locale === 'fr' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`
-}
 
 interface ProductionItemRow {
   productId: string

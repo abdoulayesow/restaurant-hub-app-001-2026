@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { formatDateForInput } from '@/lib/date-utils'
 
 type TransactionType = 'Deposit' | 'Withdrawal'
 type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
@@ -124,7 +125,7 @@ export function TransactionList({ transactions, onConfirm, onTransactionClick, c
 
   // Group transactions by date
   const groupedTransactions = filteredTransactions.reduce((groups, txn) => {
-    const dateKey = new Date(txn.date).toISOString().split('T')[0]
+    const dateKey = formatDateForInput(txn.date)
     if (!groups[dateKey]) {
       groups[dateKey] = []
     }

@@ -5,15 +5,7 @@ import { Calendar, X, ChefHat } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ProductionLogger } from './ProductionLogger'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { formatDateForDisplay, getTodayDateString, parseDateInput } from '@/lib/date-utils'
-
-// Format date as DD/MM/YYYY for French or MM/DD/YYYY for English
-function formatDateShort(dateString: string, locale: string): string {
-  if (!dateString) return ''
-  const [year, month, day] = dateString.split('-')
-  return locale === 'fr' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`
-}
-// TODO: Consider using formatDateForDisplay from lib/date-utils.ts instead
+import { formatDateForDisplay, formatDateShort, getTodayDateString, parseDateInput } from '@/lib/date-utils'
 
 interface AddProductionModalProps {
   isOpen: boolean
