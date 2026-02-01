@@ -339,6 +339,7 @@ model Product {
   nameFr         String?
   category       ProductCategory
   unit           String          @default("piece") // piece, loaf, dozen
+  priceGNF       Float?          // Default selling price in GNF
   standardRecipe Json? // [{ itemId, quantity, unit }]
   isActive       Boolean         @default(true)
   sortOrder      Int             @default(0)

@@ -170,7 +170,7 @@ export default function EditorPage() {
 
     try {
       const [categoriesRes, suppliersRes, inventoryRes] = await Promise.all([
-        fetch(`/api/expense-categories?restaurantId=${currentRestaurant.id}`),
+        fetch(`/api/categories?restaurantId=${currentRestaurant.id}`),
         fetch(`/api/suppliers?restaurantId=${currentRestaurant.id}`),
         fetch(`/api/inventory?restaurantId=${currentRestaurant.id}`),
       ])

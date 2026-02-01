@@ -28,6 +28,7 @@ interface Product {
   nameFr: string | null
   category: 'Patisserie' | 'Boulangerie'
   unit: string
+  priceGNF: number | null
 }
 
 interface SaleItemEntry {
@@ -306,6 +307,15 @@ export function AddEditSaleModal({
   const updateSaleItem = (index: number, field: keyof SaleItemEntry, value: string | number | null) => {
     const updated = [...saleItems]
     updated[index] = { ...updated[index], [field]: value }
+
+    // Auto-fill unitPrice when product is selected
+    if (field === 'productId' && value) {
+      const selectedProduct = products.find(p => p.id === value)
+      if (selectedProduct?.priceGNF) {
+        updated[index].unitPrice = selectedProduct.priceGNF
+      }
+    }
+
     setSaleItems(updated)
   }
 

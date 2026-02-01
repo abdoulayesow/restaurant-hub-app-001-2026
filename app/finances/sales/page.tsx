@@ -70,6 +70,7 @@ interface Sale {
       nameFr: string | null
       category: 'Patisserie' | 'Boulangerie'
       unit: string
+      priceGNF: number | null
     } | null
     productName?: string | null
     productNameFr?: string | null
