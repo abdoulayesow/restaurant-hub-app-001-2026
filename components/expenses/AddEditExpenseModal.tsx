@@ -443,10 +443,9 @@ export function AddEditExpenseModal({
                 {t('expenses.date') || 'Date'} *
               </label>
               <input
-                type="text"
-                value={dateDisplay}
-                onChange={(e) => handleDateChange(e.target.value)}
-                placeholder={getDatePlaceholder(locale)}
+                type="date"
+                value={formData.date}
+                onChange={(e) => handleChange('date', e.target.value)}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
                   border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}

@@ -4,17 +4,20 @@ import { useState, useEffect } from 'react'
 import { X, ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PAYMENT_METHODS as PAYMENT_METHODS_CONFIG, PaymentMethodValue } from '@/lib/constants/payment-methods'
+import {
+  TransactionType,
+  TransactionReason,
+  DEPOSIT_REASONS as DEPOSIT_REASON_VALUES,
+  WITHDRAWAL_REASONS as WITHDRAWAL_REASON_VALUES,
+} from '@/lib/types/bank'
 
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = PaymentMethodValue
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
-
-interface Transaction {
+// Simplified transaction interface for edit form
+interface EditableTransaction {
   id: string
   date: string
   amount: number
   type: TransactionType
-  method: PaymentMethod
+  method: PaymentMethodValue
   reason: TransactionReason
   description?: string | null
   comments?: string | null
@@ -27,31 +30,38 @@ interface TransactionEditModalProps {
     date: string
     amount: number
     type: TransactionType
-    method: PaymentMethod
+    method: PaymentMethodValue
     reason: TransactionReason
     description?: string
     comments?: string
   }) => Promise<void>
-  transaction: Transaction | null
+  transaction: EditableTransaction | null
   isLoading?: boolean
 }
 
-const DEPOSIT_REASONS: { value: TransactionReason; labelKey: string; label: string }[] = [
-  { value: 'SalesDeposit', labelKey: 'bank.reasons.salesDeposit', label: 'Sales Deposit' },
-  { value: 'DebtCollection', labelKey: 'bank.reasons.debtCollection', label: 'Debt Collection' },
-  { value: 'CapitalInjection', labelKey: 'bank.reasons.capitalInjection', label: 'Capital Injection' },
-  { value: 'Other', labelKey: 'bank.reasons.other', label: 'Other' },
-]
+// Reason options with translation keys
+const REASON_LABELS: Record<TransactionReason, { labelKey: string; label: string }> = {
+  SalesDeposit: { labelKey: 'bank.reasons.salesDeposit', label: 'Sales Deposit' },
+  DebtCollection: { labelKey: 'bank.reasons.debtCollection', label: 'Debt Collection' },
+  CapitalInjection: { labelKey: 'bank.reasons.capitalInjection', label: 'Capital Injection' },
+  ExpensePayment: { labelKey: 'bank.reasons.expensePayment', label: 'Expense Payment' },
+  OwnerWithdrawal: { labelKey: 'bank.reasons.ownerWithdrawal', label: 'Owner Withdrawal' },
+  Other: { labelKey: 'bank.reasons.other', label: 'Other' },
+}
 
-const WITHDRAWAL_REASONS: { value: TransactionReason; labelKey: string; label: string }[] = [
-  { value: 'ExpensePayment', labelKey: 'bank.reasons.expensePayment', label: 'Expense Payment' },
-  { value: 'OwnerWithdrawal', labelKey: 'bank.reasons.ownerWithdrawal', label: 'Owner Withdrawal' },
-  { value: 'Other', labelKey: 'bank.reasons.other', label: 'Other' },
-]
+const DEPOSIT_REASONS = DEPOSIT_REASON_VALUES.map(value => ({
+  value,
+  ...REASON_LABELS[value],
+}))
+
+const WITHDRAWAL_REASONS = WITHDRAWAL_REASON_VALUES.map(value => ({
+  value,
+  ...REASON_LABELS[value],
+}))
 
 // Build payment methods config from centralized constants
 const PAYMENT_METHODS = PAYMENT_METHODS_CONFIG.map(pm => ({
-  value: pm.value as PaymentMethod,
+  value: pm.value,
   labelKey: pm.value === 'OrangeMoney' ? 'bank.methods.OrangeMoney' : `bank.methods.${pm.value}`,
   label: pm.displayName,
   icon: pm.icon,
@@ -70,7 +80,7 @@ export function TransactionEditModal({
     type: 'Deposit' as TransactionType,
     date: '',
     amount: '',
-    method: 'Cash' as PaymentMethod,
+    method: 'Cash' as PaymentMethodValue,
     reason: 'SalesDeposit' as TransactionReason,
     description: '',
     comments: '',
@@ -163,20 +173,18 @@ export function TransactionEditModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-modal-backdrop"
         onClick={onClose}
         aria-hidden="true"
-        style={{ animation: 'fadeIn 0.2s ease-out' }}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div
-          className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-800 rounded-2xl shadow-lg"
+          className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-800 rounded-2xl shadow-lg animate-modal-content"
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
-          style={{ animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-stone-200 dark:border-stone-700">
@@ -386,23 +394,6 @@ export function TransactionEditModal({
           </form>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(16px) scale(0.96);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-      `}</style>
     </>
   )
 }

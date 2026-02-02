@@ -906,7 +906,38 @@
     "transactionDeleted": "Transaction supprimée avec succès",
     "deleteTransactionWarning": "Cette transaction sera définitivement supprimée de vos enregistrements.",
     "transaction": "Transaction",
-    "amountMustBePositive": "Le montant doit être positif"
+    "amountMustBePositive": "Le montant doit être positif",
+    "analytics": {
+      "title": "Analyses Bancaires",
+      "subtitle": "Perspectives et tendances financières",
+      "openAnalytics": "Ouvrir les Analyses",
+      "viewAnalytics": "Voir les Analyses",
+      "last30Days": "30 Derniers Jours",
+      "last90Days": "90 Derniers Jours",
+      "cashFlow": "Flux de Trésorerie",
+      "breakdown": "Répartition",
+      "balanceHistory": "Historique du Solde",
+      "totalDeposits": "Total des Dépôts",
+      "totalWithdrawals": "Total des Retraits",
+      "dailyCashFlow": "Flux de Trésorerie Quotidien",
+      "cashDeposits": "Dépôts en Espèces",
+      "orangeDeposits": "Dépôts Orange Money",
+      "cardDeposits": "Dépôts par Carte",
+      "byReason": "Transactions par Motif",
+      "byMethod": "Transactions par Méthode",
+      "deposits": "Dépôts",
+      "withdrawals": "Retraits",
+      "balanceOverTime": "Solde dans le Temps",
+      "noData": "Aucune donnée disponible"
+    },
+    "reasons": {
+      "SalesDeposit": "Dépôt de Ventes",
+      "DebtCollection": "Recouvrement de Créances",
+      "ExpensePayment": "Paiement de Dépenses",
+      "OwnerWithdrawal": "Retrait Propriétaire",
+      "CapitalInjection": "Injection de Capital",
+      "Other": "Autre"
+    }
   },
   "projection": {
     "title": "Projections",

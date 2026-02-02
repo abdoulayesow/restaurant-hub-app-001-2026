@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
-    "db:seed": "npx tsx prisma/seed.ts"
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed:dev": "npx tsx prisma/seed-dev.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",

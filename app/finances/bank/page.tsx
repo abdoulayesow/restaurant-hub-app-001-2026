@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet, Smartphone, Clock, Search, ReceiptText } from 'lucide-react'
+import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet, Smartphone, Clock, Search, ReceiptText, BarChart3 } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
@@ -14,53 +14,9 @@ import { TransactionsTable } from '@/components/bank/TransactionsTable'
 import { TransactionDetailModal } from '@/components/bank/TransactionDetailModal'
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal'
 import { Toast } from '@/components/ui/Toast'
-
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
-type TransactionStatus = 'Pending' | 'Confirmed'
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
-
-interface Transaction {
-  id: string
-  date: string
-  amount: number
-  type: TransactionType
-  method: PaymentMethod
-  reason: TransactionReason
-  status: TransactionStatus
-  description?: string | null
-  comments?: string | null
-  bankRef?: string | null
-  confirmedAt?: string | null
-  createdByName?: string | null
-  sale?: {
-    id: string
-    date: string
-    totalGNF: number
-  } | null
-  debtPayment?: {
-    id: string
-    amount: number
-    paymentDate: string
-    debt?: {
-      customer?: {
-        name: string
-      } | null
-    } | null
-  } | null
-  expensePayment?: {
-    id: string
-    amount: number
-    expense?: {
-      id: string
-      categoryName: string
-      amountGNF: number
-      supplierName?: string | null
-    } | null
-  } | null
-  createdAt?: string
-  receiptUrl?: string | null
-}
+import { BankChartsPanel } from '@/components/bank/BankChartsPanel'
+import { Transaction, TransactionType, TransactionReason } from '@/lib/types/bank'
+import { PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 export default function BankPage() {
   const { data: session, status } = useSession()
@@ -97,6 +53,9 @@ export default function BankPage() {
 
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  // Charts panel state
+  const [chartsPanelOpen, setChartsPanelOpen] = useState(false)
 
   // Filter state
   const [typeFilter, setTypeFilter] = useState<'' | 'Deposit' | 'Withdrawal'>('')
@@ -175,7 +134,7 @@ export default function BankPage() {
     date: string
     amount: number
     type: TransactionType
-    method: PaymentMethod
+    method: PaymentMethodValue
     reason: TransactionReason
     description?: string
     saleId?: string
@@ -269,7 +228,7 @@ export default function BankPage() {
     date: string
     amount: number
     type: TransactionType
-    method: PaymentMethod
+    method: PaymentMethodValue
     reason: TransactionReason
     description?: string
     comments?: string
@@ -339,12 +298,6 @@ export default function BankPage() {
   // Open modal for deposit
   const openDepositModal = () => {
     setDefaultTransactionType('Deposit')
-    setTransactionModalOpen(true)
-  }
-
-  // Open modal for withdrawal
-  const openWithdrawalModal = () => {
-    setDefaultTransactionType('Withdrawal')
     setTransactionModalOpen(true)
   }
 
@@ -597,60 +550,21 @@ export default function BankPage() {
           </div>
         )}
 
-        {/* Spacer before Quick Actions */}
-        <div className="mb-8"></div>
-
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Deposit */}
-          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
-                <ArrowUpRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-stone-100">
-                  {t('bank.deposit') || 'Deposit'}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-stone-400">
-                  {t('bank.depositDescription') || 'Add funds to your account'}
-                </p>
-              </div>
-            </div>
-            <button
-              disabled={!canManageBank}
-              onClick={openDepositModal}
-              className="w-full px-4 py-2.5 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-              {t('bank.recordDeposit') || 'Record Deposit'}
-            </button>
-          </div>
-
-          {/* Withdrawal */}
-          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-900/30">
-                <ArrowDownRight className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-stone-100">
-                  {t('bank.withdrawal') || 'Withdrawal'}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-stone-400">
-                  {t('bank.withdrawalDescription') || 'Remove funds from your account'}
-                </p>
-              </div>
-            </div>
-            <button
-              disabled={!canManageBank}
-              onClick={openWithdrawalModal}
-              className="w-full px-4 py-2.5 border-2 border-rose-500 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-              {t('bank.recordWithdrawal') || 'Record Withdrawal'}
-            </button>
-          </div>
-        </div>
       </main>
+
+      {/* Floating Analytics Button */}
+      {canManageBank && (
+        <button
+          onClick={() => setChartsPanelOpen(true)}
+          className="fixed bottom-6 right-6 p-4 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-full shadow-2xl hover:shadow-stone-900/50 dark:hover:shadow-stone-100/50 hover:scale-110 active:scale-95 transition-all duration-200 z-30 group"
+          aria-label={t('bank.analytics.openAnalytics') || 'Open Analytics'}
+        >
+          <BarChart3 className="w-6 h-6" />
+          <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            {t('bank.analytics.viewAnalytics') || 'View Analytics'}
+          </span>
+        </button>
+      )}
 
       {/* Modals */}
       <TransactionFormModal
@@ -713,6 +627,15 @@ export default function BankPage() {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Bank Charts Panel */}
+      {currentRestaurant && (
+        <BankChartsPanel
+          isOpen={chartsPanelOpen}
+          onClose={() => setChartsPanelOpen(false)}
+          restaurantId={currentRestaurant.id}
         />
       )}
     </div>

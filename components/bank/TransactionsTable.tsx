@@ -24,53 +24,12 @@ import {
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { formatUTCDateForDisplay } from '@/lib/date-utils'
-
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
-type TransactionStatus = 'Pending' | 'Confirmed'
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
-
-interface Transaction {
-  id: string
-  date: string
-  amount: number
-  type: TransactionType
-  method: PaymentMethod
-  reason: TransactionReason
-  status: TransactionStatus
-  description?: string | null
-  comments?: string | null
-  bankRef?: string | null
-  confirmedAt?: string | null
-  createdByName?: string | null
-  createdAt?: string
-  receiptUrl?: string | null
-  sale?: {
-    id: string
-    date: string
-    totalGNF: number
-  } | null
-  debtPayment?: {
-    id: string
-    amount: number
-    paymentDate: string
-    debt?: {
-      customer?: {
-        name: string
-      } | null
-    } | null
-  } | null
-  expensePayment?: {
-    id: string
-    amount: number
-    expense?: {
-      id: string
-      categoryName: string
-      amountGNF: number
-      supplierName?: string | null
-    } | null
-  } | null
-}
+import {
+  Transaction,
+  TransactionReason,
+  isManualTransaction,
+} from '@/lib/types/bank'
+import { PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 interface TransactionsTableProps {
   transactions: Transaction[]
@@ -94,7 +53,7 @@ const REASON_LABELS: Record<TransactionReason, { key: string; fallback: string }
   Other: { key: 'bank.reasons.Other', fallback: 'Other' },
 }
 
-const METHOD_ICONS: Record<PaymentMethod, { icon: React.ElementType; color: string }> = {
+const METHOD_ICONS: Record<PaymentMethodValue, { icon: React.ElementType; color: string }> = {
   Cash: { icon: Banknote, color: 'text-emerald-600 dark:text-emerald-400' },
   OrangeMoney: { icon: Smartphone, color: 'text-orange-500 dark:text-orange-400' },
   Card: { icon: CreditCard, color: 'text-stone-600 dark:text-stone-400' },
@@ -165,11 +124,6 @@ export function TransactionsTable({
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = Math.min(startIndex + itemsPerPage, sortedTransactions.length)
   const paginatedTransactions = sortedTransactions.slice(startIndex, endIndex)
-
-  // Check if transaction is manually created (no linked sale, expense, or debt)
-  const isManualTransaction = (txn: Transaction) => {
-    return !txn.sale && !txn.expensePayment && !txn.debtPayment
-  }
 
   // Sort icon
   const SortIcon = ({ field }: { field: SortField }) => {

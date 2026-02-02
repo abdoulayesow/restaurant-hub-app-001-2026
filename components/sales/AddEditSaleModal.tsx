@@ -516,11 +516,10 @@ export function AddEditSaleModal({
                 {t('sales.date') || 'Date'} *
               </label>
               <input
-                type="text"
-                value={dateDisplay}
-                onChange={(e) => handleDateChange(e.target.value)}
+                type="date"
+                value={formData.date}
+                onChange={(e) => handleChange('date', e.target.value)}
                 disabled={isViewMode}
-                placeholder={getDatePlaceholder(locale)}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
                   border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
@@ -715,10 +714,9 @@ export function AddEditSaleModal({
                               {t('sales.dueDate')}
                             </label>
                             <input
-                              type="text"
-                              value={debtDueDateDisplays[index] || ''}
-                              onChange={(e) => handleDebtDueDateChange(index, e.target.value)}
-                              placeholder={getDatePlaceholder(locale)}
+                              type="date"
+                              value={item.dueDate}
+                              onChange={(e) => updateDebtItem(index, 'dueDate', e.target.value)}
                               disabled={isViewMode}
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             />

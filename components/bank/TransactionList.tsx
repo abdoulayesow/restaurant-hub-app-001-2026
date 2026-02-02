@@ -14,45 +14,8 @@ import {
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatDateForInput } from '@/lib/date-utils'
-
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
-type TransactionStatus = 'Pending' | 'Confirmed'
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
-
-interface Transaction {
-  id: string
-  date: string
-  amount: number
-  type: TransactionType
-  method: PaymentMethod
-  reason: TransactionReason
-  status: TransactionStatus
-  description?: string | null
-  comments?: string | null
-  bankRef?: string | null
-  confirmedAt?: string | null
-  createdByName?: string | null
-  sale?: {
-    id: string
-    date: string
-    totalGNF: number
-  } | null
-  debtPayment?: {
-    id: string
-    amount: number
-    paymentDate: string
-  } | null
-  expensePayment?: {
-    id: string
-    amount: number
-    expense?: {
-      id: string
-      categoryName: string
-      amountGNF: number
-    } | null
-  } | null
-}
+import { Transaction, TransactionReason } from '@/lib/types/bank'
+import { PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 interface TransactionListProps {
   transactions: Transaction[]
@@ -71,7 +34,7 @@ const REASON_LABELS: Record<TransactionReason, { key: string; fallback: string }
   Other: { key: 'bank.reasons.other', fallback: 'Other' },
 }
 
-const METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
+const METHOD_ICONS: Record<PaymentMethodValue, React.ElementType> = {
   Cash: Banknote,
   OrangeMoney: Smartphone,
   Card: CreditCard,

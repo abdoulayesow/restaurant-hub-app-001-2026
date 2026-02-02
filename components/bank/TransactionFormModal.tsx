@@ -6,6 +6,13 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { PAYMENT_METHODS as PAYMENT_METHODS_CONFIG, PaymentMethodValue } from '@/lib/constants/payment-methods'
 import { getTodayDateString } from '@/lib/date-utils'
+import {
+  TransactionType,
+  TransactionReason,
+  TransactionStatus,
+  DEPOSIT_REASONS as DEPOSIT_REASON_VALUES,
+  WITHDRAWAL_REASONS as WITHDRAWAL_REASON_VALUES,
+} from '@/lib/types/bank'
 
 interface Sale {
   id: string
@@ -14,14 +21,10 @@ interface Sale {
   cashGNF: number
   bankTransactions?: Array<{
     id: string
-    status: 'Pending' | 'Confirmed'
-    method: 'Cash' | 'OrangeMoney' | 'Card'
+    status: TransactionStatus
+    method: PaymentMethodValue
   }>
 }
-
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = PaymentMethodValue
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
 
 interface TransactionFormModalProps {
   isOpen: boolean
@@ -30,7 +33,7 @@ interface TransactionFormModalProps {
     date: string
     amount: number
     type: TransactionType
-    method: PaymentMethod
+    method: PaymentMethodValue
     reason: TransactionReason
     description?: string
     comments?: string
@@ -40,22 +43,29 @@ interface TransactionFormModalProps {
   defaultType?: TransactionType
 }
 
-const DEPOSIT_REASONS: { value: TransactionReason; labelKey: string; label: string }[] = [
-  { value: 'SalesDeposit', labelKey: 'bank.reasons.salesDeposit', label: 'Sales Deposit' },
-  { value: 'DebtCollection', labelKey: 'bank.reasons.debtCollection', label: 'Debt Collection' },
-  { value: 'CapitalInjection', labelKey: 'bank.reasons.capitalInjection', label: 'Capital Injection' },
-  { value: 'Other', labelKey: 'bank.reasons.other', label: 'Other' },
-]
+// Reason options with translation keys
+const REASON_LABELS: Record<TransactionReason, { labelKey: string; label: string }> = {
+  SalesDeposit: { labelKey: 'bank.reasons.salesDeposit', label: 'Sales Deposit' },
+  DebtCollection: { labelKey: 'bank.reasons.debtCollection', label: 'Debt Collection' },
+  CapitalInjection: { labelKey: 'bank.reasons.capitalInjection', label: 'Capital Injection' },
+  ExpensePayment: { labelKey: 'bank.reasons.expensePayment', label: 'Expense Payment' },
+  OwnerWithdrawal: { labelKey: 'bank.reasons.ownerWithdrawal', label: 'Owner Withdrawal' },
+  Other: { labelKey: 'bank.reasons.other', label: 'Other' },
+}
 
-const WITHDRAWAL_REASONS: { value: TransactionReason; labelKey: string; label: string }[] = [
-  { value: 'ExpensePayment', labelKey: 'bank.reasons.expensePayment', label: 'Expense Payment' },
-  { value: 'OwnerWithdrawal', labelKey: 'bank.reasons.ownerWithdrawal', label: 'Owner Withdrawal' },
-  { value: 'Other', labelKey: 'bank.reasons.other', label: 'Other' },
-]
+const DEPOSIT_REASONS = DEPOSIT_REASON_VALUES.map(value => ({
+  value,
+  ...REASON_LABELS[value],
+}))
+
+const WITHDRAWAL_REASONS = WITHDRAWAL_REASON_VALUES.map(value => ({
+  value,
+  ...REASON_LABELS[value],
+}))
 
 // Build payment methods config from centralized constants
 const PAYMENT_METHODS = PAYMENT_METHODS_CONFIG.map(pm => ({
-  value: pm.value as PaymentMethod,
+  value: pm.value,
   labelKey: pm.value === 'OrangeMoney' ? 'bank.methods.OrangeMoney' : `bank.methods.${pm.value}`,
   label: pm.displayName,
   icon: pm.icon,
@@ -75,7 +85,7 @@ export function TransactionFormModal({
     type: defaultType as TransactionType,
     date: getTodayDateString(),
     amount: '',
-    method: 'Cash' as PaymentMethod,
+    method: 'Cash' as PaymentMethodValue,
     reason: (defaultType === 'Deposit' ? 'SalesDeposit' : 'ExpensePayment') as TransactionReason,
     description: '',
     comments: '',

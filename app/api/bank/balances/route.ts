@@ -115,6 +115,54 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Get undeposited sales cash (approved sales with cash that haven't been deposited to bank yet)
+    // A sale's cash is deposited when there's a BankTransaction with reason='SalesDeposit' linked to that sale
+    const undepositedSales = await prisma.sale.findMany({
+      where: {
+        restaurantId,
+        status: 'Approved',
+        cashGNF: { gt: 0 }
+      },
+      select: {
+        id: true,
+        cashGNF: true
+      }
+    })
+
+    // Get all sales that have been deposited (have BankTransaction with reason='SalesDeposit')
+    const depositedSaleIds = await prisma.bankTransaction.findMany({
+      where: {
+        restaurantId,
+        reason: 'SalesDeposit',
+        saleId: { not: null }
+      },
+      select: {
+        saleId: true
+      }
+    })
+
+    const depositedSaleIdsSet = new Set(depositedSaleIds.map(t => t.saleId).filter(Boolean))
+    const totalUndepositedCash = undepositedSales
+      .filter(sale => !depositedSaleIdsSet.has(sale.id))
+      .reduce((sum, sale) => sum + sale.cashGNF, 0)
+
+    // Get unpaid/partially paid expenses
+    const unpaidExpenses = await prisma.expense.findMany({
+      where: {
+        restaurantId,
+        paymentStatus: { in: ['Unpaid', 'PartiallyPaid'] }
+      },
+      select: {
+        amountGNF: true,
+        totalPaidAmount: true
+      }
+    })
+
+    const totalUnpaidExpenses = unpaidExpenses.reduce(
+      (sum, expense) => sum + (expense.amountGNF - expense.totalPaidAmount),
+      0
+    )
+
     const pendingByMethod = (method: 'Cash' | 'OrangeMoney' | 'Card') => {
       const deposits = pendingTransactions
         .filter(t => t.type === 'Deposit' && t.method === method)
@@ -124,6 +172,18 @@ export async function GET(request: NextRequest) {
         .reduce((sum, t) => sum + t.amount, 0)
       return { deposits, withdrawals, net: deposits - withdrawals }
     }
+
+    // Total pending deposits = manual pending deposits + undeposited sales cash
+    const manualPendingDeposits = pendingTransactions
+      .filter(t => t.type === 'Deposit')
+      .reduce((sum, t) => sum + t.amount, 0)
+    const totalPendingDeposits = manualPendingDeposits + totalUndepositedCash
+
+    // Total pending withdrawals = manual pending withdrawals + unpaid expenses
+    const manualPendingWithdrawals = pendingTransactions
+      .filter(t => t.type === 'Withdrawal')
+      .reduce((sum, t) => sum + t.amount, 0)
+    const totalPendingWithdrawals = manualPendingWithdrawals + totalUnpaidExpenses
 
     return NextResponse.json({
       balances: {
@@ -137,12 +197,8 @@ export async function GET(request: NextRequest) {
         cash: pendingByMethod('Cash'),
         orangeMoney: pendingByMethod('OrangeMoney'),
         card: pendingByMethod('Card'),
-        totalPendingDeposits: pendingTransactions
-          .filter(t => t.type === 'Deposit')
-          .reduce((sum, t) => sum + t.amount, 0),
-        totalPendingWithdrawals: pendingTransactions
-          .filter(t => t.type === 'Withdrawal')
-          .reduce((sum, t) => sum + t.amount, 0)
+        totalPendingDeposits,
+        totalPendingWithdrawals
       },
       initial: {
         cash: restaurant.initialCashBalance,
