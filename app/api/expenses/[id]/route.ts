@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { canEditApproved, canRecordExpenses } from '@/lib/roles'
+import { canEditApproved, canRecordExpenses, canAccessBank } from '@/lib/roles'
 import { normalizePaymentMethod, PAYMENT_METHOD_VALUES } from '@/lib/constants/payment-methods'
 
 // GET /api/expenses/[id] - Get a single expense
@@ -111,10 +111,10 @@ export async function PUT(
       return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
-    // Non-owners can only edit Pending expenses
-    if (!canEditApproved(auth.role) && existingExpense.status !== 'Pending') {
+    // Non-owners can only edit Unpaid expenses
+    if (!canEditApproved(auth.role) && existingExpense.paymentStatus !== 'Unpaid') {
       return NextResponse.json(
-        { error: 'Only pending expenses can be edited. Contact the owner to modify approved records.' },
+        { error: 'Only unpaid expenses can be edited. Contact the owner to modify paid records.' },
         { status: 403 }
       )
     }
@@ -204,8 +204,6 @@ export async function PUT(
           transactionRef: transactionRef !== undefined ? (transactionRef || null) : existingExpense.transactionRef,
           supplierId: supplierId !== undefined ? (supplierId || null) : existingExpense.supplierId,
           isInventoryPurchase: finalIsInventoryPurchase,
-          // Keep existing status (editors can only edit Pending records anyway)
-          status: existingExpense.status,
           lastModifiedBy: session.user.id,
           lastModifiedByName: session.user.name || session.user.email,
           lastModifiedAt: new Date(),
@@ -271,5 +269,55 @@ export async function PUT(
   }
 }
 
-// Note: DELETE is intentionally not implemented
-// Expenses should be rejected, not deleted, for audit trail
+// DELETE /api/expenses/[id] - Delete an expense (owner only, unpaid expenses only)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    const expense = await prisma.expense.findUnique({
+      where: { id },
+    })
+
+    if (!expense) {
+      return NextResponse.json({ error: 'Expense not found' }, { status: 404 })
+    }
+
+    // Validate user has access to this restaurant and is an owner
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      expense.restaurantId,
+      canAccessBank,
+      'Only owners can delete expenses'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
+    }
+
+    // Cannot delete if already paid
+    if (expense.paymentStatus === 'Paid') {
+      return NextResponse.json(
+        { error: 'Cannot delete paid expenses' },
+        { status: 400 }
+      )
+    }
+
+    // Delete expense (cascade will delete expenseItems, expensePayments)
+    await prisma.expense.delete({
+      where: { id },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting expense:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

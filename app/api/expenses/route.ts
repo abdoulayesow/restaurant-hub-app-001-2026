@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const restaurantId = searchParams.get('restaurantId')
-    const status = searchParams.get('status')
     const paymentStatus = searchParams.get('paymentStatus') // Unpaid | PartiallyPaid | Paid (comma-separated for multiple)
     const categoryId = searchParams.get('categoryId')
     const startDate = searchParams.get('startDate')
@@ -44,16 +43,11 @@ export async function GET(request: NextRequest) {
     // Build query filters
     const where: {
       restaurantId: string
-      status?: 'Pending' | 'Approved' | 'Rejected'
       paymentStatus?: { in: ('Unpaid' | 'PartiallyPaid' | 'Paid')[] }
       categoryId?: string
       date?: { gte?: Date; lte?: Date }
     } = {
       restaurantId,
-    }
-
-    if (status && ['Pending', 'Approved', 'Rejected'].includes(status)) {
-      where.status = status as 'Pending' | 'Approved' | 'Rejected'
     }
 
     // Payment status filter (supports comma-separated values)
@@ -204,22 +198,17 @@ export async function GET(request: NextRequest) {
     }
     const expensesByCategory = Array.from(expensesByCategoryMap.values())
 
-    // Payment status calculations (only for approved expenses)
-    const approvedExpenses = expenses.filter(e => e.status === 'Approved')
-    const unpaidCount = approvedExpenses.filter(e => e.paymentStatus === 'Unpaid').length
-    const partiallyPaidCount = approvedExpenses.filter(e => e.paymentStatus === 'PartiallyPaid').length
-    const paidCount = approvedExpenses.filter(e => e.paymentStatus === 'Paid').length
-    const totalPaid = approvedExpenses.reduce((sum, e) => sum + e.totalPaidAmount, 0)
-    const totalUnpaid = approvedExpenses.reduce((sum, e) => sum + (e.amountGNF - e.totalPaidAmount), 0)
+    // Payment status calculations
+    const unpaidCount = expenses.filter(e => e.paymentStatus === 'Unpaid').length
+    const partiallyPaidCount = expenses.filter(e => e.paymentStatus === 'PartiallyPaid').length
+    const paidCount = expenses.filter(e => e.paymentStatus === 'Paid').length
+    const totalPaid = expenses.reduce((sum, e) => sum + e.totalPaidAmount, 0)
+    const totalUnpaid = expenses.reduce((sum, e) => sum + (e.amountGNF - e.totalPaidAmount), 0)
 
     const summary = {
       totalExpenses: expenses.length,
       totalAmount,
-      // Approval status counts
-      pendingCount: expenses.filter(e => e.status === 'Pending').length,
-      approvedCount: expenses.filter(e => e.status === 'Approved').length,
-      rejectedCount: expenses.filter(e => e.status === 'Rejected').length,
-      // Payment status counts (for approved expenses)
+      // Payment status counts
       unpaidCount,
       partiallyPaidCount,
       paidCount,
@@ -353,9 +342,6 @@ export async function POST(request: NextRequest) {
           transactionRef: transactionRef || null, // Legacy field
           supplierId: supplierId || null,
           isInventoryPurchase,
-          status: 'Pending',
-          submittedBy: session.user.id,
-          submittedByName: session.user.name || session.user.email,
         },
       })
 

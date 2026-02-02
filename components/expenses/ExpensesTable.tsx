@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, CheckCircle, XCircle, DollarSign, Banknote } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, Trash2, DollarSign, Banknote } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
-import { StatusBadge } from '@/components/ui/StatusBadge'
 import { PAYMENT_METHODS, normalizePaymentMethod } from '@/lib/constants/payment-methods'
 import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
@@ -15,10 +14,8 @@ interface Expense {
   paymentMethod?: string | null // Legacy: now optional, determined at payment time
   billingRef?: string | null // Invoice or receipt reference number
   description?: string | null
-  status: 'Pending' | 'Approved' | 'Rejected'
   paymentStatus?: 'Unpaid' | 'PartiallyPaid' | 'Paid'
   totalPaidAmount?: number
-  submittedByName?: string | null
   supplier?: { id: string; name: string } | null
   isInventoryPurchase: boolean
   expenseItems?: Array<{
@@ -38,24 +35,22 @@ interface ExpensesTableProps {
   expenses: Expense[]
   onView: (expense: Expense) => void
   onEdit: (expense: Expense) => void
-  onApprove?: (expense: Expense) => void
-  onReject?: (expense: Expense) => void
+  onDelete: (expense: Expense) => void
   onRecordPayment?: (expense: Expense) => void
-  isManager?: boolean
+  isOwner: boolean
   loading?: boolean
 }
 
-type SortField = 'date' | 'amountGNF' | 'categoryName' | 'status'
+type SortField = 'date' | 'amountGNF' | 'categoryName' | 'paymentStatus'
 type SortDirection = 'asc' | 'desc'
 
 export function ExpensesTable({
   expenses,
   onView,
   onEdit,
-  onApprove,
-  onReject,
+  onDelete,
   onRecordPayment,
-  isManager = false,
+  isOwner,
   loading = false,
 }: ExpensesTableProps) {
   const { t, locale } = useLocale()
@@ -128,8 +123,8 @@ export function ExpensesTable({
       case 'categoryName':
         comparison = a.categoryName.localeCompare(b.categoryName)
         break
-      case 'status':
-        comparison = a.status.localeCompare(b.status)
+      case 'paymentStatus':
+        comparison = (a.paymentStatus || '').localeCompare(b.paymentStatus || '')
         break
     }
     return sortDirection === 'asc' ? comparison : -comparison
@@ -253,15 +248,12 @@ export function ExpensesTable({
             </th>
             <th
               className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600"
-              onClick={() => handleSort('status')}
+              onClick={() => handleSort('paymentStatus')}
             >
               <div className="flex items-center justify-center gap-1">
-                {t('common.status') || 'Status'}
-                <SortIcon field="status" />
+                {t('expenses.payment.status') || 'Payment Status'}
+                <SortIcon field="paymentStatus" />
               </div>
-            </th>
-            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 dark:text-stone-100 hidden lg:table-cell">
-              {t('expenses.payment.status') || 'Payment'}
             </th>
             <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-stone-100">
               {t('common.actions') || 'Actions'}
@@ -289,11 +281,6 @@ export function ExpensesTable({
                     <p className="font-medium text-gray-900 dark:text-stone-100">
                       {formatDate(expense.date)}
                     </p>
-                    {expense.submittedByName && (
-                      <p className="text-xs text-gray-500 dark:text-stone-400 mt-0.5">
-                        {t('expenses.by') || 'by'} {expense.submittedByName}
-                      </p>
-                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -339,10 +326,7 @@ export function ExpensesTable({
                   {expense.supplier?.name || '-'}
                 </td>
                 <td className="px-6 py-4 text-center">
-                  <StatusBadge status={expense.status} size="sm" />
-                </td>
-                <td className="px-6 py-4 text-center hidden lg:table-cell">
-                  {expense.status === 'Approved' && expense.paymentStatus && (
+                  {expense.paymentStatus && (
                     <div className="flex flex-col items-center gap-1">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         expense.paymentStatus === 'Paid'
@@ -365,42 +349,29 @@ export function ExpensesTable({
                       )}
                     </div>
                   )}
-                  {expense.status !== 'Approved' && (
-                    <span className="text-xs text-gray-400 dark:text-stone-500">-</span>
-                  )}
                 </td>
                 <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-2">
-                    {(isManager || expense.status === 'Pending') && (
-                      <button
-                        onClick={() => onEdit(expense)}
-                        className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
-                        title={t('common.edit') || 'Edit'}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {isManager && expense.status === 'Pending' && onApprove && onReject && (
+                    {isOwner && expense.paymentStatus !== 'Paid' && (
                       <>
                         <button
-                          onClick={() => onApprove(expense)}
-                          className="p-2 rounded-lg text-green-600 hover:bg-green-500/10 transition-colors"
-                          title={t('common.approve') || 'Approve'}
+                          onClick={() => onEdit(expense)}
+                          className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
+                          title={t('common.edit') || 'Edit'}
                         >
-                          <CheckCircle className="w-4 h-4" />
+                          <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => onReject(expense)}
-                          className="p-2 rounded-lg text-red-600 hover:bg-red-500/10 transition-colors"
-                          title={t('common.reject') || 'Reject'}
+                          onClick={() => onDelete(expense)}
+                          className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
+                          title={t('common.delete') || 'Delete'}
                         >
-                          <XCircle className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </>
                     )}
 
-                    {isManager && expense.status === 'Approved' && expense.paymentStatus !== 'Paid' && onRecordPayment && (
+                    {isOwner && expense.paymentStatus !== 'Paid' && onRecordPayment && (
                       <button
                         onClick={() => onRecordPayment(expense)}
                         className="p-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"

@@ -116,7 +116,6 @@ export async function POST(
         amountGNF: true,
         totalPaidAmount: true,
         paymentStatus: true,
-        status: true, // Approval status
         categoryName: true,
         description: true
       }
@@ -140,14 +139,6 @@ export async function POST(
       return NextResponse.json(
         { error: 'Access denied to this restaurant' },
         { status: 403 }
-      )
-    }
-
-    // Validate expense is Approved
-    if (expense.status !== 'Approved') {
-      return NextResponse.json(
-        { error: 'Payment can only be recorded for approved expenses' },
-        { status: 400 }
       )
     }
 

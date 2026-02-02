@@ -7,7 +7,7 @@ import { Plus, Search, Receipt, RefreshCw, Filter, Calendar, TrendingUp, ArrowUp
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { canApprove } from '@/lib/roles'
+import { canAccessBank } from '@/lib/roles'
 import { ExpensesTable } from '@/components/expenses/ExpensesTable'
 import { AddEditExpenseModal } from '@/components/expenses/AddEditExpenseModal'
 import { RecordPaymentModal } from '@/components/expenses/RecordPaymentModal'
@@ -26,10 +26,8 @@ interface Expense {
   paymentMethod?: string | null // Legacy: now optional, determined at payment time
   billingRef?: string | null // Invoice or receipt reference number
   description?: string | null
-  status: 'Pending' | 'Approved' | 'Rejected'
   paymentStatus?: 'Unpaid' | 'PartiallyPaid' | 'Paid'
   totalPaidAmount?: number
-  submittedByName?: string | null
   supplier?: { id: string; name: string } | null
   isInventoryPurchase: boolean
   expenseItems?: Array<{
@@ -74,8 +72,9 @@ interface InventoryItem {
 interface ExpensesSummary {
   totalExpenses: number
   totalAmount: number
-  pendingCount: number
-  approvedCount: number
+  unpaidCount: number
+  partiallyPaidCount: number
+  paidCount: number
   todayTotal: number
   monthTotal: number
   previousPeriodTotal: number
@@ -110,7 +109,6 @@ export default function ExpensesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
-  const [statusFilter, setStatusFilter] = useState('')
   const [paymentStatusFilter, setPaymentStatusFilter] = useState(initialPaymentStatus)
   const [categoryFilter, setCategoryFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -125,12 +123,12 @@ export default function ExpensesPage() {
   const [expensesByDay, setExpensesByDay] = useState<ExpenseTrendDataPoint[]>([])
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseCategoryData[]>([])
 
-  // Confirmation modal state
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
-  const [expenseToApprove, setExpenseToApprove] = useState<Expense | null>(null)
+  // Delete confirmation modal state
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false)
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null)
 
-  // Permission check for approval actions (Owner or legacy Manager)
-  const canApproveItems = canApprove(currentRole)
+  // Permission check - only owners can edit/delete/pay expenses
+  const isOwner = canAccessBank(currentRole)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -189,7 +187,6 @@ export default function ExpensesPage() {
 
       const params = new URLSearchParams({
         restaurantId: currentRestaurant.id,
-        ...(statusFilter && { status: statusFilter }),
         ...(paymentStatusFilter && { paymentStatus: paymentStatusFilter }),
         ...(categoryFilter && { categoryId: categoryFilter }),
         ...(startDate && { startDate: startDate.toISOString() }),
@@ -209,7 +206,7 @@ export default function ExpensesPage() {
     } finally {
       setLoading(false)
     }
-  }, [currentRestaurant?.id, statusFilter, paymentStatusFilter, categoryFilter, dateRange])
+  }, [currentRestaurant?.id, paymentStatusFilter, categoryFilter, dateRange])
 
   // Initial data fetch
   useEffect(() => {
@@ -265,49 +262,32 @@ export default function ExpensesPage() {
     }
   }
 
-  // Handle approve
-  const handleApprove = (expense: Expense) => {
-    setExpenseToApprove(expense)
-    setIsConfirmModalOpen(true)
+  // Handle delete
+  const handleDelete = (expense: Expense) => {
+    setExpenseToDelete(expense)
+    setIsDeleteConfirmModalOpen(true)
   }
 
-  const executeApprove = async () => {
-    if (!expenseToApprove) return
+  const executeDelete = async () => {
+    if (!expenseToDelete) return
 
     try {
-      const res = await fetch(`/api/expenses/${expenseToApprove.id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'approve' }),
+      const res = await fetch(`/api/expenses/${expenseToDelete.id}`, {
+        method: 'DELETE',
       })
 
       if (res.ok) {
-        setIsConfirmModalOpen(false)
-        setExpenseToApprove(null)
+        setIsDeleteConfirmModalOpen(false)
+        setExpenseToDelete(null)
+        setToast({ message: t('expenses.deleteSuccess') || 'Expense deleted successfully', type: 'success' })
         fetchExpenses()
+      } else {
+        const error = await res.json()
+        setToast({ message: error.error || 'Failed to delete expense', type: 'error' })
       }
     } catch (error) {
-      console.error('Error approving expense:', error)
-    }
-  }
-
-  // Handle reject
-  const handleReject = async (expense: Expense) => {
-    const reason = prompt(t('expenses.rejectReason') || 'Please provide a reason for rejection:')
-    if (reason === null) return
-
-    try {
-      const res = await fetch(`/api/expenses/${expense.id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reject', reason }),
-      })
-
-      if (res.ok) {
-        fetchExpenses()
-      }
-    } catch (error) {
-      console.error('Error rejecting expense:', error)
+      console.error('Error deleting expense:', error)
+      setToast({ message: 'Failed to delete expense', type: 'error' })
     }
   }
 
@@ -480,24 +460,6 @@ export default function ExpensesPage() {
             )}
           </div>
 
-          {/* Pending Approvals */}
-          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                <Filter className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <h3 className="font-medium text-sm text-gray-500 dark:text-stone-400">
-                {t('expenses.pendingApprovals') || 'Pending Approvals'}
-              </h3>
-            </div>
-            <p className="text-xl lg:text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
-              {summary?.pendingCount || 0}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-stone-400">
-              {t('expenses.awaitingReview') || 'awaiting review'}
-            </p>
-          </div>
-
           {/* Period Total */}
           <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
@@ -550,17 +512,6 @@ export default function ExpensesPage() {
           </div>
 
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100"
-          >
-            <option value="">{t('expenses.allStatuses') || 'All Statuses'}</option>
-            <option value="Pending">{t('common.pending') || 'Pending'}</option>
-            <option value="Approved">{t('common.approved') || 'Approved'}</option>
-            <option value="Rejected">{t('common.rejected') || 'Rejected'}</option>
-          </select>
-
-          <select
             value={paymentStatusFilter}
             onChange={(e) => setPaymentStatusFilter(e.target.value)}
             className="px-4 py-2.5 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 text-gray-900 dark:text-stone-100"
@@ -600,10 +551,9 @@ export default function ExpensesPage() {
             expenses={filteredExpenses}
             onView={handleView}
             onEdit={handleEdit}
-            onApprove={handleApprove}
-            onReject={handleReject}
+            onDelete={handleDelete}
             onRecordPayment={handleOpenPaymentModal}
-            isManager={canApproveItems}
+            isOwner={isOwner}
             loading={loading}
           />
         ) : (
@@ -663,26 +613,26 @@ export default function ExpensesPage() {
       )}
 
       {/* Approval Confirmation Modal */}
-      {expenseToApprove && (
+      {expenseToDelete && (
         <DeleteConfirmationModal
-          isOpen={isConfirmModalOpen}
+          isOpen={isDeleteConfirmModalOpen}
           onClose={() => {
-            setIsConfirmModalOpen(false)
-            setExpenseToApprove(null)
+            setIsDeleteConfirmModalOpen(false)
+            setExpenseToDelete(null)
           }}
-          onConfirm={executeApprove}
-          title={t('expenses.approveExpense') || 'Approve Expense'}
-          description={t('expenses.confirmApproveDescription') || 'This expense will be marked as approved'}
+          onConfirm={executeDelete}
+          title={t('expenses.deleteExpense') || 'Delete Expense'}
+          description={t('expenses.confirmDelete') || 'Are you sure you want to delete this expense?'}
           itemType={t('common.expense') || 'Expense'}
-          itemName={locale === 'fr' && categories.find(c => c.id === expenseToApprove.categoryId)?.nameFr
-            ? categories.find(c => c.id === expenseToApprove.categoryId)?.nameFr || expenseToApprove.categoryName
-            : expenseToApprove.categoryName}
-          itemDetails={[
-            { label: t('common.amount') || 'Amount', value: formatCurrency(expenseToApprove.amountGNF) },
-            { label: t('common.date') || 'Date', value: new Date(expenseToApprove.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') },
-          ]}
-          warningMessage={t('expenses.approveWarning') || 'Approving this expense will make it official in your records.'}
-          severity="normal"
+          itemName={locale === 'fr' && categories.find(c => c.id === expenseToDelete?.categoryId)?.nameFr
+            ? categories.find(c => c.id === expenseToDelete?.categoryId)?.nameFr || expenseToDelete?.categoryName || ''
+            : expenseToDelete?.categoryName || ''}
+          itemDetails={expenseToDelete ? [
+            { label: t('common.amount') || 'Amount', value: formatCurrency(expenseToDelete.amountGNF) },
+            { label: t('common.date') || 'Date', value: new Date(expenseToDelete.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') },
+          ] : []}
+          warningMessage={t('expenses.deleteWarning') || 'This action cannot be undone.'}
+          severity="critical"
         />
       )}
     </div>

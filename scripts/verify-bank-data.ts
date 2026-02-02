@@ -71,7 +71,6 @@ async function main() {
   // Check for unpaid approved expenses
   const unpaidExpenses = await prisma.expense.findMany({
     where: {
-      status: 'Approved',
       paymentStatus: { in: ['Unpaid', 'PartiallyPaid'] }
     },
     select: {

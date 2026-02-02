@@ -86,7 +86,6 @@ export async function GET(request: NextRequest) {
       prisma.sale.findMany({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: startDate, lte: endDate },
         },
         orderBy: { date: 'asc' },
@@ -95,7 +94,6 @@ export async function GET(request: NextRequest) {
       prisma.expense.findMany({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: startDate, lte: endDate },
         },
         include: {
@@ -120,7 +118,6 @@ export async function GET(request: NextRequest) {
       prisma.sale.aggregate({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: prevStartDate, lte: prevEndDate },
         },
         _sum: { totalGNF: true },
@@ -129,7 +126,6 @@ export async function GET(request: NextRequest) {
       prisma.expense.aggregate({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: prevStartDate, lte: prevEndDate },
         },
         _sum: { amountGNF: true },
@@ -138,9 +134,9 @@ export async function GET(request: NextRequest) {
       prisma.sale.count({
         where: { restaurantId, status: 'Pending' },
       }),
-      // Pending expenses count
+      // Unpaid expenses count
       prisma.expense.count({
-        where: { restaurantId, status: 'Pending' },
+        where: { restaurantId, paymentStatus: 'Unpaid' },
       }),
       // Low stock items
       prisma.inventoryItem.findMany({
@@ -170,7 +166,6 @@ export async function GET(request: NextRequest) {
       prisma.expense.findMany({
         where: {
           restaurantId,
-          status: 'Approved',
           paymentStatus: { in: ['Unpaid', 'PartiallyPaid'] },
         },
         select: {
