@@ -698,10 +698,7 @@
     "noExpensesYet": "No expenses recorded yet",
     "noExpensesDescription": "Record your first expense to start tracking costs and managing your bakery finances.",
     "expensesRecorded": "expenses recorded",
-    "pendingApprovals": "Pending Approvals",
-    "awaitingReview": "awaiting review",
     "allCategories": "All Categories",
-    "allStatuses": "All Statuses",
     "allPaymentStatuses": "All Payment Status",
     "unpaidOrPartial": "Unpaid + Partial",
     "searchPlaceholder": "Search expenses...",
@@ -730,8 +727,6 @@
     "by": "by",
     "isInventoryPurchase": "Inventory Purchase",
     "inventoryPurchaseHint": "Check if this expense is for inventory/ingredients",
-    "confirmApprove": "Are you sure you want to approve this expense?",
-    "rejectReason": "Please provide a reason for rejection:",
     "amountMustBePositive": "Amount must be greater than 0",
     "deleteExpense": "Delete Expense",
     "confirmDelete": "Are you sure you want to delete this expense?",
@@ -799,10 +794,7 @@
     "editExpenseDescription": "Update expense details",
     "addExpenseDescription": "Record a new expense",
     "transactionRefHint": "Required for Card and Orange Money payments",
-    "transactionRefRequired": "Transaction reference is required for Card and Orange Money payments",
-    "approveExpense": "Approve Expense",
-    "confirmApproveDescription": "This expense will be marked as approved",
-    "approveWarning": "Approving this expense will make it official in your records."
+    "transactionRefRequired": "Transaction reference is required for Card and Orange Money payments"
   },
   "bank": {
     "title": "Bank & Cash",

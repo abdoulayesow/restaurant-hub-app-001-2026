@@ -694,10 +694,7 @@
     "noExpensesYet": "Aucune dépense enregistrée",
     "noExpensesDescription": "Enregistrez votre première dépense pour commencer à suivre les coûts et gérer les finances de votre boulangerie.",
     "expensesRecorded": "dépenses enregistrées",
-    "pendingApprovals": "En attente d'approbation",
-    "awaitingReview": "en attente de révision",
     "allCategories": "Toutes les catégories",
-    "allStatuses": "Tous les statuts",
     "allPaymentStatuses": "Tous les paiements",
     "unpaidOrPartial": "Impayé + Partiel",
     "searchPlaceholder": "Rechercher des dépenses...",
@@ -726,8 +723,6 @@
     "by": "par",
     "isInventoryPurchase": "Achat d'inventaire",
     "inventoryPurchaseHint": "Cochez si cette dépense concerne l'inventaire/les ingrédients",
-    "confirmApprove": "Êtes-vous sûr de vouloir approuver cette dépense ?",
-    "rejectReason": "Veuillez fournir une raison pour le rejet :",
     "amountMustBePositive": "Le montant doit être supérieur à 0",
     "deleteExpense": "Supprimer la dépense",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette dépense ?",
@@ -795,10 +790,7 @@
     "editExpenseDescription": "Modifier les détails de la dépense",
     "addExpenseDescription": "Enregistrer une nouvelle dépense",
     "transactionRefHint": "Requis pour les paiements par Carte et Orange Money",
-    "transactionRefRequired": "La référence de transaction est requise pour les paiements par Carte et Orange Money",
-    "approveExpense": "Approuver la dépense",
-    "confirmApproveDescription": "Cette dépense sera marquée comme approuvée",
-    "approveWarning": "L'approbation de cette dépense la rendra officielle dans vos registres."
+    "transactionRefRequired": "La référence de transaction est requise pour les paiements par Carte et Orange Money"
   },
   "bank": {
     "title": "Banque & Caisse",

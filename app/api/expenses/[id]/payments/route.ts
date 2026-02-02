@@ -107,7 +107,7 @@ export async function POST(
 
     const { id: expenseId } = await params
 
-    // Fetch expense
+    // Fetch expense with items for inventory purchase handling
     const expense = await prisma.expense.findUnique({
       where: { id: expenseId },
       select: {
@@ -117,7 +117,15 @@ export async function POST(
         totalPaidAmount: true,
         paymentStatus: true,
         categoryName: true,
-        description: true
+        description: true,
+        isInventoryPurchase: true,
+        expenseItems: {
+          select: {
+            inventoryItemId: true,
+            quantity: true,
+            unitCostGNF: true,
+          },
+        },
       }
     })
 
@@ -260,6 +268,36 @@ export async function POST(
           fullyPaidAt: true
         }
       })
+
+      // Create stock movements on FIRST payment for inventory purchases
+      // Stock is updated when payment begins (goods received = payment made)
+      if (expense.paymentStatus === 'Unpaid' && expense.isInventoryPurchase && expense.expenseItems.length > 0) {
+        for (const item of expense.expenseItems) {
+          // Create Purchase stock movement
+          await tx.stockMovement.create({
+            data: {
+              restaurantId: expense.restaurantId,
+              itemId: item.inventoryItemId,
+              type: 'Purchase',
+              quantity: item.quantity,
+              unitCost: item.unitCostGNF,
+              reason: `Expense: ${expense.categoryName}`,
+              expenseId: expense.id,
+              createdBy: session.user.id,
+              createdByName: user?.name || session.user.email || null,
+            },
+          })
+
+          // Update inventory currentStock and unitCostGNF
+          await tx.inventoryItem.update({
+            where: { id: item.inventoryItemId },
+            data: {
+              currentStock: { increment: item.quantity },
+              unitCostGNF: item.unitCostGNF, // Update to latest purchase cost
+            },
+          })
+        }
+      }
 
       // Update DailySummary for the PAYMENT date (when money actually moves)
       const paymentDate = new Date()

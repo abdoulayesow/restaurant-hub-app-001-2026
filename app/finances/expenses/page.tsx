@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Plus, Search, Receipt, RefreshCw, Filter, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Plus, Search, Receipt, RefreshCw, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
