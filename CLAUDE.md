@@ -37,10 +37,41 @@ npm run dev          # Start development server
 npm run build        # Production build
 npm run start        # Start production server
 npm run lint         # Run ESLint
+npm run typecheck    # TypeScript type checking
 npx prisma generate  # Generate Prisma client
 npx prisma migrate dev  # Run database migrations
 npx prisma studio    # Open Prisma database GUI
 ```
+
+## Database Seeding
+
+Two seeding scripts are available:
+
+```bash
+npm run db:seed      # Production seed (prisma/seed.ts) - initial setup data
+npm run db:seed:dev  # Development seed (prisma/seed-dev.ts) - realistic test data
+```
+
+### Development Seed Script (`prisma/seed-dev.ts`)
+
+Creates comprehensive test data for the first restaurant (Bliss Minière) covering January 1-28, 2026:
+
+| Entity | Count | Details |
+|--------|-------|---------|
+| Customers | 5 | 2 Individual, 2 Corporate, 1 Wholesale |
+| Sales | 28 | Daily sales (2-4M GNF), all amounts in 100K multiples |
+| Sale Items | 140 | 5 products per sale |
+| Expenses | 24 | Inventory, utilities, salaries, supplies |
+| Production Logs | 28 | Daily with Patisserie/Boulangerie rotation |
+| Debts | 4 | Weekly (Outstanding, PartiallyPaid, FullyPaid) |
+| Bank Transactions | 112 | Auto-generated from sales/expenses/debts |
+| Stock Movements | 140 | Linked to production |
+
+**Features:**
+- **Idempotent**: Can run multiple times safely (clears and recreates)
+- **Self-contained**: Creates reference data (products, inventory, categories) if missing
+- **Respects FK constraints**: Deletes in correct order
+- **Business rules**: Bank transactions only created when money moves
 
 ## Architecture
 
