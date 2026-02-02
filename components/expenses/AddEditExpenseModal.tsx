@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { X, Calendar, FileText, Tag, Building2, Package, Plus, Trash2, History, DollarSign, Receipt, Hash } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PaymentHistory } from './PaymentHistory'
-import { formatDateForInput, getTodayDateString, formatISOToLocaleInput, parseLocaleInputToISO, getDatePlaceholder } from '@/lib/date-utils'
+import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
 
 interface Category {
   id: string
@@ -123,7 +123,6 @@ export function AddEditExpenseModal({
 
   const [expenseItems, setExpenseItems] = useState<ExpenseItemInput[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [dateDisplay, setDateDisplay] = useState<string>('') // Display format (DD/MM/YYYY or MM/DD/YYYY)
 
   // Initialize form with expense data
   useEffect(() => {
@@ -140,7 +139,6 @@ export function AddEditExpenseModal({
         isInventoryPurchase: expense.isInventoryPurchase || false,
         comments: expense.comments || '',
       })
-      setDateDisplay(formatISOToLocaleInput(isoDate, locale))
       // Initialize expense items if editing
       if (expense.expenseItems && expense.expenseItems.length > 0) {
         setExpenseItems(expense.expenseItems.map(item => ({
@@ -165,7 +163,6 @@ export function AddEditExpenseModal({
         isInventoryPurchase: false,
         comments: '',
       })
-      setDateDisplay(formatISOToLocaleInput(todayISO, locale))
       setExpenseItems([])
     }
     setErrors({})
@@ -286,20 +283,6 @@ export function AddEditExpenseModal({
   const handleNumberChange = (field: string, value: string) => {
     const numValue = parseFloat(value) || 0
     handleChange(field, numValue)
-  }
-
-  // Handle date input change (convert from locale format to ISO)
-  const handleDateChange = (displayValue: string) => {
-    setDateDisplay(displayValue)
-    const isoDate = parseLocaleInputToISO(displayValue, locale)
-    setFormData(prev => ({ ...prev, date: isoDate }))
-    if (errors.date && isoDate) {
-      setErrors(prev => {
-        const newErrors = { ...prev }
-        delete newErrors.date
-        return newErrors
-      })
-    }
   }
 
   // Validate form

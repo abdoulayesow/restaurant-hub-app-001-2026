@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Calendar, DollarSign, Smartphone, CreditCard, FileText, Plus, Trash2, UserCheck, Package, ChevronDown, ChevronUp } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { formatDateForInput, getTodayDateString, formatISOToLocaleInput, parseLocaleInputToISO, getDatePlaceholder } from '@/lib/date-utils'
+import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
 
 interface Customer {
   id: string
@@ -95,11 +95,9 @@ export function AddEditSaleModal({
     cardGNF: 0,
     comments: '',
   })
-  const [dateDisplay, setDateDisplay] = useState<string>('') // Display format (DD/MM/YYYY or MM/DD/YYYY)
 
   const [customers, setCustomers] = useState<Customer[]>([])
   const [debtItems, setDebtItems] = useState<DebtItem[]>([])
-  const [debtDueDateDisplays, setDebtDueDateDisplays] = useState<string[]>([]) // Display format for debt due dates
   const [showCreditSection, setShowCreditSection] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -161,7 +159,6 @@ export function AddEditSaleModal({
         cardGNF: sale.cardGNF,
         comments: sale.comments || '',
       })
-      setDateDisplay(formatISOToLocaleInput(isoDate, locale))
       if (sale.debts && sale.debts.length > 0) {
         // Transform existing debts from DB format to modal format
         const transformedDebts = sale.debts.map((debt: DebtItem | { principalAmount?: number; dueDate?: string | Date; [key: string]: unknown }) => {
@@ -175,8 +172,6 @@ export function AddEditSaleModal({
           }
         })
         setDebtItems(transformedDebts)
-        // Initialize display dates for debt items
-        setDebtDueDateDisplays(transformedDebts.map(d => d.dueDate ? formatISOToLocaleInput(d.dueDate, locale) : ''))
         setShowCreditSection(true)
       }
       // Initialize saleItems if present
@@ -201,9 +196,7 @@ export function AddEditSaleModal({
         cardGNF: 0,
         comments: '',
       })
-      setDateDisplay(formatISOToLocaleInput(todayISO, locale))
       setDebtItems([])
-      setDebtDueDateDisplays([])
       setShowCreditSection(false)
       setSaleItems([])
       setShowProductsSection(false)
@@ -263,42 +256,6 @@ export function AddEditSaleModal({
     handleChange(field, numValue)
   }
 
-  // Handle date change (convert between display and ISO formats)
-  const handleDateChange = (displayValue: string) => {
-    setDateDisplay(displayValue)
-    const isoDate = parseLocaleInputToISO(displayValue, locale)
-    setFormData(prev => ({ ...prev, date: isoDate }))
-
-    // Immediate validation for date field - check if date already has a sale
-    if (isoDate && !isEditMode) {
-      // Check if this date already has a sale (exclude current sale date in edit mode)
-      const dateExists = existingDates.some(existingDate => {
-        // Normalize both dates to YYYY-MM-DD for comparison
-        const normalizedExisting = existingDate.split('T')[0]
-        return normalizedExisting === isoDate
-      })
-
-      if (dateExists) {
-        setErrors(prev => ({
-          ...prev,
-          date: t('errors.saleDuplicateDateShort') || 'A sale already exists for this date'
-        }))
-      } else if (errors.date) {
-        setErrors(prev => {
-          const newErrors = { ...prev }
-          delete newErrors.date
-          return newErrors
-        })
-      }
-    } else if (errors.date && isoDate) {
-      setErrors(prev => {
-        const newErrors = { ...prev }
-        delete newErrors.date
-        return newErrors
-      })
-    }
-  }
-
   // Add debt item
   const addDebtItem = () => {
     setDebtItems([
@@ -310,7 +267,6 @@ export function AddEditSaleModal({
         description: ''
       }
     ])
-    setDebtDueDateDisplays([...debtDueDateDisplays, ''])
     setShowCreditSection(true)
   }
 
@@ -318,8 +274,6 @@ export function AddEditSaleModal({
   const removeDebtItem = (index: number) => {
     const updated = debtItems.filter((_, i) => i !== index)
     setDebtItems(updated)
-    const updatedDisplays = debtDueDateDisplays.filter((_, i) => i !== index)
-    setDebtDueDateDisplays(updatedDisplays)
     if (updated.length === 0) {
       setShowCreditSection(false)
     }
@@ -329,20 +283,6 @@ export function AddEditSaleModal({
   const updateDebtItem = (index: number, field: keyof DebtItem, value: string | number) => {
     const updated = [...debtItems]
     updated[index] = { ...updated[index], [field]: value }
-    setDebtItems(updated)
-  }
-
-  // Handle debt due date change (convert between display and ISO formats)
-  const handleDebtDueDateChange = (index: number, displayValue: string) => {
-    // Update display value
-    const updatedDisplays = [...debtDueDateDisplays]
-    updatedDisplays[index] = displayValue
-    setDebtDueDateDisplays(updatedDisplays)
-
-    // Convert to ISO and update debt item
-    const isoDate = parseLocaleInputToISO(displayValue, locale)
-    const updated = [...debtItems]
-    updated[index] = { ...updated[index], dueDate: isoDate }
     setDebtItems(updated)
   }
 
