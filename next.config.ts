@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
       transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
     },
   },
+  // Enable Turbopack for faster dev and production builds
+  turbopack: {
+    resolveAlias: {
+      '@/*': './*',
+    },
+  },
 }
 
 export default nextConfig
