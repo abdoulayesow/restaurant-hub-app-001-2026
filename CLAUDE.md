@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Technical Specification**: [docs/product/TECHNICAL-SPEC.md](docs/product/TECHNICAL-SPEC.md)
 - **Feature Requirements (Jan 2026)**: [docs/product/FEATURE-REQUIREMENTS-JAN2026.md](docs/product/FEATURE-REQUIREMENTS-JAN2026.md)
 - **Bank Transaction Unification**: [docs/product/BANK-TRANSACTION-UNIFICATION.md](docs/product/BANK-TRANSACTION-UNIFICATION.md) *(In Progress)*
+- **Expense Workflow Simplification**: [docs/product/EXPENSE-WORKFLOW-SIMPLIFICATION.md](docs/product/EXPENSE-WORKFLOW-SIMPLIFICATION.md) *(Planned)*
 - **Role-Based Access Control**: [docs/product/ROLE-BASED-ACCESS-CONTROL.md](docs/product/ROLE-BASED-ACCESS-CONTROL.md) *(Planned)*
 - **Reference Application**: [docs/bakery-app-reference/](docs/bakery-app-reference/)
 - **Design System**: [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md)
@@ -78,7 +79,9 @@ public/
 - **Cashier**: Can record sales and expenses only
 - All employees access `/editor` pages only; Owner accesses everything except `/editor`
 
-**Approval workflow**: Items start as Pending, Manager approves/rejects
+**Approval workflow**: Sales/Production items start as Pending, Manager approves/rejects
+
+**Expense workflow** *(Simplified - Planned)*: Expenses skip approval and go straight to payment. Owner-only permissions for edit/delete/payment. See [EXPENSE-WORKFLOW-SIMPLIFICATION.md](docs/product/EXPENSE-WORKFLOW-SIMPLIFICATION.md)
 
 **Multi-currency**: GNF (Guinean Franc) primary, EUR for reference
 
