@@ -282,30 +282,14 @@ export function DeleteConfirmationModal({
                 type="button"
                 onClick={handleClose}
                 disabled={loading}
-                className="
-                  flex-1 px-4 py-3 rounded-xl font-medium transition-all
-                  border border-stone-200 dark:border-stone-600
-                  text-stone-700 dark:text-stone-300
-                  hover:bg-stone-50 dark:hover:bg-stone-700
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  active:scale-[0.98]
-                "
+                className="flex-1 px-4 py-3 rounded-xl font-medium transition-all border border-stone-200 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
               >
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={!canDelete || loading}
-                className={`
-                  flex-1 px-4 py-3 rounded-xl font-medium transition-all
-                  bg-red-600 text-white
-                  hover:bg-red-700 active:bg-red-800
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  active:scale-[0.98]
-                  flex items-center justify-center gap-2
-                  shadow-lg shadow-red-600/25
-                  ${!canDelete && requireTypeConfirm ? 'cursor-not-allowed' : ''}
-                `}
+                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-red-600/25 ${!canDelete && requireTypeConfirm ? 'cursor-not-allowed' : ''}`}
               >
                 {loading ? (
                   <>

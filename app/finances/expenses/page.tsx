@@ -13,6 +13,7 @@ import { AddEditExpenseModal } from '@/components/expenses/AddEditExpenseModal'
 import { RecordPaymentModal } from '@/components/expenses/RecordPaymentModal'
 import { Toast } from '@/components/ui/Toast'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
+import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal'
 import { ExpenseTrendChart } from '@/components/expenses/ExpenseTrendChart'
 import { ExpenseCategoryChart } from '@/components/expenses/ExpenseCategoryChart'
 
@@ -123,6 +124,10 @@ export default function ExpensesPage() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [expensesByDay, setExpensesByDay] = useState<ExpenseTrendDataPoint[]>([])
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseCategoryData[]>([])
+
+  // Confirmation modal state
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [expenseToApprove, setExpenseToApprove] = useState<Expense | null>(null)
 
   // Permission check for approval actions (Owner or legacy Manager)
   const canApproveItems = canApprove(currentRole)
@@ -261,17 +266,24 @@ export default function ExpensesPage() {
   }
 
   // Handle approve
-  const handleApprove = async (expense: Expense) => {
-    if (!confirm(t('expenses.confirmApprove') || 'Are you sure you want to approve this expense?')) return
+  const handleApprove = (expense: Expense) => {
+    setExpenseToApprove(expense)
+    setIsConfirmModalOpen(true)
+  }
+
+  const executeApprove = async () => {
+    if (!expenseToApprove) return
 
     try {
-      const res = await fetch(`/api/expenses/${expense.id}/approve`, {
+      const res = await fetch(`/api/expenses/${expenseToApprove.id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
       })
 
       if (res.ok) {
+        setIsConfirmModalOpen(false)
+        setExpenseToApprove(null)
         fetchExpenses()
       }
     } catch (error) {
@@ -647,6 +659,30 @@ export default function ExpensesPage() {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Approval Confirmation Modal */}
+      {expenseToApprove && (
+        <DeleteConfirmationModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => {
+            setIsConfirmModalOpen(false)
+            setExpenseToApprove(null)
+          }}
+          onConfirm={executeApprove}
+          title={t('expenses.approveExpense') || 'Approve Expense'}
+          description={t('expenses.confirmApproveDescription') || 'This expense will be marked as approved'}
+          itemType={t('common.expense') || 'Expense'}
+          itemName={locale === 'fr' && categories.find(c => c.id === expenseToApprove.categoryId)?.nameFr
+            ? categories.find(c => c.id === expenseToApprove.categoryId)?.nameFr || expenseToApprove.categoryName
+            : expenseToApprove.categoryName}
+          itemDetails={[
+            { label: t('common.amount') || 'Amount', value: formatCurrency(expenseToApprove.amountGNF) },
+            { label: t('common.date') || 'Date', value: new Date(expenseToApprove.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') },
+          ]}
+          warningMessage={t('expenses.approveWarning') || 'Approving this expense will make it official in your records.'}
+          severity="normal"
         />
       )}
     </div>
