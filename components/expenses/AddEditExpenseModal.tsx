@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { X, Calendar, FileText, Tag, Building2, Package, Plus, Trash2, History, DollarSign, Receipt, Hash } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PaymentHistory } from './PaymentHistory'
-import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
+import { formatDateForInput, getTodayDateString, formatISOToLocaleInput, parseLocaleInputToISO, getDatePlaceholder } from '@/lib/date-utils'
 
 interface Category {
   id: string
@@ -123,12 +123,14 @@ export function AddEditExpenseModal({
 
   const [expenseItems, setExpenseItems] = useState<ExpenseItemInput[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [dateDisplay, setDateDisplay] = useState<string>('') // Display format (DD/MM/YYYY or MM/DD/YYYY)
 
   // Initialize form with expense data
   useEffect(() => {
     if (expense) {
+      const isoDate = formatDateForInput(expense.date)
       setFormData({
-        date: formatDateForInput(expense.date),
+        date: isoDate,
         categoryId: expense.categoryId || '',
         categoryName: expense.categoryName,
         amountGNF: expense.amountGNF,
@@ -138,6 +140,7 @@ export function AddEditExpenseModal({
         isInventoryPurchase: expense.isInventoryPurchase || false,
         comments: expense.comments || '',
       })
+      setDateDisplay(formatISOToLocaleInput(isoDate, locale))
       // Initialize expense items if editing
       if (expense.expenseItems && expense.expenseItems.length > 0) {
         setExpenseItems(expense.expenseItems.map(item => ({
@@ -150,8 +153,9 @@ export function AddEditExpenseModal({
       }
     } else {
       // Default to today for new expenses
+      const todayISO = getTodayDateString()
       setFormData({
-        date: getTodayDateString(),
+        date: todayISO,
         categoryId: '',
         categoryName: '',
         amountGNF: 0,
@@ -161,11 +165,12 @@ export function AddEditExpenseModal({
         isInventoryPurchase: false,
         comments: '',
       })
+      setDateDisplay(formatISOToLocaleInput(todayISO, locale))
       setExpenseItems([])
     }
     setErrors({})
     setPayments([])
-  }, [expense, isOpen])
+  }, [expense, isOpen, locale])
 
   // Fetch payment history for approved expenses
   const fetchPayments = useCallback(async () => {
@@ -281,6 +286,20 @@ export function AddEditExpenseModal({
   const handleNumberChange = (field: string, value: string) => {
     const numValue = parseFloat(value) || 0
     handleChange(field, numValue)
+  }
+
+  // Handle date input change (convert from locale format to ISO)
+  const handleDateChange = (displayValue: string) => {
+    setDateDisplay(displayValue)
+    const isoDate = parseLocaleInputToISO(displayValue, locale)
+    setFormData(prev => ({ ...prev, date: isoDate }))
+    if (errors.date && isoDate) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors.date
+        return newErrors
+      })
+    }
   }
 
   // Validate form
@@ -424,9 +443,10 @@ export function AddEditExpenseModal({
                 {t('expenses.date') || 'Date'} *
               </label>
               <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => handleChange('date', e.target.value)}
+                type="text"
+                value={dateDisplay}
+                onChange={(e) => handleDateChange(e.target.value)}
+                placeholder={getDatePlaceholder(locale)}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
                   border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}

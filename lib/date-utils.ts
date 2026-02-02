@@ -255,3 +255,71 @@ export function isYesterday(date: Date | string): boolean {
   yesterday.setDate(yesterday.getDate() - 1)
   return isSameDay(date, yesterday)
 }
+
+/**
+ * Converts YYYY-MM-DD to locale-specific display format (DD/MM/YYYY or MM/DD/YYYY)
+ * Use this for text input fields that show dates in locale format
+ *
+ * @param isoDate - Date string in YYYY-MM-DD format
+ * @param locale - Locale string (e.g., 'fr' or 'en')
+ * @returns Formatted date string (DD/MM/YYYY for French, MM/DD/YYYY for English)
+ *
+ * @example
+ * formatISOToLocaleInput("2026-02-01", "fr") // "01/02/2026"
+ * formatISOToLocaleInput("2026-02-01", "en") // "02/01/2026"
+ */
+export function formatISOToLocaleInput(isoDate: string, locale: string = 'en'): string {
+  if (!isoDate) return ''
+  const [year, month, day] = isoDate.split('-')
+  return locale === 'fr' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`
+}
+
+/**
+ * Converts locale-specific display format to YYYY-MM-DD
+ * Use this to parse text input values back to ISO format for storage
+ *
+ * @param displayDate - Date string in DD/MM/YYYY or MM/DD/YYYY format
+ * @param locale - Locale string (e.g., 'fr' or 'en')
+ * @returns Date string in YYYY-MM-DD format or empty string if invalid
+ *
+ * @example
+ * parseLocaleInputToISO("01/02/2026", "fr") // "2026-02-01"
+ * parseLocaleInputToISO("02/01/2026", "en") // "2026-02-01"
+ */
+export function parseLocaleInputToISO(displayDate: string, locale: string = 'en'): string {
+  if (!displayDate) return ''
+
+  const parts = displayDate.split('/')
+  if (parts.length !== 3) return ''
+
+  const [part1, part2, year] = parts
+
+  // French: DD/MM/YYYY, English: MM/DD/YYYY
+  const month = locale === 'fr' ? part2 : part1
+  const day = locale === 'fr' ? part1 : part2
+
+  // Basic validation
+  const yearNum = parseInt(year)
+  const monthNum = parseInt(month)
+  const dayNum = parseInt(day)
+
+  if (yearNum < 1900 || yearNum > 2100 || monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31) {
+    return ''
+  }
+
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+}
+
+/**
+ * Gets the date input placeholder based on locale
+ *
+ * @param locale - Locale string (e.g., 'fr' or 'en')
+ * @returns Placeholder string for date input
+ *
+ * @example
+ * getDatePlaceholder("fr") // "JJ/MM/AAAA"
+ * getDatePlaceholder("en") // "MM/DD/YYYY"
+ */
+export function getDatePlaceholder(locale: string = 'en'): string {
+  return locale === 'fr' ? 'JJ/MM/AAAA' : 'MM/DD/YYYY'
+}
