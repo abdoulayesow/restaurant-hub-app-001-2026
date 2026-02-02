@@ -75,7 +75,10 @@
     "expense": "Expense",
     "total": "Total",
     "description": "Description",
-    "comments": "Comments"
+    "comments": "Comments",
+    "saveChanges": "Save Changes",
+    "showingXtoYofZ": "Showing {start} to {end} of {total} transactions",
+    "pageXofY": "Page {current} of {total}"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -900,7 +903,14 @@
     "searchPlaceholder": "Search transactions...",
     "noMatchingTransactions": "No transactions match your filters.",
     "noTransactionsYet": "Record your first transaction to start tracking bank activity.",
-    "recordFirstTransaction": "Record First Transaction"
+    "recordFirstTransaction": "Record First Transaction",
+    "editTransaction": "Edit Transaction",
+    "transactionUpdated": "Transaction updated successfully",
+    "deleteTransaction": "Delete Transaction",
+    "transactionDeleted": "Transaction deleted successfully",
+    "deleteTransactionWarning": "This transaction will be permanently removed from your records.",
+    "transaction": "Transaction",
+    "amountMustBePositive": "Amount must be positive"
   },
   "projection": {
     "title": "Projections",

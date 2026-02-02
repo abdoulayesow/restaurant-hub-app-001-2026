@@ -9,8 +9,10 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { canAccessBank } from '@/lib/roles'
 import { TransactionFormModal } from '@/components/bank/TransactionFormModal'
+import { TransactionEditModal } from '@/components/bank/TransactionEditModal'
 import { TransactionsTable } from '@/components/bank/TransactionsTable'
 import { TransactionDetailModal } from '@/components/bank/TransactionDetailModal'
+import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal'
 import { Toast } from '@/components/ui/Toast'
 
 type TransactionType = 'Deposit' | 'Withdrawal'
@@ -82,6 +84,16 @@ export default function BankPage() {
   const [transactionModalOpen, setTransactionModalOpen] = useState(false)
   const [defaultTransactionType, setDefaultTransactionType] = useState<TransactionType>('Deposit')
   const [saving, setSaving] = useState(false)
+
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [editing, setEditing] = useState(false)
+
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
@@ -246,6 +258,83 @@ export default function BankPage() {
     setDetailModalOpen(true)
   }
 
+  // Handle edit transaction
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction)
+    setEditModalOpen(true)
+  }
+
+  // Handle edit submit
+  const handleEditSubmit = async (id: string, data: {
+    date: string
+    amount: number
+    type: TransactionType
+    method: PaymentMethod
+    reason: TransactionReason
+    description?: string
+    comments?: string
+  }) => {
+    setEditing(true)
+    try {
+      const response = await fetch(`/api/bank/transactions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update transaction')
+      }
+
+      setEditModalOpen(false)
+      setEditingTransaction(null)
+      setToast({ message: t('bank.transactionUpdated') || 'Transaction updated successfully', type: 'success' })
+      await Promise.all([fetchTransactions(), fetchBalances()])
+    } catch (err) {
+      setToast({
+        message: err instanceof Error ? err.message : t('errors.generic') || 'An error occurred',
+        type: 'error'
+      })
+    } finally {
+      setEditing(false)
+    }
+  }
+
+  // Handle delete transaction
+  const handleDeleteTransaction = (transaction: Transaction) => {
+    setDeletingTransaction(transaction)
+    setDeleteModalOpen(true)
+  }
+
+  // Handle delete confirm
+  const handleDeleteConfirm = async () => {
+    if (!deletingTransaction) return
+
+    setDeleting(true)
+    try {
+      const response = await fetch(`/api/bank/transactions/${deletingTransaction.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete transaction')
+      }
+
+      setDeleteModalOpen(false)
+      setDeletingTransaction(null)
+      setToast({ message: t('bank.transactionDeleted') || 'Transaction deleted successfully', type: 'success' })
+      await Promise.all([fetchTransactions(), fetchBalances()])
+    } catch (err) {
+      setToast({
+        message: err instanceof Error ? err.message : t('errors.generic') || 'An error occurred',
+        type: 'error'
+      })
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   // Open modal for deposit
   const openDepositModal = () => {
@@ -480,6 +569,8 @@ export default function BankPage() {
             transactions={filteredTransactions}
             onTransactionClick={handleTransactionClick}
             onConfirm={handleTransactionClick}
+            onEdit={handleEditTransaction}
+            onDelete={handleDeleteTransaction}
             canEdit={canManageBank}
             loading={loading}
           />
@@ -580,6 +671,40 @@ export default function BankPage() {
         onConfirm={handleConfirmFromModal}
         canConfirm={canManageBank}
         isConfirming={confirming}
+      />
+
+      <TransactionEditModal
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false)
+          setEditingTransaction(null)
+        }}
+        onSubmit={handleEditSubmit}
+        transaction={editingTransaction}
+        isLoading={editing}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setDeletingTransaction(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        title={t('bank.deleteTransaction') || 'Delete Transaction'}
+        description={t('common.actionIrreversible') || 'This action cannot be undone'}
+        itemType={t('bank.transaction') || 'Transaction'}
+        itemName={deletingTransaction
+          ? `${deletingTransaction.type === 'Deposit' ? '+' : '-'}${new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN').format(deletingTransaction.amount)} GNF`
+          : ''
+        }
+        itemDetails={deletingTransaction ? [
+          { label: t('common.date') || 'Date', value: new Date(deletingTransaction.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') },
+          { label: t('bank.method') || 'Method', value: deletingTransaction.method },
+        ] : undefined}
+        warningMessage={t('bank.deleteTransactionWarning') || 'This transaction will be permanently removed from your records.'}
+        severity="normal"
+        isLoading={deleting}
       />
 
       {/* Toast */}

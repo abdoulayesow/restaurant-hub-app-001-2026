@@ -75,7 +75,10 @@
     "expense": "Dépense",
     "total": "Total",
     "description": "Description",
-    "comments": "Commentaires"
+    "comments": "Commentaires",
+    "saveChanges": "Enregistrer les modifications",
+    "showingXtoYofZ": "Affichage de {start} à {end} sur {total} transactions",
+    "pageXofY": "Page {current} sur {total}"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -896,7 +899,14 @@
     "searchPlaceholder": "Rechercher des transactions...",
     "noMatchingTransactions": "Aucune transaction ne correspond à vos filtres.",
     "noTransactionsYet": "Enregistrez votre première transaction pour commencer à suivre l'activité bancaire.",
-    "recordFirstTransaction": "Enregistrer la première transaction"
+    "recordFirstTransaction": "Enregistrer la première transaction",
+    "editTransaction": "Modifier la transaction",
+    "transactionUpdated": "Transaction mise à jour avec succès",
+    "deleteTransaction": "Supprimer la transaction",
+    "transactionDeleted": "Transaction supprimée avec succès",
+    "deleteTransactionWarning": "Cette transaction sera définitivement supprimée de vos enregistrements.",
+    "transaction": "Transaction",
+    "amountMustBePositive": "Le montant doit être positif"
   },
   "projection": {
     "title": "Projections",
