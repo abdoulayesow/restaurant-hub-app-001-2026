@@ -610,7 +610,13 @@
       "receiptUrlPlaceholder": "https://drive.google.com/...",
       "receiptUrlHint": "Collez un lien vers la photo du bordereau de dépôt",
       "confirm": "Confirmer le dépôt"
-    }
+    },
+    "approveSale": "Approuver la vente",
+    "confirmApproveDescription": "Cette vente sera marquée comme approuvée",
+    "approveWarning": "L'approbation de cette vente la rendra officielle dans vos registres.",
+    "deleteSale": "Supprimer la vente",
+    "deleteWarning": "Cette vente sera supprimée définitivement.",
+    "deleteApprovedWarning": "Ceci est une vente approuvée. La supprimer la marquera comme supprimée mais conservera tous les enregistrements associés (dettes, transactions)."
   },
   "clients": {
     "title": "Clients",
@@ -668,7 +674,13 @@
     "errors": {
       "saveFailed": "Échec de l'enregistrement du client",
       "updateFailed": "Échec de la mise à jour du client"
-    }
+    },
+    "deactivateClient": "Désactiver le client",
+    "activateClient": "Activer le client",
+    "deactivateDescription": "Ce client sera marqué comme inactif",
+    "activateDescription": "Ce client sera marqué comme actif",
+    "deactivateWarning": "Le client n'apparaîtra plus dans les listes de sélection mais ses données historiques seront préservées.",
+    "activateWarning": "Le client sera disponible pour de nouvelles transactions."
   },
   "expenses": {
     "title": "Dépenses",
@@ -777,7 +789,10 @@
     "editExpenseDescription": "Modifier les détails de la dépense",
     "addExpenseDescription": "Enregistrer une nouvelle dépense",
     "transactionRefHint": "Requis pour les paiements par Carte et Orange Money",
-    "transactionRefRequired": "La référence de transaction est requise pour les paiements par Carte et Orange Money"
+    "transactionRefRequired": "La référence de transaction est requise pour les paiements par Carte et Orange Money",
+    "approveExpense": "Approuver la dépense",
+    "confirmApproveDescription": "Cette dépense sera marquée comme approuvée",
+    "approveWarning": "L'approbation de cette dépense la rendra officielle dans vos registres."
   },
   "bank": {
     "title": "Banque & Caisse",

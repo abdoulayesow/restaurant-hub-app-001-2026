@@ -614,7 +614,13 @@
       "receiptUrlPlaceholder": "https://drive.google.com/...",
       "receiptUrlHint": "Paste a link to your deposit slip photo",
       "confirm": "Confirm Deposit"
-    }
+    },
+    "approveSale": "Approve Sale",
+    "confirmApproveDescription": "This sale will be marked as approved",
+    "approveWarning": "Approving this sale will make it official in your records.",
+    "deleteSale": "Delete Sale",
+    "deleteWarning": "This sale record will be permanently deleted.",
+    "deleteApprovedWarning": "This is an approved sale. Deleting it will mark it as deleted but preserve all related records (debts, transactions)."
   },
   "clients": {
     "title": "Clients",
@@ -672,7 +678,13 @@
     "errors": {
       "saveFailed": "Failed to save customer",
       "updateFailed": "Failed to update customer"
-    }
+    },
+    "deactivateClient": "Deactivate Client",
+    "activateClient": "Activate Client",
+    "deactivateDescription": "This client will be marked as inactive",
+    "activateDescription": "This client will be marked as active",
+    "deactivateWarning": "The client will no longer appear in selection lists but their historical data will be preserved.",
+    "activateWarning": "The client will be available for new transactions."
   },
   "expenses": {
     "title": "Expenses",
@@ -781,7 +793,10 @@
     "editExpenseDescription": "Update expense details",
     "addExpenseDescription": "Record a new expense",
     "transactionRefHint": "Required for Card and Orange Money payments",
-    "transactionRefRequired": "Transaction reference is required for Card and Orange Money payments"
+    "transactionRefRequired": "Transaction reference is required for Card and Orange Money payments",
+    "approveExpense": "Approve Expense",
+    "confirmApproveDescription": "This expense will be marked as approved",
+    "approveWarning": "Approving this expense will make it official in your records."
   },
   "bank": {
     "title": "Bank & Cash",

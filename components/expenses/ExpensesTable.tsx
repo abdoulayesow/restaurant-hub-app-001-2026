@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Edit2, Eye, CheckCircle, XCircle, DollarSign, Banknote } from 'lucide-react'
+import { ChevronUp, ChevronDown, Edit2, CheckCircle, XCircle, DollarSign, Banknote } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { PAYMENT_METHODS, normalizePaymentMethod } from '@/lib/constants/payment-methods'
@@ -219,7 +219,7 @@ export function ExpensesTable({
         <thead>
           <tr className="bg-gray-100 dark:bg-stone-700">
             <th
-              className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600"
+              className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-stone-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-stone-600 w-[200px]"
               onClick={() => handleSort('date')}
             >
               <div className="flex items-center gap-1">
@@ -277,9 +277,10 @@ export function ExpensesTable({
             return (
               <tr
                 key={expense.id}
+                onClick={() => onView(expense)}
                 className={`
                   border-t border-gray-200 dark:border-stone-700
-                  hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors
+                  hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors cursor-pointer
                   ${index === sortedExpenses.length - 1 ? 'rounded-b-xl' : ''}
                 `}
               >
@@ -368,16 +369,8 @@ export function ExpensesTable({
                     <span className="text-xs text-gray-400 dark:text-stone-500">-</span>
                   )}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => onView(expense)}
-                      className="p-2 rounded-lg text-gray-600 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600 transition-colors"
-                      title={t('common.view') || 'View'}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-
                     {(isManager || expense.status === 'Pending') && (
                       <button
                         onClick={() => onEdit(expense)}
