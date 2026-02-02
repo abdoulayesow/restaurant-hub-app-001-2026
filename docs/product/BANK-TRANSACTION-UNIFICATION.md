@@ -1,8 +1,8 @@
 # Bank Transaction Management
 
 **Created**: January 29, 2026
-**Updated**: January 30, 2026
-**Status**: ✅ Complete
+**Updated**: February 1, 2026
+**Status**: ✅ Complete (Auto-confirm update pending implementation)
 
 ## Overview
 
@@ -19,15 +19,15 @@ The bakery is managed remotely by the owner in Atlanta, while staff operate in C
 
 **Bank transactions are created when money physically moves, NOT when records are created.**
 
-| User Action | Creates Bank Transaction? | Why |
-|-------------|--------------------------|-----|
-| Record a sale | ❌ No | Sale is just a record of what was sold |
-| Record an expense | ❌ No | Expense is just a record of what's owed |
-| Record a debt | ❌ No | Debt is just a record of credit given |
-| **Deposit sales cash** | ✅ Yes (Deposit) | Cash physically moves to bank/safe |
-| **Collect debt payment** | ✅ Yes (Deposit) | Cash physically received from customer |
-| **Pay an expense** | ✅ Yes (Withdrawal) | Cash physically paid out |
-| **Manual bank entry** | ✅ Yes | Owner records other movements |
+| User Action | Creates Bank Transaction? | Status | Why |
+|-------------|--------------------------|--------|-----|
+| Record a sale | ❌ No | - | Sale is just a record of what was sold |
+| Record an expense | ❌ No | - | Expense is just a record of what's owed |
+| Record a debt | ❌ No | - | Debt is just a record of credit given |
+| **Confirm/Deposit sales** | ✅ Yes (Deposit) | **Confirmed** | Cash physically moves to bank/safe |
+| **Collect debt payment** | ✅ Yes (Deposit) | **Confirmed** | Cash physically received from customer |
+| **Pay an expense** | ✅ Yes (Withdrawal) | **Confirmed** | Cash physically paid out |
+| **Manual bank entry** | ✅ Yes | **Pending** | Owner records other movements (requires review) |
 
 ## Transaction Sources & Permissions
 
@@ -59,12 +59,24 @@ Once confirmed, manual transactions become view-only (same as linked transaction
 
 ## Confirmation Workflow
 
-All bank transactions require owner confirmation:
+**Auto-Confirmed Transactions** (from Sales/Expenses/Debts):
+When a user confirms a sale deposit, expense payment, or debt collection, the bank transaction is automatically created with status `Confirmed`. The act of confirming at the source already verifies the money movement.
+
+```
+┌─────────────────┐     ┌─────────────────┐
+│  User confirms  │ ──▶ │   CONFIRMED     │
+│  sale/expense/  │     │   (Final)       │
+│  debt payment   │     │                 │
+└─────────────────┘     └─────────────────┘
+```
+
+**Manual Transactions** (from Bank page):
+Only transactions created directly on the Bank page require a two-step confirmation:
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Staff creates  │ ──▶ │    PENDING      │ ──▶ │   CONFIRMED     │
-│   transaction   │     │  (Owner review) │     │   (Final)       │
+│  Owner creates  │ ──▶ │    PENDING      │ ──▶ │   CONFIRMED     │
+│ manual entry    │     │  (Owner review) │     │   (Final)       │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                               │
                               ▼
@@ -75,6 +87,15 @@ All bank transactions require owner confirmation:
                         - Confirm button
 ```
 
+### Transaction Status by Source
+
+| Source | Initial Status | Requires Bank Confirmation? |
+|--------|---------------|----------------------------|
+| Sales deposit (from Sales page) | **Confirmed** | ❌ No (auto-confirmed) |
+| Expense payment (from Expenses page) | **Confirmed** | ❌ No (auto-confirmed) |
+| Debt collection (from Debts page) | **Confirmed** | ❌ No (auto-confirmed) |
+| Manual entry (from Bank page) | **Pending** | ✅ Yes |
+
 ### Who Can Do What
 
 | Action | Staff | Owner/Manager |
@@ -84,7 +105,7 @@ All bank transactions require owner confirmation:
 | Record debt payment | ✅ | ✅ |
 | Create manual bank entry | ❌ | ✅ |
 | Edit/delete manual entry | ❌ | ✅ (if Pending) |
-| Confirm any transaction | ❌ | ✅ |
+| Confirm manual transaction | ❌ | ✅ |
 
 ## Bank Page Features
 
@@ -360,14 +381,23 @@ FROM CashDeposit;
 ## Implementation Summary
 
 **Completed**: January 29, 2026
+**Updated**: February 1, 2026 (Auto-confirm for source-linked transactions)
 
 ### What Was Done
 
-1. **Expense Payments** now create `Pending` BankTransactions (withdrawals) requiring Manager confirmation
-2. **Debt Payments** now create `Pending` BankTransactions (deposits) for debt collections
-3. **Sales Deposits** use `BankTransaction` directly instead of the deprecated `CashDeposit` model
-4. **TransactionDetailModal** includes inline confirmation form with bank reference and notes fields
-5. **CashDeposit model removed** from schema; legacy API maintains backward compatibility
+1. **Expense Payments** create `Confirmed` BankTransactions (withdrawals) - auto-confirmed at source
+2. **Debt Payments** create `Confirmed` BankTransactions (deposits) - auto-confirmed at source
+3. **Sales Deposits** create `Confirmed` BankTransactions - auto-confirmed at source
+4. **Manual Transactions** from Bank page create `Pending` transactions requiring Owner confirmation
+5. **TransactionDetailModal** includes inline confirmation form with bank reference and notes fields (for manual entries)
+6. **CashDeposit model removed** from schema; legacy API maintains backward compatibility
+
+### Auto-Confirm Rationale
+
+Transactions from Sales/Expenses/Debts are auto-confirmed because:
+- The action of confirming a sale deposit, paying an expense, or recording a debt payment already verifies the money movement
+- Requiring a second confirmation in the Bank page added unnecessary friction
+- Manual bank entries still require confirmation as they're direct entries without source verification
 
 ### Database Migration Note
 

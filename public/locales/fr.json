@@ -54,6 +54,9 @@
     "deleting": "Suppression...",
     "actionIrreversible": "Cette action est irréversible",
     "typeToConfirm": "Tapez le nom pour confirmer",
+    "textDoesNotMatch": "Le texte ne correspond pas",
+    "confirmDelete": "Confirmer la suppression",
+    "deleteWarning": "Cet enregistrement sera définitivement supprimé et ne pourra pas être récupéré.",
     "previous": "Précédent",
     "next": "Suivant",
     "page": "Page",
@@ -62,6 +65,7 @@
     "to": "à",
     "from": "De",
     "apply": "Appliquer",
+    "date": "Date",
     "dateTime": "Date/Heure",
     "type": "Type",
     "createdBy": "Créé par",
@@ -69,7 +73,9 @@
     "items": "articles",
     "sale": "Vente",
     "expense": "Dépense",
-    "total": "Total"
+    "total": "Total",
+    "description": "Description",
+    "comments": "Commentaires"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -775,6 +781,15 @@
   },
   "bank": {
     "title": "Banque & Caisse",
+    "newTransaction": "Nouvelle Transaction",
+    "transactionType": "Type de Transaction",
+    "paymentMethod": "Mode de Paiement",
+    "linkedSale": "Vente Associée",
+    "selectSale": "Sélectionner une vente",
+    "noAvailableSales": "Aucune vente disponible à associer",
+    "commentsPlaceholder": "Commentaires supplémentaires sur cette transaction...",
+    "createDeposit": "Créer le Dépôt",
+    "createWithdrawal": "Créer le Retrait",
     "totalBalance": "Solde total",
     "acrossAllAccounts": "Sur tous les comptes",
     "cashOnHand": "Caisse",
@@ -822,7 +837,13 @@
       "ExpensePayment": "Paiement de dépense",
       "OwnerWithdrawal": "Retrait propriétaire",
       "CapitalInjection": "Injection de capital",
-      "Other": "Autre"
+      "Other": "Autre",
+      "salesDeposit": "Dépôt de ventes",
+      "debtCollection": "Recouvrement de créance",
+      "expensePayment": "Paiement de dépense",
+      "ownerWithdrawal": "Retrait propriétaire",
+      "capitalInjection": "Injection de capital",
+      "other": "Autre"
     },
     "methods": {
       "Cash": "Espèces",

@@ -54,6 +54,9 @@
     "deleting": "Deleting...",
     "actionIrreversible": "This action cannot be undone",
     "typeToConfirm": "Type the name to confirm",
+    "textDoesNotMatch": "Text does not match",
+    "confirmDelete": "Confirm Delete",
+    "deleteWarning": "This record will be permanently deleted and cannot be recovered.",
     "previous": "Previous",
     "next": "Next",
     "page": "Page",
@@ -62,6 +65,7 @@
     "to": "to",
     "from": "From",
     "apply": "Apply",
+    "date": "Date",
     "dateTime": "Date/Time",
     "type": "Type",
     "createdBy": "Created By",
@@ -69,7 +73,9 @@
     "items": "items",
     "sale": "Sale",
     "expense": "Expense",
-    "total": "Total"
+    "total": "Total",
+    "description": "Description",
+    "comments": "Comments"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -779,6 +785,15 @@
   },
   "bank": {
     "title": "Bank & Cash",
+    "newTransaction": "New Transaction",
+    "transactionType": "Transaction Type",
+    "paymentMethod": "Payment Method",
+    "linkedSale": "Linked Sale",
+    "selectSale": "Select a sale",
+    "noAvailableSales": "No available sales to link",
+    "commentsPlaceholder": "Additional comments about this transaction...",
+    "createDeposit": "Create Deposit",
+    "createWithdrawal": "Create Withdrawal",
     "totalBalance": "Total Balance",
     "acrossAllAccounts": "Across all accounts",
     "cashOnHand": "Cash on Hand",
@@ -826,7 +841,13 @@
       "ExpensePayment": "Expense Payment",
       "OwnerWithdrawal": "Owner Withdrawal",
       "CapitalInjection": "Capital Injection",
-      "Other": "Other"
+      "Other": "Other",
+      "salesDeposit": "Sales Deposit",
+      "debtCollection": "Debt Collection",
+      "expensePayment": "Expense Payment",
+      "ownerWithdrawal": "Owner Withdrawal",
+      "capitalInjection": "Capital Injection",
+      "other": "Other"
     },
     "methods": {
       "Cash": "Cash",

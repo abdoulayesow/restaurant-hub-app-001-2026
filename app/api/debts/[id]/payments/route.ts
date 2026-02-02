@@ -197,7 +197,7 @@ export async function POST(
           method: body.paymentMethod.trim(),
           reason: 'DebtCollection',
           description: `Debt payment from ${debt.customer?.name || 'Unknown customer'}`,
-          status: 'Pending',
+          status: 'Confirmed', // Auto-confirmed: payment action verifies money movement
           debtPaymentId: payment.id,
           createdBy: session.user.id,
           createdByName: user?.name || null

@@ -94,27 +94,31 @@ public/
 
 **When Bank Transactions Are Created:**
 
-| Action | Creates Bank Transaction? | Type |
-|--------|--------------------------|------|
-| Record a sale | ❌ No | - |
-| Record an expense | ❌ No | - |
-| Record a debt | ❌ No | - |
-| Deposit sales cash to bank | ✅ Yes | Deposit (Pending) |
-| Collect debt payment | ✅ Yes | Deposit (Pending) |
-| Pay an expense | ✅ Yes | Withdrawal (Pending) |
-| Manual entry from Bank page | ✅ Yes | Deposit/Withdrawal (Pending) |
+| Action | Creates Bank Transaction? | Type | Status |
+|--------|--------------------------|------|--------|
+| Record a sale | ❌ No | - | - |
+| Record an expense | ❌ No | - | - |
+| Record a debt | ❌ No | - | - |
+| Confirm/Deposit sales to bank | ✅ Yes | Deposit | **Confirmed** |
+| Collect debt payment | ✅ Yes | Deposit | **Confirmed** |
+| Pay an expense | ✅ Yes | Withdrawal | **Confirmed** |
+| Manual entry from Bank page | ✅ Yes | Deposit/Withdrawal | **Pending** |
+
+**Auto-Confirm vs Manual Confirm:**
+- **Auto-Confirmed**: Transactions from Sales/Expenses/Debts are automatically confirmed because the action (confirming sale, paying expense, collecting debt) already verifies the money movement
+- **Manual Confirm**: Transactions created directly on Bank page require Owner review before confirmation (Pending → Confirmed)
 
 **Transaction Types by Source:**
 
-| Source | Created By | Editable? | Deletable? |
-|--------|-----------|-----------|------------|
-| Sales deposit | Staff (from Sales page) | View only | No |
-| Debt collection | Staff (from Debts page) | View only | No |
-| Expense payment | Staff (from Expenses page) | View only | No |
-| Manual entry | Owner (from Bank page) | Yes, until confirmed | Yes, until confirmed |
+| Source | Created By | Status | Editable? | Deletable? |
+|--------|-----------|--------|-----------|------------|
+| Sales deposit | Staff (from Sales page) | Confirmed | View only | No |
+| Debt collection | Staff (from Debts page) | Confirmed | View only | No |
+| Expense payment | Staff (from Expenses page) | Confirmed | View only | No |
+| Manual entry | Owner (from Bank page) | Pending | Yes, until confirmed | Yes, until confirmed |
 
-**Confirmation Workflow:**
-1. Staff/Owner creates transaction → Status: `Pending`
+**Confirmation Workflow (Manual Entries Only):**
+1. Owner creates manual transaction from Bank page → Status: `Pending`
 2. Owner reviews and confirms via modal form → Status: `Confirmed`
 3. Once confirmed: view-only (no edit/delete)
 
