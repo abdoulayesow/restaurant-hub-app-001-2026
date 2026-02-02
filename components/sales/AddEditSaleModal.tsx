@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Calendar, DollarSign, Smartphone, CreditCard, FileText, Plus, Trash2, UserCheck, Package, ChevronDown, ChevronUp } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { formatDateForInput, getTodayDateString } from '@/lib/date-utils'
+import { formatDateForInput, getTodayDateString, formatISOToLocaleInput, parseLocaleInputToISO, getDatePlaceholder } from '@/lib/date-utils'
 
 interface Customer {
   id: string
@@ -95,9 +95,11 @@ export function AddEditSaleModal({
     cardGNF: 0,
     comments: '',
   })
+  const [dateDisplay, setDateDisplay] = useState<string>('') // Display format (DD/MM/YYYY or MM/DD/YYYY)
 
   const [customers, setCustomers] = useState<Customer[]>([])
   const [debtItems, setDebtItems] = useState<DebtItem[]>([])
+  const [debtDueDateDisplays, setDebtDueDateDisplays] = useState<string[]>([]) // Display format for debt due dates
   const [showCreditSection, setShowCreditSection] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -151,23 +153,30 @@ export function AddEditSaleModal({
   // Initialize form with sale data
   useEffect(() => {
     if (sale) {
+      const isoDate = formatDateForInput(sale.date)
       setFormData({
-        date: formatDateForInput(sale.date), // Use timezone-aware date formatting
+        date: isoDate, // Use timezone-aware date formatting
         cashGNF: sale.cashGNF,
         orangeMoneyGNF: sale.orangeMoneyGNF,
         cardGNF: sale.cardGNF,
         comments: sale.comments || '',
       })
+      setDateDisplay(formatISOToLocaleInput(isoDate, locale))
       if (sale.debts && sale.debts.length > 0) {
         // Transform existing debts from DB format to modal format
-        const transformedDebts = sale.debts.map((debt: DebtItem | { principalAmount?: number; dueDate?: string | Date; [key: string]: unknown }) => ({
-          customerId: typeof debt.customerId === 'string' ? debt.customerId : '',
-          // Use principalAmount from DB, but store as amountGNF for the modal
-          amountGNF: ('principalAmount' in debt && typeof debt.principalAmount === 'number' ? debt.principalAmount : ('amountGNF' in debt && typeof debt.amountGNF === 'number' ? debt.amountGNF : 0)),
-          dueDate: debt.dueDate ? formatDateForInput(debt.dueDate) : '',
-          description: typeof debt.description === 'string' ? debt.description : ''
-        }))
+        const transformedDebts = sale.debts.map((debt: DebtItem | { principalAmount?: number; dueDate?: string | Date; [key: string]: unknown }) => {
+          const isoDate = debt.dueDate ? formatDateForInput(debt.dueDate) : ''
+          return {
+            customerId: typeof debt.customerId === 'string' ? debt.customerId : '',
+            // Use principalAmount from DB, but store as amountGNF for the modal
+            amountGNF: ('principalAmount' in debt && typeof debt.principalAmount === 'number' ? debt.principalAmount : ('amountGNF' in debt && typeof debt.amountGNF === 'number' ? debt.amountGNF : 0)),
+            dueDate: isoDate,
+            description: typeof debt.description === 'string' ? debt.description : ''
+          }
+        })
         setDebtItems(transformedDebts)
+        // Initialize display dates for debt items
+        setDebtDueDateDisplays(transformedDebts.map(d => d.dueDate ? formatISOToLocaleInput(d.dueDate, locale) : ''))
         setShowCreditSection(true)
       }
       // Initialize saleItems if present
@@ -184,20 +193,23 @@ export function AddEditSaleModal({
       }
     } else {
       // Default to today for new sales
+      const todayISO = getTodayDateString()
       setFormData({
-        date: getTodayDateString(), // Use timezone-aware today's date
+        date: todayISO, // Use timezone-aware today's date
         cashGNF: 0,
         orangeMoneyGNF: 0,
         cardGNF: 0,
         comments: '',
       })
+      setDateDisplay(formatISOToLocaleInput(todayISO, locale))
       setDebtItems([])
+      setDebtDueDateDisplays([])
       setShowCreditSection(false)
       setSaleItems([])
       setShowProductsSection(false)
     }
     setErrors({})
-  }, [sale, isOpen])
+  }, [sale, isOpen, locale])
 
   // Calculate totals
   const immediatePaymentGNF = formData.cashGNF + formData.orangeMoneyGNF + formData.cardGNF
@@ -251,6 +263,42 @@ export function AddEditSaleModal({
     handleChange(field, numValue)
   }
 
+  // Handle date change (convert between display and ISO formats)
+  const handleDateChange = (displayValue: string) => {
+    setDateDisplay(displayValue)
+    const isoDate = parseLocaleInputToISO(displayValue, locale)
+    setFormData(prev => ({ ...prev, date: isoDate }))
+
+    // Immediate validation for date field - check if date already has a sale
+    if (isoDate && !isEditMode) {
+      // Check if this date already has a sale (exclude current sale date in edit mode)
+      const dateExists = existingDates.some(existingDate => {
+        // Normalize both dates to YYYY-MM-DD for comparison
+        const normalizedExisting = existingDate.split('T')[0]
+        return normalizedExisting === isoDate
+      })
+
+      if (dateExists) {
+        setErrors(prev => ({
+          ...prev,
+          date: t('errors.saleDuplicateDateShort') || 'A sale already exists for this date'
+        }))
+      } else if (errors.date) {
+        setErrors(prev => {
+          const newErrors = { ...prev }
+          delete newErrors.date
+          return newErrors
+        })
+      }
+    } else if (errors.date && isoDate) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors.date
+        return newErrors
+      })
+    }
+  }
+
   // Add debt item
   const addDebtItem = () => {
     setDebtItems([
@@ -262,6 +310,7 @@ export function AddEditSaleModal({
         description: ''
       }
     ])
+    setDebtDueDateDisplays([...debtDueDateDisplays, ''])
     setShowCreditSection(true)
   }
 
@@ -269,6 +318,8 @@ export function AddEditSaleModal({
   const removeDebtItem = (index: number) => {
     const updated = debtItems.filter((_, i) => i !== index)
     setDebtItems(updated)
+    const updatedDisplays = debtDueDateDisplays.filter((_, i) => i !== index)
+    setDebtDueDateDisplays(updatedDisplays)
     if (updated.length === 0) {
       setShowCreditSection(false)
     }
@@ -278,6 +329,20 @@ export function AddEditSaleModal({
   const updateDebtItem = (index: number, field: keyof DebtItem, value: string | number) => {
     const updated = [...debtItems]
     updated[index] = { ...updated[index], [field]: value }
+    setDebtItems(updated)
+  }
+
+  // Handle debt due date change (convert between display and ISO formats)
+  const handleDebtDueDateChange = (index: number, displayValue: string) => {
+    // Update display value
+    const updatedDisplays = [...debtDueDateDisplays]
+    updatedDisplays[index] = displayValue
+    setDebtDueDateDisplays(updatedDisplays)
+
+    // Convert to ISO and update debt item
+    const isoDate = parseLocaleInputToISO(displayValue, locale)
+    const updated = [...debtItems]
+    updated[index] = { ...updated[index], dueDate: isoDate }
     setDebtItems(updated)
   }
 
@@ -451,11 +516,11 @@ export function AddEditSaleModal({
                 {t('sales.date') || 'Date'} *
               </label>
               <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => handleChange('date', e.target.value)}
+                type="text"
+                value={dateDisplay}
+                onChange={(e) => handleDateChange(e.target.value)}
                 disabled={isViewMode}
-                placeholder={locale === 'fr' ? 'JJ/MM/AAAA' : 'MM/DD/YYYY'}
+                placeholder={getDatePlaceholder(locale)}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
                   border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}
@@ -650,9 +715,10 @@ export function AddEditSaleModal({
                               {t('sales.dueDate')}
                             </label>
                             <input
-                              type="date"
-                              value={item.dueDate}
-                              onChange={(e) => updateDebtItem(index, 'dueDate', e.target.value)}
+                              type="text"
+                              value={debtDueDateDisplays[index] || ''}
+                              onChange={(e) => handleDebtDueDateChange(index, e.target.value)}
+                              placeholder={getDatePlaceholder(locale)}
                               disabled={isViewMode}
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 focus:ring-2 focus:ring-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             />
