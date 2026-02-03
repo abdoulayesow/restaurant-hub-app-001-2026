@@ -276,8 +276,9 @@ export async function GET(request: NextRequest) {
     const expensesChange = prevExpenses > 0 ? Math.round(((totalExpenses - prevExpenses) / prevExpenses) * 100) : 0
 
     // Calculate stock consumption value (actual cost of ingredients consumed)
+    // Usage movements have negative quantities, so we use Math.abs()
     const stockConsumptionValue = stockConsumption.reduce(
-      (sum, m) => sum + (m.quantity * (m.unitCost || 0)),
+      (sum, m) => sum + (Math.abs(m.quantity) * (m.unitCost || 0)),
       0
     )
 
@@ -292,12 +293,12 @@ export async function GET(request: NextRequest) {
     stockConsumption.forEach(m => {
       const existing = consumptionByItem.get(m.itemId)
       if (existing) {
-        existing.quantity += m.quantity
+        existing.quantity += Math.abs(m.quantity)
       } else {
         consumptionByItem.set(m.itemId, {
           name: m.item.name,
           nameFr: m.item.nameFr || m.item.name,
-          quantity: m.quantity,
+          quantity: Math.abs(m.quantity),
           unit: m.item.unit,
         })
       }
