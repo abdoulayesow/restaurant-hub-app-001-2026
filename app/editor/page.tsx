@@ -129,8 +129,11 @@ export default function EditorPage() {
         if (type === 'sales') {
           const salesData = await response.json()
           const sales = salesData.sales || []
-          // Store existing sale dates for duplicate prevention
-          setExistingSaleDates(sales.map((s: { date: string }) => s.date.split('T')[0]))
+          // Store existing sale dates for duplicate prevention (extract YYYY-MM-DD from ISO strings)
+          setExistingSaleDates(sales.map((s: { date: string }) => {
+            const datePart = s.date.includes('T') ? s.date.split('T')[0] : s.date
+            return datePart
+          }))
 
           sales.forEach((sale: { id: string; date: string; totalGNF: number; status: string; createdAt: string; submittedByName?: string }) => {
             submissions.push({

@@ -25,6 +25,7 @@ import {
   getAllRestaurantTypes,
   type RestaurantType,
 } from '@/config/restaurantTypes'
+import { formatDateForInput } from '@/lib/date-utils'
 
 type SectionId = 'type' | 'basic' | 'financial' | 'contact'
 
@@ -162,8 +163,8 @@ export function BakeryProfileSettings() {
             productionEnabled: restaurant.productionEnabled ?? true,
             name: restaurant.name || '',
             location: restaurant.location || '',
-            openingDate: restaurant.openingDate ? restaurant.openingDate.split('T')[0] : '',
-            trackingStartDate: restaurant.trackingStartDate ? restaurant.trackingStartDate.split('T')[0] : '',
+            openingDate: restaurant.openingDate ? formatDateForInput(restaurant.openingDate) : '',
+            trackingStartDate: restaurant.trackingStartDate ? formatDateForInput(restaurant.trackingStartDate) : '',
             initialCapital: restaurant.initialCapital || 0,
             initialCashBalance: restaurant.initialCashBalance || 0,
             initialOrangeBalance: restaurant.initialOrangeBalance || 0,
