@@ -7,6 +7,7 @@ import { Building2, ArrowUpRight, ArrowDownRight, RefreshCw, Plus, Wallet, Smart
 import { NavigationHeader } from '@/components/layout/NavigationHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 import { canAccessBank } from '@/lib/roles'
 import { TransactionFormModal } from '@/components/bank/TransactionFormModal'
 import { TransactionEditModal } from '@/components/bank/TransactionEditModal'
@@ -613,7 +614,7 @@ export default function BankPage() {
           : ''
         }
         itemDetails={deletingTransaction ? [
-          { label: t('common.date') || 'Date', value: new Date(deletingTransaction.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US') },
+          { label: t('common.date') || 'Date', value: formatUTCDateForDisplay(deletingTransaction.date, locale === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' }) },
           { label: t('bank.method') || 'Method', value: deletingTransaction.method },
         ] : undefined}
         warningMessage={t('bank.deleteTransactionWarning') || 'This transaction will be permanently removed from your records.'}

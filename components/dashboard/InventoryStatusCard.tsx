@@ -44,6 +44,13 @@ export function InventoryStatusCard({
     return locale === 'fr' ? item.nameFr : item.name
   }
 
+  const formatQuantity = (quantity: number) => {
+    return new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(quantity)
+  }
+
   if (loading) {
     return (
       <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 p-6">
@@ -150,7 +157,7 @@ export function InventoryStatusCard({
                 key={index}
                 className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-stone-700 text-xs text-gray-700 dark:text-stone-300"
               >
-                {getLocalizedName(item)} <span className="text-gray-500 dark:text-stone-400">{item.quantity}{item.unit}</span>
+                {getLocalizedName(item)} <span className="text-gray-500 dark:text-stone-400">{formatQuantity(item.quantity)}{item.unit}</span>
               </span>
             ))}
           </div>

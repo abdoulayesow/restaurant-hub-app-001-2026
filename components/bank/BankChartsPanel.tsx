@@ -20,6 +20,7 @@ import {
   ResponsiveContainer
 } from 'recharts'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface BankChartsPanelProps {
   isOpen: boolean
@@ -109,20 +110,18 @@ export function BankChartsPanel({ isOpen, onClose, restaurantId }: BankChartsPan
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       month: 'short',
       day: 'numeric'
-    }).format(date)
+    })
   }
 
   const formatFullDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
-    }).format(date)
+    })
   }
 
   // Chart colors (warm palette for bakery theme)

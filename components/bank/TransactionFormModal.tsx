@@ -5,7 +5,7 @@ import { X, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { PAYMENT_METHODS as PAYMENT_METHODS_CONFIG, PaymentMethodValue } from '@/lib/constants/payment-methods'
-import { getTodayDateString } from '@/lib/date-utils'
+import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
 import {
   TransactionType,
   TransactionReason,
@@ -163,12 +163,11 @@ export function TransactionFormModal({
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   const validate = (): boolean => {

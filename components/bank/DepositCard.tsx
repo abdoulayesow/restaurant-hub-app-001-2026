@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Clock, CheckCircle, Receipt } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface Deposit {
   id: string
@@ -41,12 +42,11 @@ export function DepositCard({ deposit, onMarkDeposited, canEdit }: DepositCardPr
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   const getStatusBadge = () => {

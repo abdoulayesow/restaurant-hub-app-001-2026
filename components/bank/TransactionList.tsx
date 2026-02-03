@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { formatDateForInput } from '@/lib/date-utils'
+import { formatDateForInput, formatUTCDateForDisplay } from '@/lib/date-utils'
 import { Transaction, TransactionReason } from '@/lib/types/bank'
 import { PaymentMethodValue } from '@/lib/constants/payment-methods'
 
@@ -78,12 +78,11 @@ export function TransactionList({ transactions, onConfirm, onTransactionClick, c
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    }).format(date)
+    })
   }
 
   // Group transactions by date

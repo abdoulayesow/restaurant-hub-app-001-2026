@@ -20,6 +20,7 @@ import {
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { Transaction, TransactionReason } from '@/lib/types/bank'
 import { PaymentMethodValue } from '@/lib/constants/payment-methods'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface TransactionDetailModalProps {
   isOpen: boolean
@@ -94,23 +95,21 @@ export function TransactionDetailModal({
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date)
+    })
   }
 
   const handleConfirmClick = () => {

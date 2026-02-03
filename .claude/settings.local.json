@@ -35,7 +35,8 @@
       "Bash(dir:*)",
       "Bash(npm run dev:*)",
       "Bash(npx tsx:*)",
-      "Bash(npx prisma validate:*)"
+      "Bash(npx prisma validate:*)",
+      "Bash(npm run db:seed:dev:*)"
     ]
   }
 }
