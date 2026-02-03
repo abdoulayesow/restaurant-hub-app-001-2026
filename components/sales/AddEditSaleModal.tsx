@@ -284,6 +284,16 @@ export function AddEditSaleModal({
     const updated = [...debtItems]
     updated[index] = { ...updated[index], [field]: value }
     setDebtItems(updated)
+
+    // Clear related errors when debt item values change
+    const errorKey = field === 'customerId' ? `debt_${index}_customer` : `debt_${index}_${field}`
+    if (errors[errorKey]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[errorKey]
+        return newErrors
+      })
+    }
   }
 
   // Add sale item (product sold)
@@ -322,6 +332,16 @@ export function AddEditSaleModal({
     }
 
     setSaleItems(updated)
+
+    // Clear related errors when sale item values change
+    const errorKey = field === 'productId' ? `saleItem_${index}_product` : `saleItem_${index}_${field}`
+    if (errors[errorKey]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[errorKey]
+        return newErrors
+      })
+    }
   }
 
 
