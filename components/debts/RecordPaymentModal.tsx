@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { X, DollarSign, Calendar, FileText, Receipt, Hash, Banknote, CreditCard, Smartphone } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { PAYMENT_METHODS, PaymentMethodValue } from '@/lib/constants/payment-methods'
-import { getTodayDateString } from '@/lib/date-utils'
+import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface Debt {
   id: string
@@ -56,8 +56,8 @@ export default function RecordPaymentModal({
     notes: ''
   })
 
-  // Check if transaction ID should be shown (Card or Orange Money)
-  const showTransactionId = formData.paymentMethod === 'Card' || formData.paymentMethod === 'OrangeMoney'
+  // Transaction ID is required for Card/OrangeMoney, optional for Cash
+  const requiresTransactionId = formData.paymentMethod === 'Card' || formData.paymentMethod === 'OrangeMoney'
 
   // Calculate payment progress
   const paymentProgress = useMemo(() => {
@@ -121,9 +121,9 @@ export default function RecordPaymentModal({
         return
       }
 
-      // Validate transaction ID for card/Orange Money
-      if (showTransactionId && !formData.transactionId.trim()) {
-        setError(t('debts.transactionIdHint') || 'Transaction ID is required for this payment method')
+      // Validate transaction ID for card/Orange Money (required)
+      if (requiresTransactionId && !formData.transactionId.trim()) {
+        setError(t('debts.transactionIdRequired') || 'Transaction ID is required for Card and Orange Money payments')
         setIsSubmitting(false)
         return
       }
@@ -136,7 +136,7 @@ export default function RecordPaymentModal({
           paymentMethod: formData.paymentMethod,
           paymentDate: formData.paymentDate,
           receiptNumber: formData.receiptNumber || null,
-          transactionId: showTransactionId ? formData.transactionId : null,
+          transactionId: formData.transactionId || null,
           notes: formData.notes || null
         })
       })
@@ -194,10 +194,10 @@ export default function RecordPaymentModal({
                 </p>
                 <p className="text-xs text-gray-500 dark:text-stone-400 mt-0.5 flex items-center gap-2">
                   <Calendar className="w-3 h-3" />
-                  {t('debts.debtDate') || 'Debt date'}: {new Date(debt.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {t('debts.debtDate') || 'Debt date'}: {formatUTCDateForDisplay(debt.createdAt, locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   {debt.dueDate && (
                     <span className="text-amber-600 dark:text-amber-400">
-                      • {t('debts.dueDate') || 'Due'}: {new Date(debt.dueDate).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      • {t('debts.dueDate') || 'Due'}: {formatUTCDateForDisplay(debt.dueDate, locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                   )}
                 </p>
@@ -333,28 +333,29 @@ export default function RecordPaymentModal({
               </div>
             </div>
 
-            {/* Transaction ID - Conditional */}
-            {showTransactionId && (
-              <div className="animate-in slide-in-from-top-2 duration-200">
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-stone-200 mb-2">
-                  <Hash className="w-4 h-4 text-orange-500" />
-                  {t('debts.transactionId') || 'Transaction ID'} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.transactionId}
-                  onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
-                  placeholder={t('debts.transactionIdPlaceholder') || 'Enter transaction reference'}
-                  disabled={isSubmitting}
-                />
-                <p className="text-xs text-gray-500 dark:text-stone-400 mt-1.5 flex items-center gap-1">
-                  <span className="inline-block w-1 h-1 bg-orange-400 rounded-full" />
-                  {t('debts.transactionIdHint') || 'Required for Card and Orange Money payments'}
-                </p>
-              </div>
-            )}
+            {/* Transaction ID - Always shown, required for Card/OrangeMoney */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-stone-200 mb-2">
+                <Hash className="w-4 h-4 text-orange-500" />
+                {t('debts.transactionId') || 'Transaction ID'} {requiresTransactionId && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="text"
+                required={requiresTransactionId}
+                value={formData.transactionId}
+                onChange={(e) => setFormData({ ...formData, transactionId: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-stone-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-stone-900 text-gray-900 dark:text-stone-100 placeholder:text-gray-400 dark:placeholder:text-stone-500"
+                placeholder={t('debts.transactionIdPlaceholder') || 'Enter transaction reference'}
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-gray-500 dark:text-stone-400 mt-1.5 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-orange-400 rounded-full" />
+                {requiresTransactionId
+                  ? (t('debts.transactionIdRequired') || 'Required for Card and Orange Money payments')
+                  : (t('debts.transactionIdOptional') || 'Optional - Bank deposit reference number')
+                }
+              </p>
+            </div>
 
             {/* Payment Date & Receipt - Two columns */}
             <div className="grid grid-cols-2 gap-4">

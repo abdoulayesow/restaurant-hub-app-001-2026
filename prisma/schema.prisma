@@ -416,6 +416,7 @@ model DebtPayment {
   paymentMethod   String
   paymentDate     DateTime
   receiptNumber   String?
+  transactionId   String?
   notes           String?
   receivedBy      String
   receivedByName  String?

@@ -181,6 +181,7 @@ export async function POST(
           paymentMethod: body.paymentMethod.trim(),
           paymentDate: new Date(body.paymentDate),
           receiptNumber: body.receiptNumber?.trim() || null,
+          transactionId: body.transactionId?.trim() || null,
           notes: body.notes?.trim() || null,
           receivedBy: session.user.id,
           receivedByName: user?.name || null
