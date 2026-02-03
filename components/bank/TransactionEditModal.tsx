@@ -10,6 +10,7 @@ import {
   DEPOSIT_REASONS as DEPOSIT_REASON_VALUES,
   WITHDRAWAL_REASONS as WITHDRAWAL_REASON_VALUES,
 } from '@/lib/types/bank'
+import { formatDateForInput } from '@/lib/date-utils'
 
 // Simplified transaction interface for edit form
 interface EditableTransaction {
@@ -93,7 +94,7 @@ export function TransactionEditModal({
     if (isOpen && transaction) {
       setFormData({
         type: transaction.type,
-        date: transaction.date.split('T')[0],
+        date: formatDateForInput(transaction.date),
         amount: String(transaction.amount),
         method: transaction.method,
         reason: transaction.reason,

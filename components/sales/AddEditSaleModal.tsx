@@ -228,7 +228,7 @@ export function AddEditSaleModal({
       // Check if this date already has a sale (exclude current sale date in edit mode)
       const dateExists = existingDates.some(existingDate => {
         // Normalize both dates to YYYY-MM-DD for comparison
-        const normalizedExisting = existingDate.split('T')[0]
+        const normalizedExisting = existingDate.includes('T') ? existingDate.split('T')[0] : existingDate
         return normalizedExisting === selectedDate
       })
 
@@ -286,12 +286,21 @@ export function AddEditSaleModal({
     setDebtItems(updated)
 
     // Clear related errors when debt item values change
-    const errorKey = field === 'customerId' ? `debt_${index}_customer` : `debt_${index}_${field}`
-    if (errors[errorKey]) {
+    // Map field names to error keys used in validate()
+    const fieldToErrorKey: Record<string, string> = {
+      customerId: `debt_${index}_customer`,
+      amountGNF: `debt_${index}_amount`,
+    }
+    const errorKey = fieldToErrorKey[field]
+    // Use functional update to check current state (not stale closure)
+    if (errorKey) {
       setErrors(prev => {
-        const newErrors = { ...prev }
-        delete newErrors[errorKey]
-        return newErrors
+        if (prev[errorKey]) {
+          const newErrors = { ...prev }
+          delete newErrors[errorKey]
+          return newErrors
+        }
+        return prev
       })
     }
   }
@@ -334,12 +343,21 @@ export function AddEditSaleModal({
     setSaleItems(updated)
 
     // Clear related errors when sale item values change
-    const errorKey = field === 'productId' ? `saleItem_${index}_product` : `saleItem_${index}_${field}`
-    if (errors[errorKey]) {
+    // Map field names to error keys used in validate()
+    const fieldToErrorKey: Record<string, string> = {
+      productId: `saleItem_${index}_product`,
+      quantity: `saleItem_${index}_quantity`,
+    }
+    const errorKey = fieldToErrorKey[field]
+    // Use functional update to check current state (not stale closure)
+    if (errorKey) {
       setErrors(prev => {
-        const newErrors = { ...prev }
-        delete newErrors[errorKey]
-        return newErrors
+        if (prev[errorKey]) {
+          const newErrors = { ...prev }
+          delete newErrors[errorKey]
+          return newErrors
+        }
+        return prev
       })
     }
   }
@@ -662,6 +680,11 @@ export function AddEditSaleModal({
                             />
                             {errors[`debt_${index}_amount`] && (
                               <p className="mt-1 text-xs text-red-500">{errors[`debt_${index}_amount`]}</p>
+                            )}
+                            {customer?.creditLimit && !errors[`debt_${index}_amount`] && (
+                              <p className="mt-1 text-xs text-gray-500 dark:text-stone-400">
+                                {t('sales.maxAmount') || 'Max'}: {formatCurrency(availableCredit || 0)}
+                              </p>
                             )}
                           </div>
                         </div>

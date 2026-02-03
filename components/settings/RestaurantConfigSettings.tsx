@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Save, Loader2, Check, Building2, MapPin, Calendar, DollarSign, Phone, Mail, User } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
+import { formatDateForInput } from '@/lib/date-utils'
 
 interface RestaurantConfig {
   name: string
@@ -57,8 +58,8 @@ export function RestaurantConfigSettings() {
           setConfig({
             name: restaurant.name || '',
             location: restaurant.location || '',
-            openingDate: restaurant.openingDate ? restaurant.openingDate.split('T')[0] : '',
-            trackingStartDate: restaurant.trackingStartDate ? restaurant.trackingStartDate.split('T')[0] : '',
+            openingDate: restaurant.openingDate ? formatDateForInput(restaurant.openingDate) : '',
+            trackingStartDate: restaurant.trackingStartDate ? formatDateForInput(restaurant.trackingStartDate) : '',
             initialCapital: restaurant.initialCapital || 0,
             initialCashBalance: restaurant.initialCashBalance || 0,
             initialOrangeBalance: restaurant.initialOrangeBalance || 0,

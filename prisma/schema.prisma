@@ -148,6 +148,7 @@ model InventoryItem {
   @@index([category])
   @@index([supplierId])
   @@index([isActive])
+  @@index([restaurantId, isActive, category])
 }
 
 model StockMovement {
@@ -262,6 +263,7 @@ model ProductionLog {
   @@index([status])
   @@index([preparationStatus])
   @@index([productionType])
+  @@index([restaurantId, status, date])
 }
 
 model Product {
@@ -333,6 +335,7 @@ model Sale {
   @@index([restaurantId])
   @@index([date])
   @@index([status])
+  @@index([restaurantId, status, date])
 }
 
 model SaleItem {
@@ -464,6 +467,7 @@ model Expense {
   @@index([categoryId])
   @@index([supplierId])
   @@index([paymentStatus])
+  @@index([restaurantId, paymentStatus, date])
 }
 
 model ExpenseItem {
@@ -582,6 +586,7 @@ model BankTransaction {
   @@index([status])
   @@index([reason])
   @@index([method])
+  @@index([restaurantId, status, date])
 }
 
 model ExpensePayment {
