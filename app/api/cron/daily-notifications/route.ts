@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
           where: {
             restaurantId: restaurant.id,
             date: { gte: today, lt: tomorrow },
-            status: 'Approved',
           },
           _sum: { totalGNF: true },
         }),
@@ -45,7 +44,6 @@ export async function GET(request: NextRequest) {
           where: {
             restaurantId: restaurant.id,
             date: { gte: today, lt: tomorrow },
-            status: 'Approved',
           },
           _sum: { amountGNF: true },
         }),

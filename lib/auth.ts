@@ -3,7 +3,8 @@ import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './prisma'
 import type { Adapter } from 'next-auth/adapters'
-import type { UserRole } from '@prisma/client'
+// UserRole enum values from Prisma schema
+export type UserRole = 'Owner' | 'RestaurantManager' | 'Baker' | 'PastryChef' | 'Cashier' | 'Editor' | 'Manager'
 
 // =============================================================================
 // AUTHORIZATION HELPERS
@@ -90,7 +91,23 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       // Check if email is in allowed list
       if (!user.email) return false
-      return ALLOWED_EMAILS.length === 0 || ALLOWED_EMAILS.includes(user.email)
+
+      // First check: ALLOWED_EMAILS (for initial setup - first owner)
+      if (ALLOWED_EMAILS.length > 0 && ALLOWED_EMAILS.includes(user.email)) {
+        return true
+      }
+
+      // Second check: Does user have restaurant assignments?
+      const userRestaurant = await prisma.userRestaurant.findFirst({
+        where: {
+          user: {
+            email: user.email
+          }
+        }
+      })
+
+      // Allow sign in if user has at least one restaurant assignment
+      return userRestaurant !== null
     },
     async jwt({ token, user }) {
       if (user) {

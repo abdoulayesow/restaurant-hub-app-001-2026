@@ -19,6 +19,8 @@ interface Debt {
   paidAmount: number
   remainingAmount: number
   status: string
+  createdAt: string
+  dueDate?: string | null
 }
 
 interface RecordPaymentModalProps {
@@ -189,6 +191,15 @@ export default function RecordPaymentModal({
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-stone-300">
                   {t('debts.paymentFor') || 'Payment for'} <span className="font-semibold">{debt.customer.name}</span>
+                </p>
+                <p className="text-xs text-gray-500 dark:text-stone-400 mt-0.5 flex items-center gap-2">
+                  <Calendar className="w-3 h-3" />
+                  {t('debts.debtDate') || 'Debt date'}: {new Date(debt.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {debt.dueDate && (
+                    <span className="text-amber-600 dark:text-amber-400">
+                      • {t('debts.dueDate') || 'Due'}: {new Date(debt.dueDate).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

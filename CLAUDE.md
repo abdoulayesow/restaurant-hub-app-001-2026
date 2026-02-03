@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Technical Specification**: [docs/product/TECHNICAL-SPEC.md](docs/product/TECHNICAL-SPEC.md)
 - **Feature Requirements (Jan 2026)**: [docs/product/FEATURE-REQUIREMENTS-JAN2026.md](docs/product/FEATURE-REQUIREMENTS-JAN2026.md)
 - **Bank Transaction Unification**: [docs/product/BANK-TRANSACTION-UNIFICATION.md](docs/product/BANK-TRANSACTION-UNIFICATION.md) *(In Progress)*
+- **Expense Workflow Simplification**: [docs/product/EXPENSE-WORKFLOW-SIMPLIFICATION.md](docs/product/EXPENSE-WORKFLOW-SIMPLIFICATION.md) *(Planned)*
 - **Role-Based Access Control**: [docs/product/ROLE-BASED-ACCESS-CONTROL.md](docs/product/ROLE-BASED-ACCESS-CONTROL.md) *(Planned)*
 - **Reference Application**: [docs/bakery-app-reference/](docs/bakery-app-reference/)
 - **Design System**: [docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md](docs/bakery-app-reference/02-FRONTEND-DESIGN-SKILL.md)
@@ -36,10 +37,41 @@ npm run dev          # Start development server
 npm run build        # Production build
 npm run start        # Start production server
 npm run lint         # Run ESLint
+npm run typecheck    # TypeScript type checking
 npx prisma generate  # Generate Prisma client
 npx prisma migrate dev  # Run database migrations
 npx prisma studio    # Open Prisma database GUI
 ```
+
+## Database Seeding
+
+Two seeding scripts are available:
+
+```bash
+npm run db:seed      # Production seed (prisma/seed.ts) - initial setup data
+npm run db:seed:dev  # Development seed (prisma/seed-dev.ts) - realistic test data
+```
+
+### Development Seed Script (`prisma/seed-dev.ts`)
+
+Creates comprehensive test data for the first restaurant (Bliss Minière) covering January 1-28, 2026:
+
+| Entity | Count | Details |
+|--------|-------|---------|
+| Customers | 5 | 2 Individual, 2 Corporate, 1 Wholesale |
+| Sales | 28 | Daily sales (2-4M GNF), all amounts in 100K multiples |
+| Sale Items | 140 | 5 products per sale |
+| Expenses | 24 | Inventory, utilities, salaries, supplies |
+| Production Logs | 28 | Daily with Patisserie/Boulangerie rotation |
+| Debts | 4 | Weekly (Outstanding, PartiallyPaid, FullyPaid) |
+| Bank Transactions | 112 | Auto-generated from sales/expenses/debts |
+| Stock Movements | 140 | Linked to production |
+
+**Features:**
+- **Idempotent**: Can run multiple times safely (clears and recreates)
+- **Self-contained**: Creates reference data (products, inventory, categories) if missing
+- **Respects FK constraints**: Deletes in correct order
+- **Business rules**: Bank transactions only created when money moves
 
 ## Architecture
 
@@ -78,7 +110,9 @@ public/
 - **Cashier**: Can record sales and expenses only
 - All employees access `/editor` pages only; Owner accesses everything except `/editor`
 
-**Approval workflow**: Items start as Pending, Manager approves/rejects
+**Approval workflow**: Sales/Production items start as Pending, Manager approves/rejects
+
+**Expense workflow** *(Simplified - Planned)*: Expenses skip approval and go straight to payment. Owner-only permissions for edit/delete/payment. See [EXPENSE-WORKFLOW-SIMPLIFICATION.md](docs/product/EXPENSE-WORKFLOW-SIMPLIFICATION.md)
 
 **Multi-currency**: GNF (Guinean Franc) primary, EUR for reference
 
@@ -94,27 +128,31 @@ public/
 
 **When Bank Transactions Are Created:**
 
-| Action | Creates Bank Transaction? | Type |
-|--------|--------------------------|------|
-| Record a sale | ❌ No | - |
-| Record an expense | ❌ No | - |
-| Record a debt | ❌ No | - |
-| Deposit sales cash to bank | ✅ Yes | Deposit (Pending) |
-| Collect debt payment | ✅ Yes | Deposit (Pending) |
-| Pay an expense | ✅ Yes | Withdrawal (Pending) |
-| Manual entry from Bank page | ✅ Yes | Deposit/Withdrawal (Pending) |
+| Action | Creates Bank Transaction? | Type | Status |
+|--------|--------------------------|------|--------|
+| Record a sale | ❌ No | - | - |
+| Record an expense | ❌ No | - | - |
+| Record a debt | ❌ No | - | - |
+| Confirm/Deposit sales to bank | ✅ Yes | Deposit | **Confirmed** |
+| Collect debt payment | ✅ Yes | Deposit | **Confirmed** |
+| Pay an expense | ✅ Yes | Withdrawal | **Confirmed** |
+| Manual entry from Bank page | ✅ Yes | Deposit/Withdrawal | **Pending** |
+
+**Auto-Confirm vs Manual Confirm:**
+- **Auto-Confirmed**: Transactions from Sales/Expenses/Debts are automatically confirmed because the action (confirming sale, paying expense, collecting debt) already verifies the money movement
+- **Manual Confirm**: Transactions created directly on Bank page require Owner review before confirmation (Pending → Confirmed)
 
 **Transaction Types by Source:**
 
-| Source | Created By | Editable? | Deletable? |
-|--------|-----------|-----------|------------|
-| Sales deposit | Staff (from Sales page) | View only | No |
-| Debt collection | Staff (from Debts page) | View only | No |
-| Expense payment | Staff (from Expenses page) | View only | No |
-| Manual entry | Owner (from Bank page) | Yes, until confirmed | Yes, until confirmed |
+| Source | Created By | Status | Editable? | Deletable? |
+|--------|-----------|--------|-----------|------------|
+| Sales deposit | Staff (from Sales page) | Confirmed | View only | No |
+| Debt collection | Staff (from Debts page) | Confirmed | View only | No |
+| Expense payment | Staff (from Expenses page) | Confirmed | View only | No |
+| Manual entry | Owner (from Bank page) | Pending | Yes, until confirmed | Yes, until confirmed |
 
-**Confirmation Workflow:**
-1. Staff/Owner creates transaction → Status: `Pending`
+**Confirmation Workflow (Manual Entries Only):**
+1. Owner creates manual transaction from Bank page → Status: `Pending`
 2. Owner reviews and confirms via modal form → Status: `Confirmed`
 3. Once confirmed: view-only (no edit/delete)
 

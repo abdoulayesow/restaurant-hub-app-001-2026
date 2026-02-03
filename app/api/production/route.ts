@@ -134,10 +134,11 @@ export async function GET(request: NextRequest) {
         productName,
         productNameFr,
         quantity,
+        submittedByName: log.createdByName, // Map to match sales/expenses API response format
       }
     })
 
-    return NextResponse.json({ productionLogs: transformedLogs })
+    return NextResponse.json({ logs: transformedLogs })
   } catch (error) {
     console.error('Error fetching production logs:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

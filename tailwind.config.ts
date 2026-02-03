@@ -183,6 +183,14 @@ const config: Config = {
           '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
           '50%': { opacity: '1', transform: 'scale(1.2)' },
         },
+        'modal-backdrop': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'modal-content': {
+          from: { opacity: '0', transform: 'translateY(16px) scale(0.96)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
       },
 
       animation: {
@@ -190,6 +198,8 @@ const config: Config = {
         'shimmer-luxury': 'shimmer-luxury 2.5s infinite',
         'card-entrance': 'card-entrance 0.5s ease-out',
         'sparkle': 'sparkle 2s ease-in-out infinite',
+        'modal-backdrop': 'modal-backdrop 0.2s ease-out',
+        'modal-content': 'modal-content 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

@@ -97,6 +97,7 @@ export async function PUT(
       nameFr,
       category,
       unit,
+      priceGNF,
       standardRecipe,
       isActive,
       sortOrder,
@@ -105,6 +106,7 @@ export async function PUT(
       nameFr?: string | null
       category?: ProductCategoryValue
       unit?: string
+      priceGNF?: number | null
       standardRecipe?: unknown
       isActive?: boolean
       sortOrder?: number
@@ -124,6 +126,7 @@ export async function PUT(
     if (nameFr !== undefined) updateData.nameFr = nameFr
     if (category !== undefined) updateData.category = category as ProductCategory
     if (unit !== undefined) updateData.unit = unit
+    if (priceGNF !== undefined) updateData.priceGNF = priceGNF
     if (standardRecipe !== undefined) {
       updateData.standardRecipe = standardRecipe === null
         ? Prisma.JsonNull

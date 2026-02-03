@@ -127,8 +127,9 @@ export function AddEditExpenseModal({
   // Initialize form with expense data
   useEffect(() => {
     if (expense) {
+      const isoDate = formatDateForInput(expense.date)
       setFormData({
-        date: formatDateForInput(expense.date),
+        date: isoDate,
         categoryId: expense.categoryId || '',
         categoryName: expense.categoryName,
         amountGNF: expense.amountGNF,
@@ -150,8 +151,9 @@ export function AddEditExpenseModal({
       }
     } else {
       // Default to today for new expenses
+      const todayISO = getTodayDateString()
       setFormData({
-        date: getTodayDateString(),
+        date: todayISO,
         categoryId: '',
         categoryName: '',
         amountGNF: 0,
@@ -165,7 +167,7 @@ export function AddEditExpenseModal({
     }
     setErrors({})
     setPayments([])
-  }, [expense, isOpen])
+  }, [expense, isOpen, locale])
 
   // Fetch payment history for approved expenses
   const fetchPayments = useCallback(async () => {

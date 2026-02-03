@@ -6,24 +6,21 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   TrendingUp,
   Receipt,
-  Package,
   Plus,
+  Info,
+  ChefHat,
   Clock,
   CheckCircle,
   XCircle,
-  Info,
-  ChefHat,
-  Calendar,
-  RefreshCw,
 } from 'lucide-react'
-import { DashboardHeader } from '@/components/layout/DashboardHeader'
+import { EditorHeader } from '@/components/layout/EditorHeader'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { canRecordSales, canRecordExpenses, canRecordProduction } from '@/lib/roles'
 import { AddEditSaleModal } from '@/components/sales/AddEditSaleModal'
 import { AddEditExpenseModal } from '@/components/expenses/AddEditExpenseModal'
 import { AddProductionModal } from '@/components/baking/AddProductionModal'
-import { formatDateForDisplay } from '@/lib/date-utils'
+import { SubmissionsTable } from '@/components/editor/SubmissionsTable'
 
 // Types for recent submissions
 interface RecentSubmission {
@@ -34,6 +31,7 @@ interface RecentSubmission {
   description?: string
   status: 'Pending' | 'Approved' | 'Rejected'
   createdAt: string
+  submittedByName?: string
 }
 
 interface Category {
@@ -65,7 +63,7 @@ interface InventoryItem {
 export default function EditorPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { t, locale } = useLocale()
+  const { t } = useLocale()
   const { currentRestaurant, currentRole, loading: restaurantLoading } = useRestaurant()
 
   // Modal states
@@ -88,89 +86,105 @@ export default function EditorPage() {
   // Expense modal state
   const [savingExpense, setSavingExpense] = useState(false)
 
-  // Format currency
-  const formatCurrency = useCallback((amount: number) => {
-    return new Intl.NumberFormat(locale === 'fr' ? 'fr-GN' : 'en-GN', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount) + ' GNF'
-  }, [locale])
-
-  // Fetch recent submissions
+  // Fetch recent submissions (filtered by role)
   const fetchRecentSubmissions = useCallback(async () => {
     if (!currentRestaurant?.id) return
 
     setLoadingSubmissions(true)
     try {
-      // Fetch sales, expenses, and production in parallel
-      const [salesRes, expensesRes, productionRes] = await Promise.all([
-        fetch(`/api/sales?restaurantId=${currentRestaurant.id}&limit=5`),
-        fetch(`/api/expenses?restaurantId=${currentRestaurant.id}&limit=5`),
-        fetch(`/api/production?restaurantId=${currentRestaurant.id}&limit=5`),
-      ])
-
       const submissions: RecentSubmission[] = []
 
-      if (salesRes.ok) {
-        const salesData = await salesRes.json()
-        const sales = salesData.sales || []
-        // Store existing sale dates for duplicate prevention
-        setExistingSaleDates(sales.map((s: { date: string }) => s.date.split('T')[0]))
+      // Determine which data to fetch based on role permissions
+      const shouldFetchSales = canRecordSales(currentRole)
+      const shouldFetchExpenses = canRecordExpenses(currentRole)
+      const shouldFetchProduction = canRecordProduction(currentRole)
 
-        sales.slice(0, 5).forEach((sale: { id: string; date: string; totalGNF: number; status: string; createdAt: string }) => {
-          submissions.push({
-            id: sale.id,
-            type: 'sale',
-            date: sale.date,
-            amount: sale.totalGNF,
-            status: sale.status as 'Pending' | 'Approved' | 'Rejected',
-            createdAt: sale.createdAt,
-          })
-        })
+      // Build parallel fetch array based on permissions
+      const fetchPromises: Promise<Response>[] = []
+      const fetchTypes: ('sales' | 'expenses' | 'production')[] = []
+
+      if (shouldFetchSales) {
+        fetchPromises.push(fetch(`/api/sales?restaurantId=${currentRestaurant.id}&limit=100`))
+        fetchTypes.push('sales')
+      }
+      if (shouldFetchExpenses) {
+        fetchPromises.push(fetch(`/api/expenses?restaurantId=${currentRestaurant.id}&limit=100`))
+        fetchTypes.push('expenses')
+      }
+      if (shouldFetchProduction) {
+        fetchPromises.push(fetch(`/api/production?restaurantId=${currentRestaurant.id}&limit=100`))
+        fetchTypes.push('production')
       }
 
-      if (expensesRes.ok) {
-        const expensesData = await expensesRes.json()
-        const expenses = expensesData.expenses || []
-        expenses.slice(0, 5).forEach((expense: { id: string; date: string; amountGNF: number; categoryName: string; status: string; createdAt: string }) => {
-          submissions.push({
-            id: expense.id,
-            type: 'expense',
-            date: expense.date,
-            amount: expense.amountGNF,
-            description: expense.categoryName,
-            status: expense.status as 'Pending' | 'Approved' | 'Rejected',
-            createdAt: expense.createdAt,
+      // Fetch only allowed data types
+      const responses = await Promise.all(fetchPromises)
+
+      // Process responses based on what was fetched
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i]
+        const type = fetchTypes[i]
+
+        if (!response.ok) continue
+
+        if (type === 'sales') {
+          const salesData = await response.json()
+          const sales = salesData.sales || []
+          // Store existing sale dates for duplicate prevention
+          setExistingSaleDates(sales.map((s: { date: string }) => s.date.split('T')[0]))
+
+          sales.forEach((sale: { id: string; date: string; totalGNF: number; status: string; createdAt: string; submittedByName?: string }) => {
+            submissions.push({
+              id: sale.id,
+              type: 'sale',
+              date: sale.date,
+              amount: sale.totalGNF,
+              status: sale.status as 'Pending' | 'Approved' | 'Rejected',
+              createdAt: sale.createdAt,
+              submittedByName: sale.submittedByName,
+            })
           })
-        })
+        } else if (type === 'expenses') {
+          const expensesData = await response.json()
+          const expenses = expensesData.expenses || []
+          expenses.forEach((expense: { id: string; date: string; amountGNF: number; categoryName: string; status: string; createdAt: string; submittedByName?: string }) => {
+            submissions.push({
+              id: expense.id,
+              type: 'expense',
+              date: expense.date,
+              amount: expense.amountGNF,
+              description: expense.categoryName,
+              status: expense.status as 'Pending' | 'Approved' | 'Rejected',
+              createdAt: expense.createdAt,
+              submittedByName: expense.submittedByName,
+            })
+          })
+        } else if (type === 'production') {
+          const productionData = await response.json()
+          const logs = productionData.logs || []
+          logs.forEach((log: { id: string; date: string; status: string; createdAt: string; submittedByName?: string; items?: Array<{ quantity: number }> }) => {
+            const totalItems = log.items?.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) || 0
+            submissions.push({
+              id: log.id,
+              type: 'production',
+              date: log.date,
+              description: `${totalItems} ${t('production.itemsProduced') || 'items'}`,
+              status: log.status as 'Pending' | 'Approved' | 'Rejected',
+              createdAt: log.createdAt,
+              submittedByName: log.submittedByName,
+            })
+          })
+        }
       }
 
-      if (productionRes.ok) {
-        const productionData = await productionRes.json()
-        const logs = productionData.logs || []
-        logs.slice(0, 5).forEach((log: { id: string; date: string; status: string; createdAt: string; items?: Array<{ quantity: number }> }) => {
-          const totalItems = log.items?.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) || 0
-          submissions.push({
-            id: log.id,
-            type: 'production',
-            date: log.date,
-            description: `${totalItems} ${t('production.itemsProduced') || 'items'}`,
-            status: log.status as 'Pending' | 'Approved' | 'Rejected',
-            createdAt: log.createdAt,
-          })
-        })
-      }
-
-      // Sort by createdAt descending and take top 10
+      // Sort by createdAt descending
       submissions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      setRecentSubmissions(submissions.slice(0, 10))
+      setRecentSubmissions(submissions)
     } catch (error) {
       console.error('Error fetching submissions:', error)
     } finally {
       setLoadingSubmissions(false)
     }
-  }, [currentRestaurant?.id, t])
+  }, [currentRestaurant?.id, currentRole, t])
 
   // Fetch categories and suppliers for expense modal
   const fetchExpenseData = useCallback(async () => {
@@ -178,7 +192,7 @@ export default function EditorPage() {
 
     try {
       const [categoriesRes, suppliersRes, inventoryRes] = await Promise.all([
-        fetch(`/api/expense-categories?restaurantId=${currentRestaurant.id}`),
+        fetch(`/api/categories?restaurantId=${currentRestaurant.id}`),
         fetch(`/api/suppliers?restaurantId=${currentRestaurant.id}`),
         fetch(`/api/inventory?restaurantId=${currentRestaurant.id}`),
       ])
@@ -282,36 +296,11 @@ export default function EditorPage() {
     fetchRecentSubmissions()
   }
 
-  // Get status icon
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Approved':
-        return <CheckCircle className="w-4 h-4 text-emerald-500" />
-      case 'Rejected':
-        return <XCircle className="w-4 h-4 text-red-500" />
-      default:
-        return <Clock className="w-4 h-4 text-amber-500" />
-    }
-  }
-
-  // Get type icon and color
-  const getTypeInfo = (type: string) => {
-    switch (type) {
-      case 'sale':
-        return { icon: TrendingUp, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' }
-      case 'expense':
-        return { icon: Receipt, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' }
-      case 'production':
-        return { icon: ChefHat, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' }
-      default:
-        return { icon: Package, color: 'text-stone-600', bg: 'bg-stone-100' }
-    }
-  }
 
   if (status === 'loading' || restaurantLoading) {
     return (
       <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
-        <DashboardHeader />
+        <EditorHeader />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-stone-200 dark:bg-stone-800 rounded w-1/4"></div>
@@ -328,7 +317,7 @@ export default function EditorPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
-      <DashboardHeader />
+      <EditorHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
@@ -427,146 +416,71 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Recent Submissions & How It Works */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Submissions - Now shows real data */}
-          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden">
-            <div className="p-6 border-b border-stone-200 dark:border-stone-700 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-stone-900 dark:text-white">
-                {t('editor.recentSubmissions')}
-              </h3>
-              <button
-                onClick={fetchRecentSubmissions}
-                className="p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-colors"
-                title={t('common.refresh') || 'Refresh'}
-              >
-                <RefreshCw className={`w-4 h-4 text-stone-500 ${loadingSubmissions ? 'animate-spin' : ''}`} />
-              </button>
+        {/* All Submissions Table */}
+        <div className="mb-8">
+          <SubmissionsTable
+            submissions={recentSubmissions}
+            loading={loadingSubmissions}
+            onRefresh={fetchRecentSubmissions}
+          />
+        </div>
+
+        {/* How It Works */}
+        <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 p-6">
+          <h3 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+            <Info className="w-5 h-5 text-gold-500" />
+            {t('editor.howItWorks')}
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-gold-100 dark:bg-gold-900/20 rounded-full flex items-center justify-center">
+                <span className="text-sm font-bold text-gold-600 dark:text-gold-400">1</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-stone-900 dark:text-white">
+                  {t('editor.step1')}
+                </p>
+              </div>
             </div>
-
-            {loadingSubmissions ? (
-              <div className="p-6 space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="animate-pulse flex items-center gap-3">
-                    <div className="w-10 h-10 bg-stone-200 dark:bg-stone-700 rounded-lg" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-stone-200 dark:bg-stone-700 rounded w-3/4" />
-                      <div className="h-3 bg-stone-200 dark:bg-stone-700 rounded w-1/2" />
-                    </div>
-                  </div>
-                ))}
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-gold-100 dark:bg-gold-900/20 rounded-full flex items-center justify-center">
+                <span className="text-sm font-bold text-gold-600 dark:text-gold-400">2</span>
               </div>
-            ) : recentSubmissions.length === 0 ? (
-              <div className="text-center py-12 text-stone-500 dark:text-stone-400">
-                <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p className="font-medium">{t('editor.noSubmissions') || 'No submissions yet'}</p>
-                <p className="text-sm mt-1">{t('editor.startByAdding') || 'Start by adding a sale, expense, or production log'}</p>
+              <div>
+                <p className="text-sm font-medium text-stone-900 dark:text-white">
+                  {t('editor.step2')}
+                </p>
               </div>
-            ) : (
-              <div className="divide-y divide-stone-100 dark:divide-stone-700/50">
-                {recentSubmissions.map((submission) => {
-                  const typeInfo = getTypeInfo(submission.type)
-                  const TypeIcon = typeInfo.icon
-
-                  return (
-                    <div
-                      key={`${submission.type}-${submission.id}`}
-                      className="px-6 py-4 hover:bg-stone-50 dark:hover:bg-stone-700/30 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-2.5 rounded-lg ${typeInfo.bg}`}>
-                          <TypeIcon className={`w-5 h-5 ${typeInfo.color}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-stone-900 dark:text-white capitalize">
-                              {t(`common.${submission.type}`) || submission.type}
-                            </span>
-                            {getStatusIcon(submission.status)}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span>{formatDateForDisplay(submission.date, locale)}</span>
-                            {submission.description && (
-                              <>
-                                <span className="text-stone-300 dark:text-stone-600">•</span>
-                                <span className="truncate">{submission.description}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        {submission.amount !== undefined && (
-                          <div className="text-right">
-                            <span className={`font-semibold ${submission.type === 'sale' ? 'text-emerald-600 dark:text-emerald-400' : 'text-stone-900 dark:text-white'}`}>
-                              {formatCurrency(submission.amount)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-gold-100 dark:bg-gold-900/20 rounded-full flex items-center justify-center">
+                <span className="text-sm font-bold text-gold-600 dark:text-gold-400">3</span>
               </div>
-            )}
+              <div>
+                <p className="text-sm font-medium text-stone-900 dark:text-white">
+                  {t('editor.step3')}
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* How It Works */}
-          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 p-6">
-            <h3 className="text-lg font-semibold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
-              <Info className="w-5 h-5 text-gold-500" />
-              {t('editor.howItWorks')}
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-gold-100 dark:bg-gold-900/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-gold-600 dark:text-gold-400">1</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-stone-900 dark:text-white">
-                    {t('editor.step1')}
-                  </p>
-                </div>
+          {/* Status Legend */}
+          <div className="mt-6 pt-4 border-t border-stone-200 dark:border-stone-700">
+            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">
+              {t('editor.statusLegend') || 'Status Legend'}
+            </p>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-500" />
+                <span className="text-stone-600 dark:text-stone-400">{t('common.pending')}</span>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-gold-100 dark:bg-gold-900/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-gold-600 dark:text-gold-400">2</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-stone-900 dark:text-white">
-                    {t('editor.step2')}
-                  </p>
-                </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <span className="text-stone-600 dark:text-stone-400">{t('common.approved')}</span>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-gold-100 dark:bg-gold-900/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-gold-600 dark:text-gold-400">3</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-stone-900 dark:text-white">
-                    {t('editor.step3')}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Status Legend */}
-            <div className="mt-6 pt-4 border-t border-stone-200 dark:border-stone-700">
-              <p className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">
-                {t('editor.statusLegend') || 'Status Legend'}
-              </p>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-500" />
-                  <span className="text-stone-600 dark:text-stone-400">{t('common.pending')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  <span className="text-stone-600 dark:text-stone-400">{t('common.approved')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <XCircle className="w-4 h-4 text-red-500" />
-                  <span className="text-stone-600 dark:text-stone-400">{t('common.rejected')}</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-red-500" />
+                <span className="text-stone-600 dark:text-stone-400">{t('common.rejected')}</span>
               </div>
             </div>
           </div>

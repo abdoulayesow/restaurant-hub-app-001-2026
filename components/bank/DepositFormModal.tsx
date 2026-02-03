@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
-import { getTodayDateString } from '@/lib/date-utils'
+import { getTodayDateString, formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface Sale {
   id: string
@@ -103,12 +103,11 @@ export function DepositFormModal({
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   const validate = (): boolean => {

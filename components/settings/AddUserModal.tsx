@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { UserRole } from '@prisma/client'
-import { X, UserPlus, Loader2, Shield, Users, ChefHat, Wallet } from 'lucide-react'
+import { X, UserPlus, Loader2, Shield, Users, ChefHat, Wallet, Mail } from 'lucide-react'
 import { getRoleDisplayName } from '@/lib/roles'
 import { useLocale } from '@/components/providers/LocaleProvider'
+
+type InviteMode = 'existing' | 'email'
 
 interface User {
   id: string
@@ -69,29 +71,49 @@ export function AddUserModal({
   onUserAdded,
 }: AddUserModalProps) {
   const { locale, t } = useLocale()
+  const [inviteMode, setInviteMode] = useState<InviteMode>('existing')
   const [selectedUserId, setSelectedUserId] = useState('')
+  const [email, setEmail] = useState('')
   const [selectedRole, setSelectedRole] = useState<UserRole>('RestaurantManager')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!selectedUserId) {
+    // Validation based on mode
+    if (inviteMode === 'existing' && !selectedUserId) {
       setError(locale === 'fr' ? 'Veuillez sélectionner un utilisateur' : 'Please select a user')
       return
     }
 
+    if (inviteMode === 'email') {
+      if (!email.trim()) {
+        setError(t('settings.restaurants.invalidEmail'))
+        return
+      }
+      if (!validateEmail(email)) {
+        setError(t('settings.restaurants.invalidEmail'))
+        return
+      }
+    }
+
     setSubmitting(true)
     try {
+      const requestBody = inviteMode === 'existing'
+        ? { userId: selectedUserId, role: selectedRole }
+        : { email: email.trim(), role: selectedRole }
+
       const response = await fetch(`/api/restaurants/${restaurantId}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: selectedUserId,
-          role: selectedRole,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (response.ok) {
@@ -152,43 +174,106 @@ export function AddUserModal({
             </div>
           )}
 
-          {/* User selection */}
+          {/* Mode selection tabs */}
+          <div className="flex gap-2 p-1 bg-gray-100 dark:bg-stone-700 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setInviteMode('existing')}
+              className={`
+                flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200
+                flex items-center justify-center gap-2
+                ${inviteMode === 'existing'
+                  ? 'bg-white dark:bg-stone-800 text-gray-900 dark:text-stone-100 shadow-sm'
+                  : 'text-gray-600 dark:text-stone-400 hover:text-gray-900 dark:hover:text-stone-200'
+                }
+              `}
+            >
+              <Users className="w-4 h-4" />
+              {t('settings.restaurants.selectExistingUser')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setInviteMode('email')}
+              className={`
+                flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200
+                flex items-center justify-center gap-2
+                ${inviteMode === 'email'
+                  ? 'bg-white dark:bg-stone-800 text-gray-900 dark:text-stone-100 shadow-sm'
+                  : 'text-gray-600 dark:text-stone-400 hover:text-gray-900 dark:hover:text-stone-200'
+                }
+              `}
+            >
+              <Mail className="w-4 h-4" />
+              {t('settings.restaurants.inviteByEmail')}
+            </button>
+          </div>
+
+          {/* User selection or Email input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
-              {t('settings.restaurants.selectUser')} *
-            </label>
-            {availableUsers.length === 0 ? (
-              <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200">
-                {locale === 'fr'
-                  ? 'Tous les utilisateurs sont déjà assignés à ce restaurant'
-                  : 'All users are already assigned to this restaurant'}
-              </div>
+            {inviteMode === 'existing' ? (
+              <>
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
+                  {t('settings.restaurants.selectUser')} *
+                </label>
+                {availableUsers.length === 0 ? (
+                  <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200">
+                    {locale === 'fr'
+                      ? 'Tous les utilisateurs sont déjà assignés à ce restaurant'
+                      : 'All users are already assigned to this restaurant'}
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={selectedUserId}
+                      onChange={(e) => setSelectedUserId(e.target.value)}
+                      className="
+                        w-full px-4 py-3 rounded-xl
+                        border border-gray-300 dark:border-stone-600
+                        bg-white dark:bg-stone-700
+                        text-gray-900 dark:text-stone-100
+                        focus:ring-2 focus:ring-gray-500 focus:border-transparent
+                        transition-all duration-200
+                      "
+                      required
+                    >
+                      <option value="">
+                        {t('settings.restaurants.chooseUser')}
+                      </option>
+                      {availableUsers.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.name || user.email} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
+                      {availableUsers.length} {t('settings.restaurants.usersAvailable')}
+                    </p>
+                  </>
+                )}
+              </>
             ) : (
               <>
-                <select
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
+                <label className="block text-sm font-medium text-gray-700 dark:text-stone-200 mb-2">
+                  {t('settings.restaurants.emailAddress')} *
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('settings.restaurants.enterEmail')}
                   className="
                     w-full px-4 py-3 rounded-xl
                     border border-gray-300 dark:border-stone-600
                     bg-white dark:bg-stone-700
                     text-gray-900 dark:text-stone-100
+                    placeholder:text-gray-400 dark:placeholder:text-stone-500
                     focus:ring-2 focus:ring-gray-500 focus:border-transparent
                     transition-all duration-200
                   "
                   required
-                >
-                  <option value="">
-                    {t('settings.restaurants.chooseUser')}
-                  </option>
-                  {availableUsers.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name || user.email} ({user.email})
-                    </option>
-                  ))}
-                </select>
+                />
                 <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
-                  {availableUsers.length} {t('settings.restaurants.usersAvailable')}
+                  {t('settings.restaurants.invitationNote')}
                 </p>
               </>
             )}
@@ -264,7 +349,11 @@ export function AddUserModal({
             </button>
             <button
               type="submit"
-              disabled={submitting || !selectedUserId || availableUsers.length === 0}
+              disabled={
+                submitting ||
+                (inviteMode === 'existing' && (!selectedUserId || availableUsers.length === 0)) ||
+                (inviteMode === 'email' && !email.trim())
+              }
               className="
                 flex-1 px-4 py-3 rounded-xl
                 bg-gray-900 dark:bg-white text-white dark:text-gray-900
@@ -279,7 +368,10 @@ export function AddUserModal({
               ) : (
                 <>
                   <UserPlus className="w-5 h-5" />
-                  {t('settings.restaurants.assignUser')}
+                  {inviteMode === 'email'
+                    ? t('settings.restaurants.inviteNewUser')
+                    : t('settings.restaurants.assignUser')
+                  }
                 </>
               )}
             </button>

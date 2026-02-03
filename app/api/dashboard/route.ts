@@ -86,7 +86,6 @@ export async function GET(request: NextRequest) {
       prisma.sale.findMany({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: startDate, lte: endDate },
         },
         orderBy: { date: 'asc' },
@@ -95,7 +94,6 @@ export async function GET(request: NextRequest) {
       prisma.expense.findMany({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: startDate, lte: endDate },
         },
         include: {
@@ -120,7 +118,6 @@ export async function GET(request: NextRequest) {
       prisma.sale.aggregate({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: prevStartDate, lte: prevEndDate },
         },
         _sum: { totalGNF: true },
@@ -129,7 +126,6 @@ export async function GET(request: NextRequest) {
       prisma.expense.aggregate({
         where: {
           restaurantId,
-          status: 'Approved',
           date: { gte: prevStartDate, lte: prevEndDate },
         },
         _sum: { amountGNF: true },
@@ -138,9 +134,9 @@ export async function GET(request: NextRequest) {
       prisma.sale.count({
         where: { restaurantId, status: 'Pending' },
       }),
-      // Pending expenses count
+      // Unpaid expenses count
       prisma.expense.count({
-        where: { restaurantId, status: 'Pending' },
+        where: { restaurantId, paymentStatus: 'Unpaid' },
       }),
       // Low stock items
       prisma.inventoryItem.findMany({
@@ -170,7 +166,6 @@ export async function GET(request: NextRequest) {
       prisma.expense.findMany({
         where: {
           restaurantId,
-          status: 'Approved',
           paymentStatus: { in: ['Unpaid', 'PartiallyPaid'] },
         },
         select: {
@@ -280,30 +275,30 @@ export async function GET(request: NextRequest) {
     const revenueChange = prevRevenue > 0 ? Math.round(((totalRevenue - prevRevenue) / prevRevenue) * 100) : 0
     const expensesChange = prevExpenses > 0 ? Math.round(((totalExpenses - prevExpenses) / prevExpenses) * 100) : 0
 
-    // Calculate food expense ratio (food expenses / revenue)
-    const foodExpenses = approvedExpenses
-      .filter(e => e.category?.expenseGroup?.key === 'food')
-      .reduce((sum, e) => sum + e.amountGNF, 0)
-    const foodCostRatio = totalRevenue > 0 ? Math.round((foodExpenses / totalRevenue) * 100) : 0
-    const foodCostTarget = 30 // 30% target
-
-    // Calculate stock consumption value
+    // Calculate stock consumption value (actual cost of ingredients consumed)
+    // Usage movements have negative quantities, so we use Math.abs()
     const stockConsumptionValue = stockConsumption.reduce(
-      (sum, m) => sum + (m.quantity * (m.unitCost || 0)),
+      (sum, m) => sum + (Math.abs(m.quantity) * (m.unitCost || 0)),
       0
     )
+
+    // Calculate food cost ratio (inventory consumption / revenue)
+    // Food cost is based on actual ingredient usage, not expense categories
+    const foodExpenses = stockConsumptionValue
+    const foodCostRatio = totalRevenue > 0 ? Math.round((foodExpenses / totalRevenue) * 100) : 0
+    const foodCostTarget = 30 // 30% target
 
     // Aggregate consumption by item for top consumed list
     const consumptionByItem = new Map<string, { name: string; nameFr: string; quantity: number; unit: string }>()
     stockConsumption.forEach(m => {
       const existing = consumptionByItem.get(m.itemId)
       if (existing) {
-        existing.quantity += m.quantity
+        existing.quantity += Math.abs(m.quantity)
       } else {
         consumptionByItem.set(m.itemId, {
           name: m.item.name,
           nameFr: m.item.nameFr || m.item.name,
-          quantity: m.quantity,
+          quantity: Math.abs(m.quantity),
           unit: m.item.unit,
         })
       }

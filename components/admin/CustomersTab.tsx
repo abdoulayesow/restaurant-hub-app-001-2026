@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, Search, Loader2, X, Save, Users, Building2, Shoppi
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { formatDateForDisplay } from '@/lib/date-utils'
+import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal'
 
 interface Customer {
   id: string
@@ -68,6 +69,10 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+
+  // Confirmation modal state for activate/deactivate
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [customerToToggle, setCustomerToToggle] = useState<Customer | null>(null)
 
   const fetchCustomers = useCallback(async () => {
     if (!currentRestaurant) return
@@ -196,7 +201,7 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
     }
   }
 
-  const handleToggleActive = async (customer: Customer) => {
+  const handleToggleActive = (customer: Customer) => {
     // Prevent deletion if customer has outstanding debt
     if (customer.isActive && customer.outstandingDebt && customer.outstandingDebt > 0) {
       const debtAmount = formatCurrency(customer.outstandingDebt)
@@ -207,18 +212,21 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
       return
     }
 
-    const confirmMessage = customer.isActive
-      ? t('clients.confirmDeactivate') || 'Are you sure you want to deactivate this client?'
-      : t('clients.confirmActivate') || 'Are you sure you want to activate this client?'
+    setCustomerToToggle(customer)
+    setIsConfirmModalOpen(true)
+  }
 
-    if (!confirm(confirmMessage)) return
+  const executeToggleActive = async () => {
+    if (!customerToToggle) return
 
     try {
-      const response = await fetch(`/api/customers/${customer.id}`, {
+      const response = await fetch(`/api/customers/${customerToToggle.id}`, {
         method: 'DELETE'
       })
 
       if (response.ok) {
+        setIsConfirmModalOpen(false)
+        setCustomerToToggle(null)
         await fetchCustomers()
         if (onStatsUpdate) onStatsUpdate()
       } else {
@@ -808,6 +816,37 @@ export function CustomersTab({ onStatsUpdate }: CustomersTabProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Activate/Deactivate Confirmation Modal */}
+      {customerToToggle && (
+        <DeleteConfirmationModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => {
+            setIsConfirmModalOpen(false)
+            setCustomerToToggle(null)
+          }}
+          onConfirm={executeToggleActive}
+          title={customerToToggle.isActive
+            ? t('clients.deactivateClient') || 'Deactivate Client'
+            : t('clients.activateClient') || 'Activate Client'
+          }
+          description={customerToToggle.isActive
+            ? t('clients.deactivateDescription') || 'This client will be marked as inactive'
+            : t('clients.activateDescription') || 'This client will be marked as active'
+          }
+          itemType={t('common.client') || 'Client'}
+          itemName={customerToToggle.name}
+          itemDetails={[
+            { label: t('clients.clientType') || 'Type', value: customerToToggle.customerType === 'Individual' ? t('clients.individual') || 'Individual' : customerToToggle.customerType === 'Corporate' ? t('clients.corporate') || 'Corporate' : t('clients.wholesale') || 'Wholesale' },
+            ...(customerToToggle.company ? [{ label: t('clients.company') || 'Company', value: customerToToggle.company }] : []),
+          ]}
+          warningMessage={customerToToggle.isActive
+            ? t('clients.deactivateWarning') || 'The client will no longer appear in selection lists but their historical data will be preserved.'
+            : t('clients.activateWarning') || 'The client will be available for new transactions.'
+          }
+          severity={customerToToggle.isActive ? 'warning' : 'normal'}
+        />
       )}
     </div>
   )

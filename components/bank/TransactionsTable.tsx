@@ -4,6 +4,8 @@ import { useState } from 'react'
 import {
   ChevronUp,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
   Banknote,
@@ -12,6 +14,8 @@ import {
   Clock,
   CheckCircle2,
   Eye,
+  Pencil,
+  Trash2,
   ShoppingBag,
   Receipt,
   Wallet,
@@ -20,58 +24,19 @@ import {
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { formatUTCDateForDisplay } from '@/lib/date-utils'
-
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
-type TransactionStatus = 'Pending' | 'Confirmed'
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
-
-interface Transaction {
-  id: string
-  date: string
-  amount: number
-  type: TransactionType
-  method: PaymentMethod
-  reason: TransactionReason
-  status: TransactionStatus
-  description?: string | null
-  comments?: string | null
-  bankRef?: string | null
-  confirmedAt?: string | null
-  createdByName?: string | null
-  createdAt?: string
-  receiptUrl?: string | null
-  sale?: {
-    id: string
-    date: string
-    totalGNF: number
-  } | null
-  debtPayment?: {
-    id: string
-    amount: number
-    paymentDate: string
-    debt?: {
-      customer?: {
-        name: string
-      } | null
-    } | null
-  } | null
-  expensePayment?: {
-    id: string
-    amount: number
-    expense?: {
-      id: string
-      categoryName: string
-      amountGNF: number
-      supplierName?: string | null
-    } | null
-  } | null
-}
+import {
+  Transaction,
+  TransactionReason,
+  isManualTransaction,
+} from '@/lib/types/bank'
+import { PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 interface TransactionsTableProps {
   transactions: Transaction[]
   onTransactionClick?: (transaction: Transaction) => void
   onConfirm?: (transaction: Transaction) => void
+  onEdit?: (transaction: Transaction) => void
+  onDelete?: (transaction: Transaction) => void
   canEdit: boolean
   loading?: boolean
 }
@@ -88,7 +53,7 @@ const REASON_LABELS: Record<TransactionReason, { key: string; fallback: string }
   Other: { key: 'bank.reasons.Other', fallback: 'Other' },
 }
 
-const METHOD_ICONS: Record<PaymentMethod, { icon: React.ElementType; color: string }> = {
+const METHOD_ICONS: Record<PaymentMethodValue, { icon: React.ElementType; color: string }> = {
   Cash: { icon: Banknote, color: 'text-emerald-600 dark:text-emerald-400' },
   OrangeMoney: { icon: Smartphone, color: 'text-orange-500 dark:text-orange-400' },
   Card: { icon: CreditCard, color: 'text-stone-600 dark:text-stone-400' },
@@ -98,12 +63,16 @@ export function TransactionsTable({
   transactions,
   onTransactionClick,
   onConfirm,
+  onEdit,
+  onDelete,
   canEdit,
   loading = false,
 }: TransactionsTableProps) {
   const { t, locale } = useLocale()
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -127,6 +96,7 @@ export function TransactionsTable({
       setSortField(field)
       setSortDirection('desc')
     }
+    setCurrentPage(1) // Reset to first page when sorting changes
   }
 
   // Sort transactions
@@ -148,6 +118,12 @@ export function TransactionsTable({
     }
     return sortDirection === 'asc' ? comparison : -comparison
   })
+
+  // Pagination
+  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = Math.min(startIndex + itemsPerPage, sortedTransactions.length)
+  const paginatedTransactions = sortedTransactions.slice(startIndex, endIndex)
 
   // Sort icon
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -254,9 +230,11 @@ export function TransactionsTable({
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-stone-800">
-          {sortedTransactions.map((txn, index) => {
+          {paginatedTransactions.map((txn, index) => {
             const isDeposit = txn.type === 'Deposit'
             const isPending = txn.status === 'Pending'
+            const isManual = isManualTransaction(txn)
+            const canModify = canEdit && isPending && isManual
             const MethodInfo = METHOD_ICONS[txn.method]
             const sourceInfo = getSourceInfo(txn)
             const SourceIcon = sourceInfo.icon
@@ -269,7 +247,7 @@ export function TransactionsTable({
                   border-t border-stone-200 dark:border-stone-700
                   hover:bg-stone-50 dark:hover:bg-stone-900/50 transition-colors
                   ${onTransactionClick ? 'cursor-pointer' : ''}
-                  ${index === sortedTransactions.length - 1 ? 'rounded-b-2xl' : ''}
+                  ${index === paginatedTransactions.length - 1 && totalPages <= 1 ? 'rounded-b-2xl' : ''}
                 `}
               >
                 {/* Date Cell */}
@@ -364,6 +342,28 @@ export function TransactionsTable({
                       <Eye className="w-4 h-4" />
                     </button>
 
+                    {/* Edit button for manual pending transactions */}
+                    {canModify && onEdit && (
+                      <button
+                        onClick={() => onEdit(txn)}
+                        className="p-2 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                        title={t('common.edit') || 'Edit'}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {/* Delete button for manual pending transactions */}
+                    {canModify && onDelete && (
+                      <button
+                        onClick={() => onDelete(txn)}
+                        className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title={t('common.delete') || 'Delete'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+
                     {/* Confirm button for pending transactions */}
                     {canEdit && isPending && onConfirm && (
                       <button
@@ -380,6 +380,49 @@ export function TransactionsTable({
           })}
         </tbody>
       </table>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/50 rounded-b-2xl">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-stone-600 dark:text-stone-400">
+              {t('common.showingXtoYofZ')
+                ? t('common.showingXtoYofZ')
+                    .replace('{start}', String(startIndex + 1))
+                    .replace('{end}', String(endIndex))
+                    .replace('{total}', String(sortedTransactions.length))
+                : `Showing ${startIndex + 1} to ${endIndex} of ${sortedTransactions.length} transactions`
+              }
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                {t('common.previous') || 'Previous'}
+              </button>
+              <span className="px-3 py-1.5 text-sm text-stone-700 dark:text-stone-300">
+                {t('common.pageXofY')
+                  ? t('common.pageXofY')
+                      .replace('{current}', String(currentPage))
+                      .replace('{total}', String(totalPages))
+                  : `Page ${currentPage} of ${totalPages}`
+                }
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('common.next') || 'Next'}
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

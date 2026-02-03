@@ -25,6 +25,15 @@ interface RevenueExpensesChartProps {
 export function RevenueExpensesChart({ data }: RevenueExpensesChartProps) {
   const { locale, t } = useLocale()
 
+  // Debug: Log chart data
+  if (typeof window !== 'undefined') {
+    const nonZeroData = data.filter(d => d.revenue > 0 || d.expenses > 0)
+    console.log('[RevenueExpensesChart] Total points:', data.length, 'Non-zero:', nonZeroData.length)
+    if (nonZeroData.length > 0) {
+      console.log('[RevenueExpensesChart] Sample data:', nonZeroData.slice(0, 3))
+    }
+  }
+
   // Format date for display
   const formatDate = (dateString: string) => {
     return formatDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
@@ -153,6 +162,7 @@ export function RevenueExpensesChart({ data }: RevenueExpensesChartProps) {
             tickLine={false}
             axisLine={false}
             width={60}
+            domain={[0, 'auto']}
           />
           <Tooltip content={<CustomTooltip />} />
           <Area
@@ -161,7 +171,7 @@ export function RevenueExpensesChart({ data }: RevenueExpensesChartProps) {
             stroke="#10B981"
             strokeWidth={2}
             fill="url(#revenueGradient)"
-            dot={false}
+            dot={{ r: 3, fill: '#10B981', strokeWidth: 0 }}
             activeDot={{ r: 5, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }}
           />
           <Area
@@ -170,7 +180,7 @@ export function RevenueExpensesChart({ data }: RevenueExpensesChartProps) {
             stroke="#F43F5E"
             strokeWidth={2}
             fill="url(#expensesGradient)"
-            dot={false}
+            dot={{ r: 3, fill: '#F43F5E', strokeWidth: 0 }}
             activeDot={{ r: 5, fill: '#F43F5E', stroke: '#fff', strokeWidth: 2 }}
           />
         </AreaChart>

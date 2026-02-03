@@ -28,6 +28,7 @@ interface Product {
   nameFr: string | null
   category: 'Patisserie' | 'Boulangerie'
   unit: string
+  priceGNF: number | null
 }
 
 interface SaleItemEntry {
@@ -150,8 +151,9 @@ export function AddEditSaleModal({
   // Initialize form with sale data
   useEffect(() => {
     if (sale) {
+      const isoDate = formatDateForInput(sale.date)
       setFormData({
-        date: formatDateForInput(sale.date), // Use timezone-aware date formatting
+        date: isoDate, // Use timezone-aware date formatting
         cashGNF: sale.cashGNF,
         orangeMoneyGNF: sale.orangeMoneyGNF,
         cardGNF: sale.cardGNF,
@@ -159,13 +161,16 @@ export function AddEditSaleModal({
       })
       if (sale.debts && sale.debts.length > 0) {
         // Transform existing debts from DB format to modal format
-        const transformedDebts = sale.debts.map((debt: DebtItem | { principalAmount?: number; dueDate?: string | Date; [key: string]: unknown }) => ({
-          customerId: typeof debt.customerId === 'string' ? debt.customerId : '',
-          // Use principalAmount from DB, but store as amountGNF for the modal
-          amountGNF: ('principalAmount' in debt && typeof debt.principalAmount === 'number' ? debt.principalAmount : ('amountGNF' in debt && typeof debt.amountGNF === 'number' ? debt.amountGNF : 0)),
-          dueDate: debt.dueDate ? formatDateForInput(debt.dueDate) : '',
-          description: typeof debt.description === 'string' ? debt.description : ''
-        }))
+        const transformedDebts = sale.debts.map((debt: DebtItem | { principalAmount?: number; dueDate?: string | Date; [key: string]: unknown }) => {
+          const isoDate = debt.dueDate ? formatDateForInput(debt.dueDate) : ''
+          return {
+            customerId: typeof debt.customerId === 'string' ? debt.customerId : '',
+            // Use principalAmount from DB, but store as amountGNF for the modal
+            amountGNF: ('principalAmount' in debt && typeof debt.principalAmount === 'number' ? debt.principalAmount : ('amountGNF' in debt && typeof debt.amountGNF === 'number' ? debt.amountGNF : 0)),
+            dueDate: isoDate,
+            description: typeof debt.description === 'string' ? debt.description : ''
+          }
+        })
         setDebtItems(transformedDebts)
         setShowCreditSection(true)
       }
@@ -183,8 +188,9 @@ export function AddEditSaleModal({
       }
     } else {
       // Default to today for new sales
+      const todayISO = getTodayDateString()
       setFormData({
-        date: getTodayDateString(), // Use timezone-aware today's date
+        date: todayISO, // Use timezone-aware today's date
         cashGNF: 0,
         orangeMoneyGNF: 0,
         cardGNF: 0,
@@ -196,7 +202,7 @@ export function AddEditSaleModal({
       setShowProductsSection(false)
     }
     setErrors({})
-  }, [sale, isOpen])
+  }, [sale, isOpen, locale])
 
   // Calculate totals
   const immediatePaymentGNF = formData.cashGNF + formData.orangeMoneyGNF + formData.cardGNF
@@ -306,6 +312,15 @@ export function AddEditSaleModal({
   const updateSaleItem = (index: number, field: keyof SaleItemEntry, value: string | number | null) => {
     const updated = [...saleItems]
     updated[index] = { ...updated[index], [field]: value }
+
+    // Auto-fill unitPrice when product is selected
+    if (field === 'productId' && value) {
+      const selectedProduct = products.find(p => p.id === value)
+      if (selectedProduct?.priceGNF) {
+        updated[index].unitPrice = selectedProduct.priceGNF
+      }
+    }
+
     setSaleItems(updated)
   }
 
@@ -445,7 +460,6 @@ export function AddEditSaleModal({
                 value={formData.date}
                 onChange={(e) => handleChange('date', e.target.value)}
                 disabled={isViewMode}
-                placeholder={locale === 'fr' ? 'JJ/MM/AAAA' : 'MM/DD/YYYY'}
                 className={`
                   w-full px-4 py-2.5 rounded-xl
                   border ${errors.date ? 'border-red-500' : 'border-gray-300 dark:border-stone-600'}

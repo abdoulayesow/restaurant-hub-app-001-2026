@@ -10,6 +10,7 @@ import {
   Building2,
   DollarSign,
   Users,
+  ShoppingBag,
 } from 'lucide-react'
 
 // Navigation configuration types
@@ -48,6 +49,7 @@ export const navigationItems: NavItemConfig[] = [
     icon: ChefHat,
     subItems: [
       { id: 'production', label: 'Production', labelFr: 'Production', icon: Utensils, href: '/baking/production' },
+      { id: 'products', label: 'Products', labelFr: 'Produits', icon: ShoppingBag, href: '/baking/products' },
       { id: 'inventory', label: 'Inventory', labelFr: 'Inventaire', icon: Package, href: '/baking/inventory' },
     ]
   },
@@ -72,6 +74,7 @@ export const routeToSubItem: Record<string, string> = {
   '/dashboard/projection': 'projection',
   '/baking': 'production',
   '/baking/production': 'production',
+  '/baking/products': 'products',
   '/baking/inventory': 'inventory',
   '/inventory': 'inventory',
   '/production': 'production',

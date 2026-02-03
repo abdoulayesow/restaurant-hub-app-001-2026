@@ -18,53 +18,9 @@ import {
   User
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
-
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
-type TransactionStatus = 'Pending' | 'Confirmed'
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
-
-interface Transaction {
-  id: string
-  date: string
-  amount: number
-  type: TransactionType
-  method: PaymentMethod
-  reason: TransactionReason
-  status: TransactionStatus
-  description?: string | null
-  comments?: string | null
-  bankRef?: string | null
-  confirmedAt?: string | null
-  createdByName?: string | null
-  createdAt?: string
-  receiptUrl?: string | null
-  sale?: {
-    id: string
-    date: string
-    totalGNF: number
-  } | null
-  debtPayment?: {
-    id: string
-    amount: number
-    paymentDate: string
-    debt?: {
-      customer?: {
-        name: string
-      } | null
-    } | null
-  } | null
-  expensePayment?: {
-    id: string
-    amount: number
-    expense?: {
-      id: string
-      categoryName: string
-      amountGNF: number
-      supplierName?: string | null
-    } | null
-  } | null
-}
+import { Transaction, TransactionReason } from '@/lib/types/bank'
+import { PaymentMethodValue } from '@/lib/constants/payment-methods'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 interface TransactionDetailModalProps {
   isOpen: boolean
@@ -75,7 +31,7 @@ interface TransactionDetailModalProps {
   isConfirming?: boolean
 }
 
-const METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
+const METHOD_ICONS: Record<PaymentMethodValue, React.ElementType> = {
   Cash: Banknote,
   OrangeMoney: Smartphone,
   Card: CreditCard,
@@ -139,23 +95,21 @@ export function TransactionDetailModal({
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date)
+    })
   }
 
   const handleConfirmClick = () => {

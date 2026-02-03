@@ -17,6 +17,7 @@ import {
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { MovementType } from '@prisma/client'
+import { formatDateForDisplay, isToday, isYesterday } from '@/lib/date-utils'
 import {
   PieChart,
   Pie,
@@ -194,20 +195,14 @@ export default function StockMovementPanel({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    const now = new Date()
-    const yesterday = new Date(now)
-    yesterday.setDate(yesterday.getDate() - 1)
 
-    const isToday = date.toDateString() === now.toDateString()
-    const isYesterday = date.toDateString() === yesterday.toDateString()
+    if (isToday(date)) return t('inventory.movementPanel.today')
+    if (isYesterday(date)) return t('inventory.movementPanel.yesterday')
 
-    if (isToday) return t('inventory.movementPanel.today')
-    if (isYesterday) return t('inventory.movementPanel.yesterday')
-
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatDateForDisplay(date, locale === 'fr' ? 'fr-FR' : 'en-US', {
       month: 'short',
       day: 'numeric',
-    }).format(date)
+    })
   }
 
   const formatTime = (dateString: string) => {
@@ -222,7 +217,11 @@ export default function StockMovementPanel({
     const grouped: Record<string, StockMovement[]> = {}
 
     movements.forEach((movement) => {
-      const date = new Date(movement.createdAt).toDateString()
+      const date = formatDateForDisplay(movement.createdAt, 'en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
       if (!grouped[date]) {
         grouped[date] = []
       }

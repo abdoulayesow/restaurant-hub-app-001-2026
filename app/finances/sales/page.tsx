@@ -12,6 +12,8 @@ import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import { canApprove } from '@/lib/roles'
 import { SalesTable } from '@/components/sales/SalesTable'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
+import { DeleteConfirmationModal, type DeleteSeverity } from '@/components/ui/DeleteConfirmationModal'
+import { isToday } from '@/lib/date-utils'
 
 // Dynamic imports for heavy components to reduce initial bundle size
 const AddEditSaleModal = dynamic(
@@ -69,6 +71,7 @@ interface Sale {
       nameFr: string | null
       category: 'Patisserie' | 'Boulangerie'
       unit: string
+      priceGNF: number | null
     } | null
     productName?: string | null
     productNameFr?: string | null
@@ -117,6 +120,11 @@ export default function FinancesSalesPage() {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false)
   const [saleForDeposit, setSaleForDeposit] = useState<Sale | null>(null)
   const [isConfirmingDeposit, setIsConfirmingDeposit] = useState(false)
+
+  // Confirmation modal state
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<'approve' | 'delete' | null>(null)
+  const [saleToConfirm, setSaleToConfirm] = useState<Sale | null>(null)
 
   // Permission check for approval actions (Owner or legacy Manager)
   const canApproveItems = canApprove(currentRole)
@@ -216,17 +224,26 @@ export default function FinancesSalesPage() {
   }
 
   // Handle approve/reject
-  const handleApprove = async (sale: Sale) => {
-    if (!confirm(t('sales.confirmApprove') || 'Are you sure you want to approve this sale?')) return
+  const handleApprove = (sale: Sale) => {
+    setSaleToConfirm(sale)
+    setConfirmAction('approve')
+    setIsConfirmModalOpen(true)
+  }
+
+  const executeApprove = async () => {
+    if (!saleToConfirm) return
 
     try {
-      const res = await fetch(`/api/sales/${sale.id}/approve`, {
+      const res = await fetch(`/api/sales/${saleToConfirm.id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
       })
 
       if (res.ok) {
+        setIsConfirmModalOpen(false)
+        setSaleToConfirm(null)
+        setConfirmAction(null)
         fetchSales()
       }
     } catch (error) {
@@ -253,19 +270,24 @@ export default function FinancesSalesPage() {
     }
   }
 
-  const handleDelete = async (sale: Sale) => {
-    const message = sale.status === 'Approved'
-      ? t('sales.confirmDeleteApproved') || 'This is an approved sale. Are you sure you want to delete it? This will mark it as deleted but preserve all related records (debts, transactions).'
-      : t('sales.confirmDelete') || 'Are you sure you want to delete this sale?'
+  const handleDelete = (sale: Sale) => {
+    setSaleToConfirm(sale)
+    setConfirmAction('delete')
+    setIsConfirmModalOpen(true)
+  }
 
-    if (!confirm(message)) return
+  const executeDelete = async () => {
+    if (!saleToConfirm) return
 
     try {
-      const res = await fetch(`/api/sales/${sale.id}`, {
+      const res = await fetch(`/api/sales/${saleToConfirm.id}`, {
         method: 'DELETE',
       })
 
       if (res.ok) {
+        setIsConfirmModalOpen(false)
+        setSaleToConfirm(null)
+        setConfirmAction(null)
         fetchSales()
       } else {
         const errorData = await res.json()
@@ -274,6 +296,52 @@ export default function FinancesSalesPage() {
     } catch (error) {
       console.error('Error deleting sale:', error)
       alert(t('errors.failedToDelete') || 'Failed to delete sale')
+    }
+  }
+
+  // Get confirmation modal props based on action
+  const getConfirmModalProps = () => {
+    if (!saleToConfirm || !confirmAction) return null
+
+    const formattedDate = new Date(saleToConfirm.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+
+    if (confirmAction === 'approve') {
+      return {
+        title: t('sales.approveSale') || 'Approve Sale',
+        description: t('sales.confirmApproveDescription') || 'This sale will be marked as approved',
+        itemType: t('common.sale') || 'Sale',
+        itemName: formattedDate,
+        itemDetails: [
+          { label: t('common.total') || 'Total', value: formatCurrency(saleToConfirm.totalGNF) },
+          { label: t('common.status') || 'Status', value: saleToConfirm.status },
+        ],
+        warningMessage: t('sales.approveWarning') || 'Approving this sale will make it official in your records.',
+        severity: 'normal' as DeleteSeverity,
+        onConfirm: executeApprove,
+      }
+    }
+
+    // Delete action
+    const isApproved = saleToConfirm.status === 'Approved'
+    return {
+      title: t('sales.deleteSale') || 'Delete Sale',
+      description: t('common.actionIrreversible') || 'This action cannot be undone',
+      itemType: t('common.sale') || 'Sale',
+      itemName: formattedDate,
+      itemDetails: [
+        { label: t('common.total') || 'Total', value: formatCurrency(saleToConfirm.totalGNF) },
+        { label: t('common.status') || 'Status', value: saleToConfirm.status },
+      ],
+      warningMessage: isApproved
+        ? t('sales.deleteApprovedWarning') || 'This is an approved sale. Deleting it will mark it as deleted but preserve all related records (debts, transactions).'
+        : t('sales.deleteWarning') || 'This sale record will be permanently deleted.',
+      severity: (isApproved ? 'warning' : 'normal') as DeleteSeverity,
+      onConfirm: executeDelete,
     }
   }
 
@@ -345,11 +413,7 @@ export default function FinancesSalesPage() {
   }
 
   // Get today's sales from summary
-  const todaysSales = sales.filter(s => {
-    const saleDate = new Date(s.date).toDateString()
-    const today = new Date().toDateString()
-    return saleDate === today
-  })
+  const todaysSales = sales.filter(s => isToday(s.date))
 
   const todaysTotal = todaysSales.reduce((sum, s) => sum + s.totalGNF, 0)
 
@@ -634,6 +698,30 @@ export default function FinancesSalesPage() {
         sale={saleForDeposit}
         isLoading={isConfirmingDeposit}
       />
+
+      {/* Confirmation Modal for Approve/Delete */}
+      {(() => {
+        const props = getConfirmModalProps()
+        if (!props) return null
+        return (
+          <DeleteConfirmationModal
+            isOpen={isConfirmModalOpen}
+            onClose={() => {
+              setIsConfirmModalOpen(false)
+              setSaleToConfirm(null)
+              setConfirmAction(null)
+            }}
+            onConfirm={props.onConfirm}
+            title={props.title}
+            description={props.description}
+            itemType={props.itemType}
+            itemName={props.itemName}
+            itemDetails={props.itemDetails}
+            warningMessage={props.warningMessage}
+            severity={props.severity}
+          />
+        )
+      })()}
 
       {/* Quick Actions Menu - Floating */}
       <QuickActionsMenu />

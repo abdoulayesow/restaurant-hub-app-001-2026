@@ -127,13 +127,23 @@ export default function DashboardPage() {
         url += `&period=${period}`
       }
 
+      console.log('[Dashboard] Fetching data from:', url)
       const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()
+        console.log('[Dashboard] Received data:', {
+          revenueByDay: data.revenueByDay?.length,
+          kpis: data.kpis,
+          nonZeroDays: data.revenueByDay?.filter((d: { revenue: number, expenses: number }) => d.revenue > 0 || d.expenses > 0).length
+        })
         setDashboardData(data)
+      } else {
+        console.error('[Dashboard] API error:', res.status, res.statusText)
+        const errorData = await res.json().catch(() => ({}))
+        console.error('[Dashboard] Error details:', errorData)
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+      console.error('[Dashboard] Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
     }

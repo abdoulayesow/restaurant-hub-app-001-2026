@@ -13,45 +13,9 @@ import {
 } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-
-type TransactionType = 'Deposit' | 'Withdrawal'
-type PaymentMethod = 'Cash' | 'OrangeMoney' | 'Card'
-type TransactionStatus = 'Pending' | 'Confirmed'
-type TransactionReason = 'SalesDeposit' | 'DebtCollection' | 'ExpensePayment' | 'OwnerWithdrawal' | 'CapitalInjection' | 'Other'
-
-interface Transaction {
-  id: string
-  date: string
-  amount: number
-  type: TransactionType
-  method: PaymentMethod
-  reason: TransactionReason
-  status: TransactionStatus
-  description?: string | null
-  comments?: string | null
-  bankRef?: string | null
-  confirmedAt?: string | null
-  createdByName?: string | null
-  sale?: {
-    id: string
-    date: string
-    totalGNF: number
-  } | null
-  debtPayment?: {
-    id: string
-    amount: number
-    paymentDate: string
-  } | null
-  expensePayment?: {
-    id: string
-    amount: number
-    expense?: {
-      id: string
-      categoryName: string
-      amountGNF: number
-    } | null
-  } | null
-}
+import { formatDateForInput, formatUTCDateForDisplay } from '@/lib/date-utils'
+import { Transaction, TransactionReason } from '@/lib/types/bank'
+import { PaymentMethodValue } from '@/lib/constants/payment-methods'
 
 interface TransactionListProps {
   transactions: Transaction[]
@@ -70,7 +34,7 @@ const REASON_LABELS: Record<TransactionReason, { key: string; fallback: string }
   Other: { key: 'bank.reasons.other', fallback: 'Other' },
 }
 
-const METHOD_ICONS: Record<PaymentMethod, React.ElementType> = {
+const METHOD_ICONS: Record<PaymentMethodValue, React.ElementType> = {
   Cash: Banknote,
   OrangeMoney: Smartphone,
   Card: CreditCard,
@@ -114,17 +78,16 @@ export function TransactionList({ transactions, onConfirm, onTransactionClick, c
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return formatUTCDateForDisplay(dateString, locale === 'fr' ? 'fr-FR' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    }).format(date)
+    })
   }
 
   // Group transactions by date
   const groupedTransactions = filteredTransactions.reduce((groups, txn) => {
-    const dateKey = new Date(txn.date).toISOString().split('T')[0]
+    const dateKey = formatDateForInput(txn.date)
     if (!groups[dateKey]) {
       groups[dateKey] = []
     }

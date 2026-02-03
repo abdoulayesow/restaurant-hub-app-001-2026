@@ -106,18 +106,18 @@ async function main() {
     console.log('   ⚠️  No inventory items - consider seeding')
   }
 
-  // Check expenses with new payment status
+  // Check expenses payment status
   const expensesByStatus = await prisma.expense.groupBy({
-    by: ['status', 'paymentStatus'],
+    by: ['paymentStatus'],
     _count: true
   })
 
-  console.log('\n💰 Expense Status Breakdown:')
+  console.log('\n💰 Expense Payment Status Breakdown:')
   if (expensesByStatus.length === 0) {
     console.log('   No expenses found')
   } else {
     expensesByStatus.forEach(stat => {
-      console.log(`   ${stat.status} / ${stat.paymentStatus}: ${stat._count} expenses`)
+      console.log(`   ${stat.paymentStatus}: ${stat._count} expenses`)
     })
   }
 
