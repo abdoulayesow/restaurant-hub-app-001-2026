@@ -72,14 +72,14 @@ export function StockDepletionTable({ forecasts }: StockDepletionTableProps) {
 
   const getConfidenceBadge = (confidence: StockForecast['confidence']) => {
     const configs = {
-      HIGH: { color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-      MEDIUM: { color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-900/30' },
-      LOW: { color: 'text-red-700 dark:text-red-300', bg: 'bg-red-100 dark:bg-red-900/30' }
+      HIGH: { color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-100 dark:bg-emerald-900/30', label: t('projection.confidenceLevel.high') || 'High' },
+      MEDIUM: { color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-900/30', label: t('projection.confidenceLevel.medium') || 'Medium' },
+      LOW: { color: 'text-red-700 dark:text-red-300', bg: 'bg-red-100 dark:bg-red-900/30', label: t('projection.confidenceLevel.low') || 'Low' }
     }
     const config = configs[confidence]
     return (
       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${config.bg} ${config.color}`}>
-        {confidence}
+        {config.label}
       </span>
     )
   }
@@ -233,7 +233,7 @@ export function StockDepletionTable({ forecasts }: StockDepletionTableProps) {
                 className="px-6 py-4 text-left text-xs font-semibold text-stone-600 dark:text-stone-300 uppercase tracking-wider cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  {t('projection.status') || 'Status'}
+                  {t('projection.statusLabel') || 'Status'}
                   <ArrowUpDown className="w-3 h-3 opacity-50" />
                 </div>
               </th>

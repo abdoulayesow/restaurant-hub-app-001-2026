@@ -1,21 +1,56 @@
 'use client'
 
-import { useMemo } from 'react'
-import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts'
-import { TrendingUp, BarChart3 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
+import { TrendingUp, BarChart3, Eye, EyeOff } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { DemandForecast } from '@/lib/projection-utils'
 import { formatCurrencyCompact } from '@/lib/currency-utils'
 import { formatDateForDisplay } from '@/lib/date-utils'
 
+export type ForecastPeriod = '7d' | '14d' | '30d'
+
 interface DemandForecastChartProps {
   forecasts: DemandForecast[]
   historicalData: Array<{ date: string; revenue: number; expenses: number }>
   palette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
+  selectedPeriod?: ForecastPeriod
+  onPeriodChange?: (period: ForecastPeriod) => void
 }
 
-export function DemandForecastChart({ forecasts, historicalData = [], palette }: DemandForecastChartProps) {
+interface SeriesVisibility {
+  revenue: boolean
+  expenses: boolean
+}
+
+// Symmetrical: show same number of historical days as forecast days
+const PERIOD_CONFIG: Record<ForecastPeriod, { days: number; intervals: number; intervalDays: number }> = {
+  '7d': { days: 7, intervals: 7, intervalDays: 1 },
+  '14d': { days: 14, intervals: 14, intervalDays: 1 },
+  '30d': { days: 30, intervals: 10, intervalDays: 3 }
+}
+
+export function DemandForecastChart({
+  forecasts,
+  historicalData = [],
+  palette,
+  selectedPeriod: controlledPeriod,
+  onPeriodChange
+}: DemandForecastChartProps) {
   const { t, locale } = useLocale()
+  const [internalPeriod, setInternalPeriod] = useState<ForecastPeriod>('7d')
+
+  // Use controlled period if provided, otherwise use internal state
+  const selectedPeriod = controlledPeriod ?? internalPeriod
+  const setSelectedPeriod = onPeriodChange ?? setInternalPeriod
+  const [visibility, setVisibility] = useState<SeriesVisibility>({
+    revenue: true,
+    expenses: false
+  })
+
+  const toggleVisibility = (series: keyof SeriesVisibility) => {
+    setVisibility(prev => ({ ...prev, [series]: !prev[series] }))
+  }
 
   // Format currency for axis ticks (compact, no GNF suffix for space)
   const formatAxisValue = (value: number) => {
@@ -31,6 +66,12 @@ export function DemandForecastChart({ forecasts, historicalData = [], palette }:
 
   const colors = paletteColors[palette]
 
+  // Pre-compute translated labels for legend
+  const labels = {
+    revenue: t('projection.actualSales') || 'Actual Sales',
+    expenses: t('dashboard.expenses') || 'Expenses'
+  }
+
   const chartData = useMemo(() => {
     const data: Array<{
       date: string
@@ -42,69 +83,98 @@ export function DemandForecastChart({ forecasts, historicalData = [], palette }:
       confidenceHigh?: number
     }> = []
 
-    // Add historical data (last 30 days only for cleaner chart)
-    const recentHistorical = historicalData.slice(-30)
+    const config = PERIOD_CONFIG[selectedPeriod]
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    recentHistorical.forEach((point) => {
-      data.push({
-        date: point.date,
-        label: formatDateForDisplay(point.date, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' }),
-        revenue: point.revenue,
-        expenses: point.expenses
-      })
+    // Create a map of historical data by date for quick lookup
+    const historicalMap = new Map<string, { revenue: number; expenses: number }>()
+    historicalData.forEach((point) => {
+      historicalMap.set(point.date, { revenue: point.revenue, expenses: point.expenses })
     })
 
-    // Add forecast points (using 30d forecast for projection line)
-    const forecast30d = forecasts.find(f => f.period === '30d')
+    // Generate complete calendar for past N days (with 0 for missing days)
+    for (let i = config.days; i >= 1; i--) {
+      const pastDate = new Date(today)
+      pastDate.setDate(pastDate.getDate() - i)
+      const dateStr = pastDate.toISOString().split('T')[0]
+      const label = formatDateForDisplay(pastDate, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
 
-    if (forecast30d) {
-      const today = new Date()
-      const dailyForecast = forecast30d.expectedRevenue / 30
+      // Get data from map, or default to 0
+      const dayData = historicalMap.get(dateStr)
 
-      // Add 7 future points (weekly intervals for 30 days)
-      for (let i = 1; i <= 4; i++) {
+      data.push({
+        date: dateStr,
+        label,
+        revenue: dayData?.revenue ?? 0,
+        expenses: dayData?.expenses ?? 0
+      })
+    }
+
+    // Add forecast points based on selected period
+    const selectedForecast = forecasts.find(f => f.period === selectedPeriod)
+
+    if (selectedForecast) {
+      // Daily forecast value (not cumulative!)
+      const dailyForecast = selectedForecast.expectedRevenue / config.days
+      const dailyConfidenceLow = selectedForecast.confidenceInterval.low / config.days
+      const dailyConfidenceHigh = selectedForecast.confidenceInterval.high / config.days
+
+      // Add forecast points at configured intervals - showing DAILY values
+      for (let i = 1; i <= config.intervals; i++) {
         const futureDate = new Date(today)
-        futureDate.setDate(futureDate.getDate() + (i * 7))
+        futureDate.setDate(futureDate.getDate() + (i * config.intervalDays))
 
         const dateStr = futureDate.toISOString().split('T')[0]
         const label = formatDateForDisplay(futureDate, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
 
+        // Show daily value (averaged over interval days if interval > 1)
         data.push({
           date: dateStr,
           label,
-          forecast: dailyForecast * i * 7,
-          confidenceLow: (forecast30d.confidenceInterval.low / 30) * i * 7,
-          confidenceHigh: (forecast30d.confidenceInterval.high / 30) * i * 7
+          forecast: dailyForecast * config.intervalDays,
+          confidenceLow: dailyConfidenceLow * config.intervalDays,
+          confidenceHigh: dailyConfidenceHigh * config.intervalDays
         })
       }
     }
 
     return data
-  }, [historicalData, forecasts, locale])
+  }, [historicalData, forecasts, locale, selectedPeriod])
+
+  // Map dataKey to translated label for tooltip
+  const getDataKeyLabel = (dataKey: string) => {
+    switch (dataKey) {
+      case 'revenue': return labels.revenue
+      case 'expenses': return labels.expenses
+      case 'forecast': return t('projection.forecastedData') || 'Forecast'
+      default: return dataKey
+    }
+  }
 
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number; color?: string; name?: string; dataKey?: string }>; label?: string }) => {
     if (!active || !payload || !payload.length) return null
 
     return (
-      <div className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg p-3">
-        <p className="text-xs font-semibold text-stone-900 dark:text-stone-100 mb-2">
+      <div className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl shadow-xl p-4 min-w-[180px]">
+        <p className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3 pb-2 border-b border-stone-200 dark:border-stone-700">
           {label}
         </p>
-        <div className="space-y-1">
+        <div className="space-y-2">
           {payload.map((entry, index) => {
             if (!entry.value || entry.dataKey === 'confidenceLow' || entry.dataKey === 'confidenceHigh') return null
             return (
-              <div key={index} className="flex items-center justify-between gap-4 text-xs">
+              <div key={index} className="flex items-center justify-between gap-4 text-sm">
                 <span className="flex items-center gap-2">
                   <span
-                    className="w-2.5 h-2.5 rounded-full"
+                    className="w-3 h-3 rounded-full ring-2 ring-white dark:ring-stone-800"
                     style={{ backgroundColor: entry.color }}
                   />
                   <span className="text-stone-600 dark:text-stone-400">
-                    {entry.name}
+                    {getDataKeyLabel(entry.dataKey || '')}
                   </span>
                 </span>
-                <span className="font-semibold text-stone-900 dark:text-stone-100">
+                <span className="font-bold text-stone-900 dark:text-stone-100 tabular-nums">
                   {formatCurrencyCompact(entry.value, locale)}
                 </span>
               </div>
@@ -137,19 +207,90 @@ export function DemandForecastChart({ forecasts, historicalData = [], palette }:
 
   return (
     <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden">
-      {/* Header */}
+      {/* Header with integrated legend and period selector */}
       <div className="p-6 border-b border-stone-200 dark:border-stone-700">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-violet-500/10">
-            <TrendingUp className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+        <div className="flex flex-col gap-4">
+          {/* Title row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div
+                className="p-2.5 rounded-xl"
+                style={{ backgroundColor: `${colors.primary}15` }}
+              >
+                <TrendingUp className="w-5 h-5" style={{ color: colors.primary }} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">
+                  {t('projection.revenueProjection') || 'Revenue Projection'}
+                </h2>
+                <p className="text-sm text-stone-500 dark:text-stone-400">
+                  {t('projection.revenueProjectionDescription') || 'Historical performance and future demand forecasts'}
+                </p>
+              </div>
+            </div>
+
+            {/* Period selector */}
+            <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-stone-700/50 rounded-lg">
+              {(['7d', '14d', '30d'] as ForecastPeriod[]).map((period) => {
+                const isSelected = selectedPeriod === period
+                const periodLabel = period === '7d'
+                  ? (t('projection.period7d') || '7 days')
+                  : period === '14d'
+                  ? (t('projection.period14d') || '14 days')
+                  : (t('projection.period30d') || '30 days')
+
+                return (
+                  <button
+                    key={period}
+                    onClick={() => setSelectedPeriod(period)}
+                    className={`
+                      px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200
+                      ${isSelected
+                        ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
+                        : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                      }
+                    `}
+                    style={isSelected ? { boxShadow: `0 0 0 1px ${colors.primary}30` } : undefined}
+                  >
+                    {periodLabel}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100">
-              {t('projection.revenueExpenseProjection') || 'Revenue & Expense Trends'}
-            </h2>
-            <p className="text-sm text-stone-600 dark:text-stone-400 mt-0.5">
-              {t('projection.chartDescription') || 'Historical performance and forecast'}
-            </p>
+
+          {/* Legend row with toggles */}
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+            {/* Revenue toggle */}
+            <button
+              onClick={() => toggleVisibility('revenue')}
+              className={`
+                flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200
+                ${visibility.revenue
+                  ? 'border-transparent text-white shadow-sm'
+                  : 'border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 bg-transparent hover:bg-stone-100 dark:hover:bg-stone-700/50'
+                }
+              `}
+              style={visibility.revenue ? { backgroundColor: colors.primary } : undefined}
+            >
+              {visibility.revenue ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              <span>{labels.revenue}</span>
+            </button>
+
+            {/* Expenses toggle */}
+            <button
+              onClick={() => toggleVisibility('expenses')}
+              className={`
+                flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200
+                ${visibility.expenses
+                  ? 'bg-red-500 border-transparent text-white shadow-sm'
+                  : 'border-stone-300 dark:border-stone-600 text-stone-500 dark:text-stone-400 bg-transparent hover:bg-stone-100 dark:hover:bg-stone-700/50'
+                }
+              `}
+            >
+              {visibility.expenses ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              <span>{labels.expenses}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -168,8 +309,8 @@ export function DemandForecastChart({ forecasts, historicalData = [], palette }:
                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                <stop offset="5%" stopColor={colors.primary} stopOpacity={0.15} />
+                <stop offset="95%" stopColor={colors.primary} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-stone-200 dark:stroke-stone-700" />
@@ -185,88 +326,65 @@ export function DemandForecastChart({ forecasts, historicalData = [], palette }:
               className="text-stone-600 dark:text-stone-400"
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }}
-              iconType="circle"
-            />
-
-            {/* Confidence Interval (shaded area for forecast) */}
-            <Area
-              type="monotone"
-              dataKey="confidenceHigh"
-              stroke="transparent"
-              fill="#8b5cf6"
-              fillOpacity={0.1}
-              name={t('projection.confidenceInterval') || 'Confidence Range'}
-            />
-            <Area
-              type="monotone"
-              dataKey="confidenceLow"
-              stroke="transparent"
-              fill="#8b5cf6"
-              fillOpacity={0.1}
-            />
 
             {/* Expenses (Red) */}
-            <Area
-              type="monotone"
-              dataKey="expenses"
-              stroke="#ef4444"
-              strokeWidth={2}
-              fill="url(#colorExpenses)"
-              name={t('projection.expenses') || 'Expenses'}
-              dot={false}
-            />
+            {visibility.expenses && (
+              <Area
+                type="monotone"
+                dataKey="expenses"
+                stroke="#ef4444"
+                strokeWidth={2}
+                fill="url(#colorExpenses)"
+                dot={false}
+              />
+            )}
 
             {/* Revenue (Brand Color) */}
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke={colors.primary}
-              strokeWidth={2.5}
-              fill="url(#colorRevenue)"
-              name={t('projection.revenue') || 'Revenue'}
-              dot={false}
-            />
+            {visibility.revenue && (
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke={colors.primary}
+                strokeWidth={2.5}
+                fill="url(#colorRevenue)"
+                dot={false}
+              />
+            )}
 
-            {/* Forecast (Violet, Dashed) */}
-            <Area
-              type="monotone"
-              dataKey="forecast"
-              stroke="#8b5cf6"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              fill="url(#colorForecast)"
-              name={t('projection.forecast') || 'Forecast'}
-              dot={{ fill: '#8b5cf6', r: 3 }}
-            />
+            {/* Revenue Forecast (Violet, Dashed) - shows automatically when revenue is visible */}
+            {visibility.revenue && (
+              <>
+                {/* Confidence Interval (shaded area) */}
+                <Area
+                  type="monotone"
+                  dataKey="confidenceHigh"
+                  stroke="transparent"
+                  fill={colors.primary}
+                  fillOpacity={0.1}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="confidenceLow"
+                  stroke="transparent"
+                  fill={colors.primary}
+                  fillOpacity={0.1}
+                />
+                {/* Forecast line */}
+                <Area
+                  type="monotone"
+                  dataKey="forecast"
+                  stroke={colors.primary}
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  fill="url(#colorForecast)"
+                  dot={{ fill: colors.primary, r: 3 }}
+                />
+              </>
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Legend/Key */}
-      <div className="px-6 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 bg-stone-50 dark:bg-stone-900/50 rounded-xl text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 rounded" style={{ backgroundColor: colors.primary }} />
-            <span className="text-stone-700 dark:text-stone-300 font-medium">
-              {t('projection.actualRevenue') || 'Actual Revenue'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 rounded bg-red-500" />
-            <span className="text-stone-700 dark:text-stone-300 font-medium">
-              {t('projection.actualExpenses') || 'Actual Expenses'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 rounded bg-violet-500" style={{ borderTop: '2px dashed #8b5cf6' }} />
-            <span className="text-stone-700 dark:text-stone-300 font-medium">
-              {t('projection.projectedRevenue') || 'Revenue Forecast'}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

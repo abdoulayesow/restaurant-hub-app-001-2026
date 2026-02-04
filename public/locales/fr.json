@@ -853,13 +853,7 @@
       "ExpensePayment": "Paiement de dépense",
       "OwnerWithdrawal": "Retrait propriétaire",
       "CapitalInjection": "Injection de capital",
-      "Other": "Autre",
-      "salesDeposit": "Dépôt de ventes",
-      "debtCollection": "Recouvrement de créance",
-      "expensePayment": "Paiement de dépense",
-      "ownerWithdrawal": "Retrait propriétaire",
-      "capitalInjection": "Injection de capital",
-      "other": "Autre"
+      "Other": "Autre"
     },
     "methods": {
       "Cash": "Espèces",
@@ -953,8 +947,13 @@
     "dailyUsage": "Utilisation quotidienne",
     "daysLeft": "Jours restants",
     "depletionDate": "Date d'épuisement",
-    "status": "Statut",
+    "statusLabel": "Statut",
     "confidence": "Confiance",
+    "confidenceLevel": {
+      "high": "Élevée",
+      "medium": "Moyenne",
+      "low": "Faible"
+    },
     "status": {
       "critical": "Critique",
       "warning": "Attention",
@@ -1008,11 +1007,11 @@
     "declining": "En baisse",
     "profitabilityImproving": "Votre rentabilité s'améliore. Continuez comme ça !",
     "profitabilityDeclining": "La rentabilité diminue. Examinez les dépenses et les prix.",
-    "last7D": "7 derniers jours",
-    "last14D": "14 derniers jours",
-    "last30D": "30 derniers jours",
-    "last60D": "60 derniers jours",
-    "last90D": "90 derniers jours",
+    "last7d": "7 derniers jours",
+    "last14d": "14 derniers jours",
+    "last30d": "30 derniers jours",
+    "last60d": "60 derniers jours",
+    "last90d": "90 derniers jours",
     "revenueProjection": "Projection des revenus",
     "revenueProjectionDescription": "Performance historique et prévisions de demande future",
     "noChartData": "Aucune donnée disponible",
@@ -1034,7 +1033,10 @@
     "expectedExpenses": "Dépenses attendues",
     "thisWeek": "Cette semaine",
     "thisMonth": "Ce mois",
-    "thisQuarter": "Ce trimestre"
+    "thisQuarter": "Ce trimestre",
+    "period7d": "7 jours",
+    "period14d": "14 jours",
+    "period30d": "30 jours"
   },
   "bakery": {
     "myBakeries": "Mes Restaurants",

@@ -43,14 +43,14 @@ interface TransactionFormModalProps {
   defaultType?: TransactionType
 }
 
-// Reason options with translation keys
+// Reason options with translation keys (using PascalCase to match TransactionReason enum values)
 const REASON_LABELS: Record<TransactionReason, { labelKey: string; label: string }> = {
-  SalesDeposit: { labelKey: 'bank.reasons.salesDeposit', label: 'Sales Deposit' },
-  DebtCollection: { labelKey: 'bank.reasons.debtCollection', label: 'Debt Collection' },
-  CapitalInjection: { labelKey: 'bank.reasons.capitalInjection', label: 'Capital Injection' },
-  ExpensePayment: { labelKey: 'bank.reasons.expensePayment', label: 'Expense Payment' },
-  OwnerWithdrawal: { labelKey: 'bank.reasons.ownerWithdrawal', label: 'Owner Withdrawal' },
-  Other: { labelKey: 'bank.reasons.other', label: 'Other' },
+  SalesDeposit: { labelKey: 'bank.reasons.SalesDeposit', label: 'Sales Deposit' },
+  DebtCollection: { labelKey: 'bank.reasons.DebtCollection', label: 'Debt Collection' },
+  CapitalInjection: { labelKey: 'bank.reasons.CapitalInjection', label: 'Capital Injection' },
+  ExpensePayment: { labelKey: 'bank.reasons.ExpensePayment', label: 'Expense Payment' },
+  OwnerWithdrawal: { labelKey: 'bank.reasons.OwnerWithdrawal', label: 'Owner Withdrawal' },
+  Other: { labelKey: 'bank.reasons.Other', label: 'Other' },
 }
 
 const DEPOSIT_REASONS = DEPOSIT_REASON_VALUES.map(value => ({
@@ -314,7 +314,7 @@ export function TransactionFormModal({
                     }`}
                   >
                     <Icon className="w-5 h-5" />
-                    <span className="text-sm font-medium">{t(labelKey) || label}</span>
+                    <span className="text-sm font-medium">{t(labelKey, label)}</span>
                   </button>
                 ))}
               </div>
@@ -337,7 +337,7 @@ export function TransactionFormModal({
               >
                 {reasons.map(({ value, labelKey, label }) => (
                   <option key={value} value={value}>
-                    {t(labelKey) || label}
+                    {t(labelKey, label)}
                   </option>
                 ))}
               </select>

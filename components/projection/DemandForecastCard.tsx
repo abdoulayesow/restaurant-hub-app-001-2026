@@ -5,16 +5,19 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { DemandForecast } from '@/lib/projection-utils'
 import { formatCurrencyCompact } from '@/lib/currency-utils'
 
+type ForecastPeriod = '7d' | '14d' | '30d'
+
 interface DemandForecastCardProps {
   forecasts: DemandForecast[]
   palette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
+  selectedPeriod?: ForecastPeriod
 }
 
-export function DemandForecastCard({ forecasts }: DemandForecastCardProps) {
+export function DemandForecastCard({ forecasts, selectedPeriod = '30d' }: DemandForecastCardProps) {
   const { t, locale } = useLocale()
 
-  // Use 30d forecast as the primary display
-  const primaryForecast = forecasts.find(f => f.period === '30d') || forecasts[0]
+  // Use selected period as the primary display
+  const primaryForecast = forecasts.find(f => f.period === selectedPeriod) || forecasts[0]
 
   if (!primaryForecast) {
     return null
@@ -54,7 +57,9 @@ export function DemandForecastCard({ forecasts }: DemandForecastCardProps) {
             {t('projection.demandForecast') || 'Revenue Forecast'}
           </h3>
           <p className="text-xs text-stone-500 dark:text-stone-400">
-            {t('projection.next30Days') || 'Next 30 days'}
+            {selectedPeriod === '7d' ? (t('projection.next7Days') || 'Next 7 days') :
+             selectedPeriod === '14d' ? (t('projection.next14Days') || 'Next 14 days') :
+             (t('projection.next30Days') || 'Next 30 days')}
           </p>
         </div>
       </div>

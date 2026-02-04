@@ -857,13 +857,7 @@
       "ExpensePayment": "Expense Payment",
       "OwnerWithdrawal": "Owner Withdrawal",
       "CapitalInjection": "Capital Injection",
-      "Other": "Other",
-      "salesDeposit": "Sales Deposit",
-      "debtCollection": "Debt Collection",
-      "expensePayment": "Expense Payment",
-      "ownerWithdrawal": "Owner Withdrawal",
-      "capitalInjection": "Capital Injection",
-      "other": "Other"
+      "Other": "Other"
     },
     "methods": {
       "Cash": "Cash",
@@ -957,8 +951,13 @@
     "dailyUsage": "Daily Usage",
     "daysLeft": "Days Left",
     "depletionDate": "Depletion Date",
-    "status": "Status",
+    "statusLabel": "Status",
     "confidence": "Confidence",
+    "confidenceLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
     "status": {
       "critical": "Critical",
       "warning": "Warning",
@@ -1012,11 +1011,11 @@
     "declining": "Declining",
     "profitabilityImproving": "Your profitability is improving. Keep it up!",
     "profitabilityDeclining": "Profitability is declining. Review expenses and pricing.",
-    "last7D": "Last 7 Days",
-    "last14D": "Last 14 Days",
-    "last30D": "Last 30 Days",
-    "last60D": "Last 60 Days",
-    "last90D": "Last 90 Days",
+    "last7d": "Last 7 Days",
+    "last14d": "Last 14 Days",
+    "last30d": "Last 30 Days",
+    "last60d": "Last 60 Days",
+    "last90d": "Last 90 Days",
     "revenueProjection": "Revenue Projection",
     "revenueProjectionDescription": "Historical performance and future demand forecasts",
     "noChartData": "No Data Available",
@@ -1038,7 +1037,10 @@
     "expectedExpenses": "Expected Expenses",
     "thisWeek": "This Week",
     "thisMonth": "This Month",
-    "thisQuarter": "This Quarter"
+    "thisQuarter": "This Quarter",
+    "period7d": "7 days",
+    "period14d": "14 days",
+    "period30d": "30 days"
   },
   "bakery": {
     "myBakeries": "My Restaurants",

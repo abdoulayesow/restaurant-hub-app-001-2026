@@ -13,7 +13,7 @@ import { CashRunwayCard } from '@/components/projection/CashRunwayCard'
 import { ProfitabilityCard } from '@/components/projection/ProfitabilityCard'
 import { DemandForecastCard } from '@/components/projection/DemandForecastCard'
 import { StockDepletionTable } from '@/components/projection/StockDepletionTable'
-import { DemandForecastChart } from '@/components/projection/DemandForecastChart'
+import { DemandForecastChart, type ForecastPeriod } from '@/components/projection/DemandForecastChart'
 import type {
   StockForecast,
   ReorderRecommendation,
@@ -40,6 +40,7 @@ export default function ProjectionPage() {
   const [projectionData, setProjectionData] = useState<ProjectionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedPeriod, setSelectedPeriod] = useState<ForecastPeriod>('7d')
 
   const hasAccess = canAccessDashboard(currentRole)
 
@@ -147,7 +148,7 @@ export default function ProjectionPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-100 mb-2">
                 {t('projection.title') || 'Business Projections'}
@@ -156,9 +157,38 @@ export default function ProjectionPage() {
                 {currentRestaurant?.name} • {t('projection.analysisWindow') || 'Based on 30-day analysis'}
               </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400">
-              <TrendingUp className="w-4 h-4" />
-              <span>{t('projection.lastUpdated') || 'Updated'}: {formatDateShort(new Date(), locale)}</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              {/* Period Selector */}
+              <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-stone-700/50 rounded-lg">
+                {(['7d', '14d', '30d'] as ForecastPeriod[]).map((period) => {
+                  const isSelected = selectedPeriod === period
+                  const periodLabel = period === '7d'
+                    ? (t('projection.period7d') || '7 days')
+                    : period === '14d'
+                    ? (t('projection.period14d') || '14 days')
+                    : (t('projection.period30d') || '30 days')
+
+                  return (
+                    <button
+                      key={period}
+                      onClick={() => setSelectedPeriod(period)}
+                      className={`
+                        px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200
+                        ${isSelected
+                          ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm ring-1 ring-terracotta-500/30'
+                          : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                        }
+                      `}
+                    >
+                      {periodLabel}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400">
+                <TrendingUp className="w-4 h-4" />
+                <span>{t('projection.lastUpdated') || 'Updated'}: {formatDateShort(new Date(), locale)}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -166,7 +196,7 @@ export default function ProjectionPage() {
         {/* Top KPI Row */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <CashRunwayCard data={projectionData.cashRunway} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} />
-          <DemandForecastCard forecasts={projectionData.demandForecasts} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} />
+          <DemandForecastCard forecasts={projectionData.demandForecasts} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} selectedPeriod={selectedPeriod} />
           <ProfitabilityCard data={projectionData.profitability} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} />
         </div>
 
@@ -181,6 +211,8 @@ export default function ProjectionPage() {
             forecasts={projectionData.demandForecasts}
             historicalData={projectionData.historicalData}
             palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'}
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
           />
         </div>
 
