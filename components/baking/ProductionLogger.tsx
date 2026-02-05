@@ -18,7 +18,7 @@ import { useLocale } from '@/components/providers/LocaleProvider'
 import { useRestaurant } from '@/components/providers/RestaurantProvider'
 import {
   ProductCategoryValue,
-  PRODUCT_CATEGORY_COLORS,
+  PRODUCTION_TYPE_BUTTON_CLASSES,
 } from '@/lib/constants/product-categories'
 import { getTodayDateString } from '@/lib/date-utils'
 
@@ -427,7 +427,7 @@ export function ProductionLogger({
       case 'low':
         return 'border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/20'
       default:
-        return 'border-gray-200 dark:border-stone-600 bg-gray-50/50 dark:bg-stone-800/50'
+        return 'border-stone-200 dark:border-stone-600 bg-stone-50/50 dark:bg-stone-800/50'
     }
   }
 
@@ -464,8 +464,8 @@ export function ProductionLogger({
               flex flex-col items-center gap-2
               ${
                 productionType === 'Patisserie'
-                  ? `border-${PRODUCT_CATEGORY_COLORS.Patisserie.border} bg-${PRODUCT_CATEGORY_COLORS.Patisserie.bg} ring-2 ring-amber-500/20`
-                  : 'border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 bg-white dark:bg-stone-800'
+                  ? PRODUCTION_TYPE_BUTTON_CLASSES.Patisserie.selected
+                  : PRODUCTION_TYPE_BUTTON_CLASSES.Patisserie.unselected
               }
             `}
           >
@@ -474,8 +474,8 @@ export function ProductionLogger({
                 w-12 h-12 rounded-full flex items-center justify-center
                 ${
                   productionType === 'Patisserie'
-                    ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                    : 'bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400'
+                    ? PRODUCTION_TYPE_BUTTON_CLASSES.Patisserie.iconSelected
+                    : PRODUCTION_TYPE_BUTTON_CLASSES.Patisserie.iconUnselected
                 }
               `}
             >
@@ -485,13 +485,13 @@ export function ProductionLogger({
               <p
                 className={`font-semibold ${
                   productionType === 'Patisserie'
-                    ? 'text-amber-700 dark:text-amber-300'
-                    : 'text-gray-700 dark:text-stone-300'
+                    ? PRODUCTION_TYPE_BUTTON_CLASSES.Patisserie.textSelected
+                    : PRODUCTION_TYPE_BUTTON_CLASSES.Patisserie.textUnselected
                 }`}
               >
                 {t('production.patisserie') || 'Patisserie'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-stone-400">
+              <p className="text-xs text-stone-500 dark:text-stone-400">
                 {t('production.patisserieDesc') || 'Pastries, croissants, cakes'}
               </p>
             </div>
@@ -505,8 +505,8 @@ export function ProductionLogger({
               flex flex-col items-center gap-2
               ${
                 productionType === 'Boulangerie'
-                  ? `border-${PRODUCT_CATEGORY_COLORS.Boulangerie.border} bg-${PRODUCT_CATEGORY_COLORS.Boulangerie.bg} ring-2 ring-orange-500/20`
-                  : 'border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 bg-white dark:bg-stone-800'
+                  ? PRODUCTION_TYPE_BUTTON_CLASSES.Boulangerie.selected
+                  : PRODUCTION_TYPE_BUTTON_CLASSES.Boulangerie.unselected
               }
             `}
           >
@@ -515,8 +515,8 @@ export function ProductionLogger({
                 w-12 h-12 rounded-full flex items-center justify-center
                 ${
                   productionType === 'Boulangerie'
-                    ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                    : 'bg-gray-100 dark:bg-stone-700 text-gray-500 dark:text-stone-400'
+                    ? PRODUCTION_TYPE_BUTTON_CLASSES.Boulangerie.iconSelected
+                    : PRODUCTION_TYPE_BUTTON_CLASSES.Boulangerie.iconUnselected
                 }
               `}
             >
@@ -526,13 +526,13 @@ export function ProductionLogger({
               <p
                 className={`font-semibold ${
                   productionType === 'Boulangerie'
-                    ? 'text-orange-700 dark:text-orange-300'
-                    : 'text-gray-700 dark:text-stone-300'
+                    ? PRODUCTION_TYPE_BUTTON_CLASSES.Boulangerie.textSelected
+                    : PRODUCTION_TYPE_BUTTON_CLASSES.Boulangerie.textUnselected
                 }`}
               >
                 {t('production.boulangerie') || 'Boulangerie'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-stone-400">
+              <p className="text-xs text-stone-500 dark:text-stone-400">
                 {t('production.boulangerieDesc') || 'Breads, baguettes'}
               </p>
             </div>

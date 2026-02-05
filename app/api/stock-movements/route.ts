@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { MovementType } from '@prisma/client'
+import { canAdjustStock } from '@/lib/roles'
 
 // GET /api/stock-movements - List stock movements
 export async function GET(request: NextRequest) {
@@ -111,18 +112,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and can adjust stock
+    // Note: Only Owner and RestaurantManager can directly create stock movements
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      restaurantId,
+      canAdjustStock,
+      'Only managers can directly create stock movements. Use production logs or expenses instead.'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Validate item exists and belongs to restaurant
@@ -151,6 +150,15 @@ export async function POST(request: NextRequest) {
       stockChange = -Math.abs(quantity)
     } else {
       stockChange = quantity
+    }
+
+    // Validate stock won't go negative
+    const newStock = item.currentStock + stockChange
+    if (newStock < 0) {
+      return NextResponse.json(
+        { error: `Insufficient stock. Current: ${item.currentStock} ${item.unit}` },
+        { status: 400 }
+      )
     }
 
     // Get user name for audit

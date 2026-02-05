@@ -426,6 +426,7 @@ model DebtPayment {
   debt            Debt             @relation(fields: [debtId], references: [id], onDelete: Cascade)
   restaurant      Restaurant       @relation(fields: [restaurantId], references: [id])
 
+  @@unique([restaurantId, transactionId]) // Ensure transactionId is unique per restaurant (NULL values ignored)
   @@index([restaurantId])
   @@index([debtId])
   @@index([customerId])

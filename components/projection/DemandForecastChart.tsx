@@ -6,7 +6,7 @@ import { TrendingUp, BarChart3, Eye, EyeOff } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { DemandForecast } from '@/lib/projection-utils'
 import { formatCurrencyCompact } from '@/lib/currency-utils'
-import { formatDateForDisplay } from '@/lib/date-utils'
+import { formatUTCDateForDisplay, extractDatePart } from '@/lib/date-utils'
 
 export type ForecastPeriod = '7d' | '14d' | '30d'
 
@@ -90,8 +90,9 @@ export function DemandForecastChart({
     for (let i = config.days; i >= 1; i--) {
       const pastDate = new Date(today)
       pastDate.setDate(pastDate.getDate() - i)
-      const dateStr = pastDate.toISOString().split('T')[0]
-      const label = formatDateForDisplay(pastDate, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
+      const dateStr = extractDatePart(pastDate)
+      // Using UTC version to avoid timezone shifts
+      const label = formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
 
       // Get data from map, or default to 0
       const dayData = historicalMap.get(dateStr)
@@ -118,8 +119,9 @@ export function DemandForecastChart({
         const futureDate = new Date(today)
         futureDate.setDate(futureDate.getDate() + (i * config.intervalDays))
 
-        const dateStr = futureDate.toISOString().split('T')[0]
-        const label = formatDateForDisplay(futureDate, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
+        const dateStr = extractDatePart(futureDate)
+        // Using UTC version to avoid timezone shifts
+        const label = formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
 
         // Show daily value (averaged over interval days if interval > 1)
         data.push({

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { canAccessBank } from '@/lib/roles'
+import { canCollectDebtPayments } from '@/lib/roles'
 
 // GET /api/debts/[id]/payments - List payments for a debt
 export async function GET(
@@ -126,29 +126,16 @@ export async function POST(
       )
     }
 
-    // Verify user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: debt.restaurantId
-        }
-      }
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json(
-        { error: 'Access denied to this restaurant' },
-        { status: 403 }
-      )
-    }
-
-    // Check owner role - only owners can record debt payments (creates bank transaction)
-    if (!canAccessBank(session.user.role)) {
-      return NextResponse.json(
-        { error: 'Only owners can record debt payments' },
-        { status: 403 }
-      )
+    // Verify user has access to this restaurant and can collect debt payments
+    // Note: Owner, RestaurantManager, and Cashier can collect payments
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      debt.restaurantId,
+      canCollectDebtPayments,
+      'Your role does not have permission to collect debt payments'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Validate payment amount doesn't exceed remaining amount
@@ -169,6 +156,24 @@ export async function POST(
       )
     }
 
+    // Check for duplicate transactionId if provided
+    const transactionId = body.transactionId?.trim() || null
+    if (transactionId) {
+      const existingPayment = await prisma.debtPayment.findFirst({
+        where: {
+          restaurantId: debt.restaurantId,
+          transactionId: transactionId
+        },
+        select: { id: true }
+      })
+      if (existingPayment) {
+        return NextResponse.json(
+          { error: `A payment with transaction ID "${transactionId}" already exists` },
+          { status: 400 }
+        )
+      }
+    }
+
     // Use transaction to create payment and update debt atomically
     const result = await prisma.$transaction(async (tx) => {
       // Create payment record
@@ -181,7 +186,7 @@ export async function POST(
           paymentMethod: body.paymentMethod.trim(),
           paymentDate: new Date(body.paymentDate),
           receiptNumber: body.receiptNumber?.trim() || null,
-          transactionId: body.transactionId?.trim() || null,
+          transactionId, // Already validated above
           notes: body.notes?.trim() || null,
           receivedBy: session.user.id,
           receivedByName: user?.name || null

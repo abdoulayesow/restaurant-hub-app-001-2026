@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { extractDatePart } from '@/lib/date-utils'
 import {
   calculateDailyAverage,
   calculateDaysUntilDepletion,
@@ -377,12 +378,12 @@ export async function GET(request: NextRequest) {
     const expensesByDateMap = new Map<string, number>()
 
     for (const sale of sales) {
-      const dateStr = sale.date.toISOString().split('T')[0]
+      const dateStr = extractDatePart(sale.date)
       salesByDateMap.set(dateStr, (salesByDateMap.get(dateStr) || 0) + sale.totalGNF)
     }
 
     for (const expense of expenses) {
-      const dateStr = expense.date.toISOString().split('T')[0]
+      const dateStr = extractDatePart(expense.date)
       expensesByDateMap.set(dateStr, (expensesByDateMap.get(dateStr) || 0) + expense.amountGNF)
     }
 
