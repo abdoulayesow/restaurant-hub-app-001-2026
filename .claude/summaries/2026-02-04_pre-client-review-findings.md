@@ -17,13 +17,13 @@ Comprehensive review of Bakery Hub application across 7 major flows before clien
 
 ## Phase Summary
 
-| Phase | Focus | Issue Count | Effort |
-|-------|-------|-------------|--------|
-| **Phase 0** | Security - Must fix immediately | 4 | 1-2 hours |
-| **Phase 1** | Critical bugs blocking demo | 7 | 4-6 hours |
-| **Phase 2** | High priority - Data integrity & permissions | 8 | 6-8 hours |
-| **Phase 3** | Medium - UX & i18n gaps | 12 | 8-12 hours |
-| **Phase 4** | Low - Polish & optimization | 10 | As time permits |
+| Phase | Focus | Issue Count | Status | Effort |
+|-------|-------|-------------|--------|--------|
+| **Phase 0** | Security - Must fix immediately | 4 | ✅ **COMPLETE** (2026-02-05) | 1-2 hours |
+| **Phase 1** | Critical bugs blocking demo | 7 | ✅ **COMPLETE** (2026-02-05) | 4-6 hours |
+| **Phase 2** | High priority - Data integrity & permissions | 8 | Not started | 6-8 hours |
+| **Phase 3** | Medium - UX & i18n gaps | 12 | Not started | 8-12 hours |
+| **Phase 4** | Low - Polish & optimization | 10 | Not started | As time permits |
 
 ---
 
@@ -41,7 +41,7 @@ These must be fixed before any external access to the application.
   3. Update `.env` (never commit)
   4. Add `.env` to `.gitignore` if not already
 - **Effort:** 15 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - User confirmed credentials rotated
 
 ### P0-2: Add Role Check to Stock Adjust Endpoint
 - **Flow:** Inventory
@@ -49,7 +49,7 @@ These must be fixed before any external access to the application.
 - **Issue:** Any authenticated user can modify stock levels
 - **Fix:** Add `isManagerRole(auth.role)` or `canRecordProduction(auth.role)` check
 - **Effort:** 15 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Added `canAdjustStock()` check + negative stock validation
 
 ### P0-3: Add Role Check to Stock Movements Endpoint
 - **Flow:** Inventory
@@ -57,7 +57,7 @@ These must be fixed before any external access to the application.
 - **Issue:** Any authenticated user can create stock movements
 - **Fix:** Add role check similar to P0-2
 - **Effort:** 15 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Added `canAdjustStock()` check + negative stock validation
 
 ### P0-4: Add Restaurant Access Check to GET /api/expenses/[id]
 - **Flow:** Expenses
@@ -65,7 +65,7 @@ These must be fixed before any external access to the application.
 - **Issue:** No restaurant access validation - user could fetch another restaurant's expense
 - **Fix:** Add `userRestaurant` lookup before returning data
 - **Effort:** 20 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Added `authorizeRestaurantAccess()` check
 
 ---
 
@@ -82,7 +82,7 @@ These are blocking issues that could cause visible failures during demo.
   - B) Remove the route and hide navigation to it
   - C) Redirect to list page with detail modal
 - **Effort:** 2-4 hours (option A) or 30 min (option B/C)
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Full 420-line implementation with type banner, details grid, costs, delete
 
 ### P1-2: Fix Dynamic Tailwind Classes in ProductionLogger
 - **Flow:** Production
@@ -90,7 +90,7 @@ These are blocking issues that could cause visible failures during demo.
 - **Issue:** `border-${PRODUCT_CATEGORY_COLORS.Patisserie.border}` doesn't compile
 - **Fix:** Replace dynamic class with static Tailwind classes or use inline styles
 - **Effort:** 30 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Created `PRODUCTION_TYPE_BUTTON_CLASSES` with static class strings
 
 ### P1-3: Fix Debt Payment Role Permission
 - **Flow:** Debts
@@ -98,7 +98,7 @@ These are blocking issues that could cause visible failures during demo.
 - **Issue:** Only Owner can record debt payments, but RestaurantManager should also be able to
 - **Fix:** Change `canAccessBank()` to `canApprove()` or create new `canRecordDebtPayments()` function
 - **Effort:** 20 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Created `canCollectDebtPayments()` allowing Owner/RestaurantManager/Cashier
 
 ### P1-4: Clarify Dual Role System (User.role vs UserRestaurant.role)
 - **Flow:** Auth
@@ -109,7 +109,7 @@ These are blocking issues that could cause visible failures during demo.
   - B) Document that User.role is for initial access only, UserRestaurant.role for permissions
   - C) Remove User.role entirely, always use UserRestaurant.role
 - **Effort:** 2-3 hours
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Chose Option B: Documented in ROLE-BASED-ACCESS-CONTROL.md with API audit
 
 ### P1-5: Add Expense Amount Edit Validation
 - **Flow:** Expenses
@@ -117,7 +117,7 @@ These are blocking issues that could cause visible failures during demo.
 - **Issue:** Can reduce expense amount below already-paid amount (e.g., 1000→500 when 600 paid)
 - **Fix:** Add validation: `if (amountGNF < expense.totalPaidAmount) return error`
 - **Effort:** 20 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Added validation preventing amount below totalPaidAmount
 
 ### P1-6: Add Transaction ID Uniqueness Constraint
 - **Flow:** Debts
@@ -125,7 +125,7 @@ These are blocking issues that could cause visible failures during demo.
 - **Issue:** Could allow duplicate payments with same transactionId
 - **Fix:** Add `@@unique([debtId, transactionId])` or validate in API
 - **Effort:** 30 minutes + migration
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - API validation + `@@unique([restaurantId, transactionId])` constraint
 
 ### P1-7: Fix Stock Negative Validation
 - **Flow:** Inventory
@@ -133,7 +133,7 @@ These are blocking issues that could cause visible failures during demo.
 - **Issue:** API allows stock to go negative (UI prevents but API doesn't)
 - **Fix:** Add server-side validation that resulting stock >= 0
 - **Effort:** 20 minutes
-- [ ] **Status: Not Started**
+- [x] **Status: COMPLETE** (2026-02-05) - Added server-side validation in both adjust and stock-movements APIs
 
 ---
 
