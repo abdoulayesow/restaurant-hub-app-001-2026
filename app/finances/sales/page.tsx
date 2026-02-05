@@ -13,7 +13,7 @@ import { canApprove } from '@/lib/roles'
 import { SalesTable } from '@/components/sales/SalesTable'
 import { DateRangeFilter, getDateRangeFromFilter, type DateRangeValue } from '@/components/ui/DateRangeFilter'
 import { DeleteConfirmationModal, type DeleteSeverity } from '@/components/ui/DeleteConfirmationModal'
-import { isToday } from '@/lib/date-utils'
+import { isToday, formatUTCDateForDisplay } from '@/lib/date-utils'
 
 // Dynamic imports for heavy components to reduce initial bundle size
 const AddEditSaleModal = dynamic(
@@ -303,7 +303,7 @@ export default function FinancesSalesPage() {
   const getConfirmModalProps = () => {
     if (!saleToConfirm || !confirmAction) return null
 
-    const formattedDate = new Date(saleToConfirm.date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    const formattedDate = formatUTCDateForDisplay(saleToConfirm.date, locale === 'fr' ? 'fr-FR' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
