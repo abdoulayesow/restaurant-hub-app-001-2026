@@ -9,7 +9,6 @@ type ForecastPeriod = '7d' | '14d' | '30d'
 
 interface DemandForecastCardProps {
   forecasts: DemandForecast[]
-  palette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
   selectedPeriod?: ForecastPeriod
 }
 

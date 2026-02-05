@@ -196,7 +196,7 @@ export default function ProjectionPage() {
         {/* Top KPI Row */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <CashRunwayCard data={projectionData.cashRunway} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} />
-          <DemandForecastCard forecasts={projectionData.demandForecasts} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} selectedPeriod={selectedPeriod} />
+          <DemandForecastCard forecasts={projectionData.demandForecasts} selectedPeriod={selectedPeriod} />
           <ProfitabilityCard data={projectionData.profitability} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} />
         </div>
 
@@ -212,7 +212,6 @@ export default function ProjectionPage() {
             historicalData={projectionData.historicalData}
             palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'}
             selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
           />
         </div>
 

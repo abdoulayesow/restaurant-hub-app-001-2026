@@ -15,7 +15,6 @@ interface DemandForecastChartProps {
   historicalData: Array<{ date: string; revenue: number; expenses: number }>
   palette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
   selectedPeriod?: ForecastPeriod
-  onPeriodChange?: (period: ForecastPeriod) => void
 }
 
 interface SeriesVisibility {
@@ -34,15 +33,9 @@ export function DemandForecastChart({
   forecasts,
   historicalData = [],
   palette,
-  selectedPeriod: controlledPeriod,
-  onPeriodChange
+  selectedPeriod = '7d'
 }: DemandForecastChartProps) {
   const { t, locale } = useLocale()
-  const [internalPeriod, setInternalPeriod] = useState<ForecastPeriod>('7d')
-
-  // Use controlled period if provided, otherwise use internal state
-  const selectedPeriod = controlledPeriod ?? internalPeriod
-  const setSelectedPeriod = onPeriodChange ?? setInternalPeriod
   const [visibility, setVisibility] = useState<SeriesVisibility>({
     revenue: true,
     expenses: false
@@ -211,51 +204,20 @@ export function DemandForecastChart({
       <div className="p-6 border-b border-stone-200 dark:border-stone-700">
         <div className="flex flex-col gap-4">
           {/* Title row */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="p-2.5 rounded-xl"
-                style={{ backgroundColor: `${colors.primary}15` }}
-              >
-                <TrendingUp className="w-5 h-5" style={{ color: colors.primary }} />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">
-                  {t('projection.revenueProjection') || 'Revenue Projection'}
-                </h2>
-                <p className="text-sm text-stone-500 dark:text-stone-400">
-                  {t('projection.revenueProjectionDescription') || 'Historical performance and future demand forecasts'}
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div
+              className="p-2.5 rounded-xl"
+              style={{ backgroundColor: `${colors.primary}15` }}
+            >
+              <TrendingUp className="w-5 h-5" style={{ color: colors.primary }} />
             </div>
-
-            {/* Period selector */}
-            <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-stone-700/50 rounded-lg">
-              {(['7d', '14d', '30d'] as ForecastPeriod[]).map((period) => {
-                const isSelected = selectedPeriod === period
-                const periodLabel = period === '7d'
-                  ? (t('projection.period7d') || '7 days')
-                  : period === '14d'
-                  ? (t('projection.period14d') || '14 days')
-                  : (t('projection.period30d') || '30 days')
-
-                return (
-                  <button
-                    key={period}
-                    onClick={() => setSelectedPeriod(period)}
-                    className={`
-                      px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200
-                      ${isSelected
-                        ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
-                        : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
-                      }
-                    `}
-                    style={isSelected ? { boxShadow: `0 0 0 1px ${colors.primary}30` } : undefined}
-                  >
-                    {periodLabel}
-                  </button>
-                )
-              })}
+            <div>
+              <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">
+                {t('projection.revenueProjection') || 'Revenue Projection'}
+              </h2>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                {t('projection.revenueProjectionDescription') || 'Historical performance and future demand forecasts'}
+              </p>
             </div>
           </div>
 
