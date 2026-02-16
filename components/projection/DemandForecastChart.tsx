@@ -69,11 +69,11 @@ export function DemandForecastChart({
     const data: Array<{
       date: string
       label: string
-      revenue?: number
-      expenses?: number
-      forecast?: number
-      confidenceLow?: number
-      confidenceHigh?: number
+      revenue: number | null
+      expenses: number | null
+      forecast: number | null
+      confidenceLow: number | null
+      confidenceHigh: number | null
     }> = []
 
     const config = PERIOD_CONFIG[selectedPeriod]
@@ -101,7 +101,10 @@ export function DemandForecastChart({
         date: dateStr,
         label,
         revenue: dayData?.revenue ?? 0,
-        expenses: dayData?.expenses ?? 0
+        expenses: dayData?.expenses ?? 0,
+        forecast: null,
+        confidenceLow: null,
+        confidenceHigh: null
       })
     }
 
@@ -113,6 +116,21 @@ export function DemandForecastChart({
       const dailyForecast = selectedForecast.expectedRevenue / config.days
       const dailyConfidenceLow = selectedForecast.confidenceInterval.low / config.days
       const dailyConfidenceHigh = selectedForecast.confidenceInterval.high / config.days
+
+      // Add "today" bridge point connecting historical to forecast
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+      const todayLabel = formatUTCDateForDisplay(todayStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
+      const todayData = historicalMap.get(todayStr)
+
+      data.push({
+        date: todayStr,
+        label: todayLabel,
+        revenue: todayData?.revenue ?? 0,
+        expenses: todayData?.expenses ?? 0,
+        forecast: dailyForecast,
+        confidenceLow: dailyConfidenceLow,
+        confidenceHigh: dailyConfidenceHigh
+      })
 
       // Add forecast points at configured intervals - showing DAILY values
       for (let i = 1; i <= config.intervals; i++) {
@@ -126,6 +144,8 @@ export function DemandForecastChart({
         data.push({
           date: dateStr,
           label,
+          revenue: null,
+          expenses: null,
           forecast: dailyForecast * config.intervalDays,
           confidenceLow: dailyConfidenceLow * config.intervalDays,
           confidenceHigh: dailyConfidenceHigh * config.intervalDays
@@ -330,33 +350,36 @@ export function DemandForecastChart({
               />
             )}
 
-            {/* Revenue Forecast (Violet, Dashed) - shows automatically when revenue is visible */}
+            {/* Revenue Forecast (Dashed) - shows automatically when revenue is visible */}
             {visibility.revenue && (
               <>
                 {/* Confidence Interval (shaded area) */}
                 <Area
-                  type="monotone"
+                  type="linear"
                   dataKey="confidenceHigh"
                   stroke="transparent"
                   fill={colors.primary}
-                  fillOpacity={0.1}
+                  fillOpacity={0.08}
+                  connectNulls={false}
                 />
                 <Area
-                  type="monotone"
+                  type="linear"
                   dataKey="confidenceLow"
                   stroke="transparent"
-                  fill={colors.primary}
-                  fillOpacity={0.1}
+                  fill="white"
+                  fillOpacity={0.08}
+                  connectNulls={false}
                 />
                 {/* Forecast line */}
                 <Area
-                  type="monotone"
+                  type="linear"
                   dataKey="forecast"
                   stroke={colors.primary}
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   fill="url(#colorForecast)"
                   dot={{ fill: colors.primary, r: 3 }}
+                  connectNulls={false}
                 />
               </>
             )}
