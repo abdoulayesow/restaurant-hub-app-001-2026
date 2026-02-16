@@ -74,11 +74,20 @@ export function DemandForecastChart({
       forecast: number | null
       confidenceLow: number | null
       confidenceHigh: number | null
+      expenseForecast: number | null
+      expenseConfidenceLow: number | null
+      expenseConfidenceHigh: number | null
     }> = []
 
     const config = PERIOD_CONFIG[selectedPeriod]
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+
+    const formatLocalDate = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+    const formatLabel = (dateStr: string) =>
+      formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
 
     // Create a map of historical data by date for quick lookup
     const historicalMap = new Map<string, { revenue: number; expenses: number }>()
@@ -90,21 +99,20 @@ export function DemandForecastChart({
     for (let i = config.days; i >= 1; i--) {
       const pastDate = new Date(today)
       pastDate.setDate(pastDate.getDate() - i)
-      // Use local date components directly (no UTC conversion) to match API date strings
-      const dateStr = `${pastDate.getFullYear()}-${String(pastDate.getMonth() + 1).padStart(2, '0')}-${String(pastDate.getDate()).padStart(2, '0')}`
-      const label = formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
-
-      // Get data from map, or default to 0
+      const dateStr = formatLocalDate(pastDate)
       const dayData = historicalMap.get(dateStr)
 
       data.push({
         date: dateStr,
-        label,
+        label: formatLabel(dateStr),
         revenue: dayData?.revenue ?? 0,
         expenses: dayData?.expenses ?? 0,
         forecast: null,
         confidenceLow: null,
-        confidenceHigh: null
+        confidenceHigh: null,
+        expenseForecast: null,
+        expenseConfidenceLow: null,
+        expenseConfidenceHigh: null
       })
     }
 
@@ -112,43 +120,50 @@ export function DemandForecastChart({
     const selectedForecast = forecasts.find(f => f.period === selectedPeriod)
 
     if (selectedForecast) {
-      // Daily forecast value (not cumulative!)
-      const dailyForecast = selectedForecast.expectedRevenue / config.days
-      const dailyConfidenceLow = selectedForecast.confidenceInterval.low / config.days
-      const dailyConfidenceHigh = selectedForecast.confidenceInterval.high / config.days
+      // Daily forecast values (not cumulative!)
+      const dailyRevenueForecast = selectedForecast.expectedRevenue / config.days
+      const dailyRevenueLow = selectedForecast.confidenceInterval.low / config.days
+      const dailyRevenueHigh = selectedForecast.confidenceInterval.high / config.days
+
+      const dailyExpenseForecast = (selectedForecast.expectedExpenses ?? 0) / config.days
+      const dailyExpenseLow = (selectedForecast.expenseConfidenceInterval?.low ?? 0) / config.days
+      const dailyExpenseHigh = (selectedForecast.expenseConfidenceInterval?.high ?? 0) / config.days
 
       // Add "today" bridge point connecting historical to forecast
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-      const todayLabel = formatUTCDateForDisplay(todayStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
+      const todayStr = formatLocalDate(today)
       const todayData = historicalMap.get(todayStr)
 
       data.push({
         date: todayStr,
-        label: todayLabel,
+        label: formatLabel(todayStr),
         revenue: todayData?.revenue ?? 0,
         expenses: todayData?.expenses ?? 0,
-        forecast: dailyForecast,
-        confidenceLow: dailyConfidenceLow,
-        confidenceHigh: dailyConfidenceHigh
+        forecast: dailyRevenueForecast,
+        confidenceLow: dailyRevenueLow,
+        confidenceHigh: dailyRevenueHigh,
+        expenseForecast: dailyExpenseForecast,
+        expenseConfidenceLow: dailyExpenseLow,
+        expenseConfidenceHigh: dailyExpenseHigh
       })
 
-      // Add forecast points at configured intervals - showing DAILY values
+      // Add forecast points at configured intervals
       for (let i = 1; i <= config.intervals; i++) {
         const futureDate = new Date(today)
         futureDate.setDate(futureDate.getDate() + (i * config.intervalDays))
+        const dateStr = formatLocalDate(futureDate)
+        const intervalScale = config.intervalDays
 
-        const dateStr = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, '0')}-${String(futureDate.getDate()).padStart(2, '0')}`
-        const label = formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
-
-        // Show daily value (averaged over interval days if interval > 1)
         data.push({
           date: dateStr,
-          label,
+          label: formatLabel(dateStr),
           revenue: null,
           expenses: null,
-          forecast: dailyForecast * config.intervalDays,
-          confidenceLow: dailyConfidenceLow * config.intervalDays,
-          confidenceHigh: dailyConfidenceHigh * config.intervalDays
+          forecast: dailyRevenueForecast * intervalScale,
+          confidenceLow: dailyRevenueLow * intervalScale,
+          confidenceHigh: dailyRevenueHigh * intervalScale,
+          expenseForecast: dailyExpenseForecast * intervalScale,
+          expenseConfidenceLow: dailyExpenseLow * intervalScale,
+          expenseConfidenceHigh: dailyExpenseHigh * intervalScale
         })
       }
     }
@@ -156,15 +171,23 @@ export function DemandForecastChart({
     return data
   }, [historicalData, forecasts, locale, selectedPeriod])
 
+  const forecastLabel = t('projection.forecastedData') || 'Forecast'
+
   // Map dataKey to translated label for tooltip
   const getDataKeyLabel = (dataKey: string) => {
     switch (dataKey) {
       case 'revenue': return labels.revenue
       case 'expenses': return labels.expenses
-      case 'forecast': return t('projection.forecastedData') || 'Forecast'
+      case 'forecast': return `${labels.revenue} (${forecastLabel})`
+      case 'expenseForecast': return `${labels.expenses} (${forecastLabel})`
       default: return dataKey
     }
   }
+
+  // Hide confidence interval keys from tooltip
+  const isConfidenceKey = (dataKey: string) =>
+    dataKey.includes('confidenceLow') || dataKey.includes('confidenceHigh') ||
+    dataKey.includes('ConfidenceLow') || dataKey.includes('ConfidenceHigh')
 
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number; color?: string; name?: string; dataKey?: string }>; label?: string }) => {
     if (!active || !payload || !payload.length) return null
@@ -176,7 +199,7 @@ export function DemandForecastChart({
         </p>
         <div className="space-y-2">
           {payload.map((entry, index) => {
-            if (!entry.value || entry.dataKey === 'confidenceLow' || entry.dataKey === 'confidenceHigh') return null
+            if (!entry.value || isConfidenceKey(entry.dataKey || '')) return null
             return (
               <div key={index} className="flex items-center justify-between gap-4 text-sm">
                 <span className="flex items-center gap-2">
@@ -353,7 +376,6 @@ export function DemandForecastChart({
             {/* Revenue Forecast (Dashed) - shows automatically when revenue is visible */}
             {visibility.revenue && (
               <>
-                {/* Confidence Interval (shaded area) */}
                 <Area
                   type="linear"
                   dataKey="confidenceHigh"
@@ -370,7 +392,6 @@ export function DemandForecastChart({
                   fillOpacity={0.08}
                   connectNulls={false}
                 />
-                {/* Forecast line */}
                 <Area
                   type="linear"
                   dataKey="forecast"
@@ -379,6 +400,38 @@ export function DemandForecastChart({
                   strokeDasharray="5 5"
                   fill="url(#colorForecast)"
                   dot={{ fill: colors.primary, r: 3 }}
+                  connectNulls={false}
+                />
+              </>
+            )}
+
+            {/* Expense Forecast (Dashed Red) - shows when expenses are visible */}
+            {visibility.expenses && (
+              <>
+                <Area
+                  type="linear"
+                  dataKey="expenseConfidenceHigh"
+                  stroke="transparent"
+                  fill="#ef4444"
+                  fillOpacity={0.06}
+                  connectNulls={false}
+                />
+                <Area
+                  type="linear"
+                  dataKey="expenseConfidenceLow"
+                  stroke="transparent"
+                  fill="white"
+                  fillOpacity={0.06}
+                  connectNulls={false}
+                />
+                <Area
+                  type="linear"
+                  dataKey="expenseForecast"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  fill="none"
+                  dot={{ fill: '#ef4444', r: 3 }}
                   connectNulls={false}
                 />
               </>
