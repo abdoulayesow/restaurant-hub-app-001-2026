@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { MovementType } from '@prisma/client'
 import { sendNotification } from '@/lib/notification-service'
+import { canAdjustStock } from '@/lib/roles'
 
 // POST /api/inventory/[id]/adjust - Create stock adjustment
 export async function POST(
@@ -28,18 +29,17 @@ export async function POST(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: item.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and can adjust stock
+    // Note: Only Owner and RestaurantManager can directly adjust stock
+    // Baker/Cashier affect stock indirectly through production logs and expense payments
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      item.restaurantId,
+      canAdjustStock,
+      'Only managers can directly adjust stock. Use production logs or expenses instead.'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     const body = await request.json()
@@ -73,6 +73,15 @@ export async function POST(
     } else {
       // Adjustment - can be positive or negative
       stockChange = quantity
+    }
+
+    // Validate stock won't go negative
+    const newStock = item.currentStock + stockChange
+    if (newStock < 0) {
+      return NextResponse.json(
+        { error: `Insufficient stock. Current: ${item.currentStock} ${item.unit}` },
+        { status: 400 }
+      )
     }
 
     // Get user name for audit

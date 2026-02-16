@@ -9,7 +9,6 @@ type ForecastPeriod = '7d' | '14d' | '30d'
 
 interface DemandForecastCardProps {
   forecasts: DemandForecast[]
-  palette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
   selectedPeriod?: ForecastPeriod
 }
 
@@ -85,7 +84,7 @@ export function DemandForecastCard({ forecasts, selectedPeriod = '30d' }: Demand
             <div
               key={forecast.period}
               className={`flex items-center justify-between text-sm ${
-                isPrimary ? 'opacity-50' : ''
+                isPrimary ? 'font-medium' : 'opacity-60'
               }`}
             >
               <span className="text-stone-600 dark:text-stone-300">

@@ -59,6 +59,22 @@ export function getTodayDateString(): string {
 }
 
 /**
+ * Extracts the YYYY-MM-DD date portion from an ISO string or Date without timezone conversion
+ * Use this on the server side when you need the date as stored in the database
+ *
+ * @param date - ISO date string or Date object from database
+ * @returns String in YYYY-MM-DD format
+ *
+ * @example
+ * extractDatePart("2026-01-29T00:00:00.000Z") // "2026-01-29"
+ * extractDatePart("2026-01-29") // "2026-01-29"
+ */
+export function extractDatePart(date: Date | string): string {
+  const isoString = typeof date === 'string' ? date : date.toISOString()
+  return isoString.split('T')[0]
+}
+
+/**
  * Formats a date for display to the user
  *
  * @param date - Date object or ISO string
@@ -205,6 +221,7 @@ export function formatDateShort(
 
 /**
  * Compares if two dates are on the same day (ignoring time)
+ * For ISO strings from the database, compares the date portion without timezone conversion
  *
  * @param date1 - First date to compare
  * @param date2 - Second date to compare
@@ -213,27 +230,37 @@ export function formatDateShort(
  * @example
  * isSameDay(new Date('2026-01-26T10:00:00'), new Date('2026-01-26T15:00:00')) // true
  * isSameDay(new Date('2026-01-26'), new Date('2026-01-27')) // false
+ * isSameDay('2026-01-26T00:00:00.000Z', '2026-01-26') // true (compares date portions)
  */
 export function isSameDay(date1: Date | string, date2: Date | string): boolean {
-  const d1 = typeof date1 === 'string' ? new Date(date1) : date1
-  const d2 = typeof date2 === 'string' ? new Date(date2) : date2
+  // For string dates, extract the date portion to avoid timezone issues
+  const getDateParts = (date: Date | string): [number, number, number] => {
+    if (typeof date === 'string') {
+      // Extract YYYY-MM-DD portion from ISO string or date string
+      const datePart = date.includes('T') ? date.split('T')[0] : date
+      const [year, month, day] = datePart.split('-').map(Number)
+      return [year, month, day]
+    }
+    // For Date objects, use local timezone methods
+    return [date.getFullYear(), date.getMonth() + 1, date.getDate()]
+  }
 
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  )
+  const [y1, m1, d1] = getDateParts(date1)
+  const [y2, m2, d2] = getDateParts(date2)
+
+  return y1 === y2 && m1 === m2 && d1 === d2
 }
 
 /**
- * Checks if a date is today
+ * Checks if a date is today (in local timezone)
+ * For ISO strings from the database, compares the date portion without timezone conversion
  *
  * @param date - Date to check
  * @returns True if date is today
  *
  * @example
  * isToday(new Date()) // true
- * isToday(new Date('2026-01-25')) // false (assuming today is not Jan 25)
+ * isToday('2026-01-25T00:00:00.000Z') // true if today is Jan 25 in local timezone
  */
 export function isToday(date: Date | string): boolean {
   return isSameDay(date, new Date())
@@ -322,4 +349,21 @@ export function parseLocaleInputToISO(displayDate: string, locale: string = 'en'
  */
 export function getDatePlaceholder(locale: string = 'en'): string {
   return locale === 'fr' ? 'JJ/MM/AAAA' : 'MM/DD/YYYY'
+}
+
+/**
+ * Normalizes a Date object or string to an ISO string
+ * Use this when working with dates from API responses (which are serialized as strings)
+ *
+ * @param date - Date object or ISO string
+ * @returns ISO string or null if input is falsy
+ *
+ * @example
+ * toISOString(new Date()) // "2026-02-05T12:00:00.000Z"
+ * toISOString("2026-02-05T12:00:00.000Z") // "2026-02-05T12:00:00.000Z" (passthrough)
+ * toISOString(null) // null
+ */
+export function toISOString(date: Date | string | null | undefined): string | null {
+  if (!date) return null
+  return typeof date === 'string' ? date : date.toISOString()
 }

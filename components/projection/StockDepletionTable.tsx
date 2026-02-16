@@ -3,24 +3,42 @@
 import { useState, useMemo, useCallback } from 'react'
 import { AlertTriangle, AlertCircle, TrendingDown, CheckCircle, HelpCircle, ArrowUpDown } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
-import { StockForecast } from '@/lib/projection-utils'
-import { formatDateForDisplay } from '@/lib/date-utils'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
+
+// After JSON serialization, depletionDate is string | null (not Date | null)
+interface SerializedStockForecast {
+  itemId: string
+  itemName: string
+  category: string
+  currentStock: number
+  unit: string
+  dailyAverageUsage: number
+  daysUntilDepletion: number | null
+  depletionDate: string | null
+  status: 'CRITICAL' | 'WARNING' | 'LOW' | 'OK' | 'NO_DATA'
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW'
+}
 
 interface StockDepletionTableProps {
-  forecasts: StockForecast[]
+  forecasts: SerializedStockForecast[]
+  pagination?: {
+    total: number
+    hasMore: boolean
+    limit: number
+  }
 }
 
 type SortField = 'name' | 'stock' | 'usage' | 'daysLeft' | 'status'
 type SortDirection = 'asc' | 'desc'
 type FilterStatus = 'ALL' | 'CRITICAL' | 'WARNING' | 'LOW' | 'OK' | 'NO_DATA'
 
-export function StockDepletionTable({ forecasts }: StockDepletionTableProps) {
+export function StockDepletionTable({ forecasts, pagination }: StockDepletionTableProps) {
   const { t, locale } = useLocale()
   const [sortField, setSortField] = useState<SortField>('daysLeft')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('ALL')
 
-  const getStatusConfig = useCallback((status: StockForecast['status']) => {
+  const getStatusConfig = useCallback((status: SerializedStockForecast['status']) => {
     switch (status) {
       case 'CRITICAL':
         return {
@@ -70,7 +88,7 @@ export function StockDepletionTable({ forecasts }: StockDepletionTableProps) {
     }
   }, [t])
 
-  const getConfidenceBadge = (confidence: StockForecast['confidence']) => {
+  const getConfidenceBadge = (confidence: SerializedStockForecast['confidence']) => {
     const configs = {
       HIGH: { color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-100 dark:bg-emerald-900/30', label: t('projection.confidenceLevel.high') || 'High' },
       MEDIUM: { color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-900/30', label: t('projection.confidenceLevel.medium') || 'Medium' },
@@ -164,7 +182,7 @@ export function StockDepletionTable({ forecasts }: StockDepletionTableProps) {
             {(['ALL', 'CRITICAL', 'WARNING', 'LOW', 'OK', 'NO_DATA'] as FilterStatus[]).map((status) => {
               const count = status === 'ALL' ? forecasts.length : (statusCounts[status] || 0)
               const isActive = filterStatus === status
-              const statusConfig = status !== 'ALL' ? getStatusConfig(status as StockForecast['status']) : null
+              const statusConfig = status !== 'ALL' ? getStatusConfig(status as SerializedStockForecast['status']) : null
 
               return (
                 <button
@@ -303,11 +321,11 @@ export function StockDepletionTable({ forecasts }: StockDepletionTableProps) {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-stone-600 dark:text-stone-300">
                         {forecast.depletionDate
-                          ? formatDateForDisplay(forecast.depletionDate, locale === 'fr' ? 'fr-GN' : 'en-GN', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })
+                          ? formatUTCDateForDisplay(
+                              forecast.depletionDate,
+                              locale === 'fr' ? 'fr-GN' : 'en-GN',
+                              { month: 'short', day: 'numeric', year: 'numeric' }
+                            )
                           : '—'
                         }
                       </div>
@@ -340,7 +358,12 @@ export function StockDepletionTable({ forecasts }: StockDepletionTableProps) {
         <div className="px-6 py-4 bg-stone-50 dark:bg-stone-900/50 border-t border-stone-200 dark:border-stone-700">
           <div className="flex items-center justify-between text-xs text-stone-600 dark:text-stone-400">
             <span>
-              {t('projection.showingResults') || 'Showing'} {filteredAndSortedForecasts.length} {t('projection.of') || 'of'} {forecasts.length} {t('projection.items') || 'items'}
+              {t('projection.showingResults') || 'Showing'} {filteredAndSortedForecasts.length} {t('projection.of') || 'of'} {pagination?.total ?? forecasts.length} {t('projection.items') || 'items'}
+              {pagination?.hasMore && (
+                <span className="ml-2 text-amber-600 dark:text-amber-400">
+                  ({t('projection.moreItemsAvailable') || 'more items available'})
+                </span>
+              )}
             </span>
             <span>
               {t('projection.sortedBy') || 'Sorted by'}: <span className="font-semibold capitalize">{sortField}</span> ({sortDirection === 'asc' ? '↑' : '↓'})

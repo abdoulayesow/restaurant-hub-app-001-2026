@@ -7,14 +7,15 @@ import { formatCurrencyCompact } from '@/lib/currency-utils'
 
 interface CashRunwayCardProps {
   data: CashRunwayData
-  palette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
 }
 
 export function CashRunwayCard({ data }: CashRunwayCardProps) {
   const { t, locale } = useLocale()
 
-  const formatDays = (days: number) => {
-    if (days === Infinity) return '∞'
+  const INFINITE_RUNWAY = -1
+
+  const formatDays = (days: number | null) => {
+    if (days === null || days === INFINITE_RUNWAY || days === Infinity) return '∞'
     return Math.floor(days).toString()
   }
 

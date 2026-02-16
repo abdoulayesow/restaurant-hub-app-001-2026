@@ -51,6 +51,8 @@ export interface DemandForecast {
   period: '7d' | '14d' | '30d'
   expectedRevenue: number
   confidenceInterval: { low: number; high: number }
+  expectedExpenses: number
+  expenseConfidenceInterval: { low: number; high: number }
   trend: Trend
   trendPercentage: number
 }

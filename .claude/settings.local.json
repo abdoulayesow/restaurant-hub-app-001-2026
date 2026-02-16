@@ -37,7 +37,16 @@
       "Bash(npx tsx:*)",
       "Bash(npx prisma validate:*)",
       "Bash(npm run db:seed:dev:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Skill(review)",
+      "Skill(review:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run lint)",
+      "Bash(grep:*)",
+      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
+      "Bash(done)",
+      "Bash(git log:*)"
     ]
   }
 }

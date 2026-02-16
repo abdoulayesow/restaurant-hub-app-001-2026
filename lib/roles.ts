@@ -128,9 +128,21 @@ export function canAccessBank(role: UserRole | string | null | undefined): boole
   return isOwner(role)
 }
 
+// Can collect debt payments - Owner, RestaurantManager, and Cashier
+// Note: This creates a bank transaction (deposit), so it's restricted to roles that handle money
+export function canCollectDebtPayments(role: UserRole | string | null | undefined): boolean {
+  return isCashierRole(role) // Owner, RestaurantManager, Cashier, and legacy roles
+}
+
 // Can view inventory (read-only access) - All roles
 export function canViewInventory(role: UserRole | string | null | undefined): boolean {
   return !!role // Any authenticated user with a role can view
+}
+
+// Can adjust stock directly (manual corrections, waste, reconciliation) - Owner and RestaurantManager only
+// Note: Baker/Cashier affect stock indirectly through production logs and expense payments
+export function canAdjustStock(role: UserRole | string | null | undefined): boolean {
+  return isOwner(role) || isRestaurantManager(role) || role === 'Manager' // Legacy
 }
 
 // =============================================================================

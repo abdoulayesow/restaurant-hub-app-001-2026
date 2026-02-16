@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { ProductionStatus, SubmissionStatus } from '@prisma/client'
-import { isManagerRole } from '@/lib/roles'
+import { canApprove } from '@/lib/roles'
 
 // GET /api/production/[id] - Get single production log
 export async function GET(
@@ -107,17 +107,9 @@ export async function PATCH(
     }
 
     // Validate user has access to this bakery
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: existingLog.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const auth = await authorizeRestaurantAccess(session.user.id, existingLog.restaurantId)
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     const {
@@ -156,11 +148,11 @@ export async function PATCH(
       updateData.preparationStatus = preparationStatus
     }
 
-    // Only managers can approve/reject
+    // Only managers/owners can approve/reject
     if (status) {
       if (
         (status === SubmissionStatus.Approved || status === SubmissionStatus.Rejected) &&
-        !isManagerRole(session.user.role)
+        !canApprove(auth.role)
       ) {
         return NextResponse.json(
           { error: 'Only managers can approve or reject production logs' },
@@ -393,13 +385,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isManagerRole(session.user.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden - Manager role required' },
-        { status: 403 }
-      )
-    }
-
     const { id } = await params
 
     // Find the production log
@@ -414,18 +399,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Production log not found' }, { status: 404 })
     }
 
-    // Validate user has access to this bakery
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: existingLog.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this bakery and permission to delete
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      existingLog.restaurantId,
+      canApprove,
+      'Your role does not have permission to delete production logs'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Reverse stock movements if any exist, then delete

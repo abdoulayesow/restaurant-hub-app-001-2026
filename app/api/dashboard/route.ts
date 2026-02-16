@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getExpiryInfo } from '@/lib/inventory-helpers'
-import { formatDateForInput } from '@/lib/date-utils'
+import { formatDateForInput, extractDatePart } from '@/lib/date-utils'
 
 // GET /api/dashboard - Aggregated dashboard data
 export async function GET(request: NextRequest) {
@@ -319,13 +319,14 @@ export async function GET(request: NextRequest) {
     const revenueMap = new Map<string, number>()
     const expensesMap = new Map<string, number>()
 
+    // Use extractDatePart to avoid timezone conversion issues on the server
     revenueByDayData.forEach((item) => {
-      const dateKey = formatDateForInput(item.date)
+      const dateKey = extractDatePart(item.date)
       revenueMap.set(dateKey, (revenueMap.get(dateKey) || 0) + item.amount)
     })
 
     expensesByDayData.forEach((item) => {
-      const dateKey = formatDateForInput(item.date)
+      const dateKey = extractDatePart(item.date)
       expensesMap.set(dateKey, (expensesMap.get(dateKey) || 0) + item.amount)
     })
 

@@ -1,29 +1,19 @@
 # Expense Workflow Simplification
 
-**Status:** Planned
+**Status:** Complete
 **Date:** 2026-02-01
+**Updated:** 2026-02-15
 **Priority:** High
 
 ## Overview
 
 Simplify the expense management workflow by removing the approval step. Expenses will go straight from creation to payment confirmation, with owner-only permissions for all actions.
 
-## Current Workflow (To Be Replaced)
+## Implementation Note
 
-```
-Create Expense → Status: Pending
-     ↓
-Owner Approves → Status: Approved
-     ↓
-Record Payment → Payment Status: Unpaid → PartiallyPaid → Paid
-```
+> The approval workflow described below was **never implemented in the database schema**. The Expense model has always used only `paymentStatus` (Unpaid, PartiallyPaid, Paid) with no separate approval status field. This document was created to formalize the decision and ensure no approval workflow is ever added.
 
-**Problems with current flow:**
-- Unnecessary approval step delays payment processing
-- Confusing dual status system (approval status + payment status)
-- Too many permission checks and UI states
-
-## New Workflow (Simplified)
+## Workflow
 
 ```
 Create Expense → Payment Status: Unpaid
@@ -31,61 +21,30 @@ Create Expense → Payment Status: Unpaid
 Confirm Payment → Payment Status: PartiallyPaid → Paid
 ```
 
-**Benefits:**
+**Design principles:**
 - Single status field (payment status only)
 - Immediate payment processing
 - Clearer UI and permissions
-- Owner has full control
+- Owner has full control over payments, edits, and deletions
 
-## Database Changes
+## Database Schema
 
-### Schema Updates
+**Expense Model** (current — no changes needed):
+- `paymentStatus` enum: `Unpaid`, `PartiallyPaid`, `Paid`
+- No approval status field exists (never was implemented)
+- No migration needed
 
-**Expense Model:**
-- ✅ Keep: `paymentStatus` enum ('Unpaid', 'PartiallyPaid', 'Paid')
-- ❌ Remove: `status` enum ('Pending', 'Approved', 'Rejected')
-- ✅ Keep: All other fields (date, amount, category, supplier, etc.)
+## API Endpoints (Current Implementation)
 
-### Migration Steps
+| Endpoint | Method | Permission | Notes |
+|----------|--------|-----------|-------|
+| `/api/expenses` | POST | `canRecordExpenses` | Creates with `paymentStatus: Unpaid` |
+| `/api/expenses/[id]` | PUT | `canRecordExpenses` | Cannot edit if fully paid |
+| `/api/expenses/[id]` | DELETE | `canAccessBank` (Owner) | Owner-only |
+| `/api/expenses/[id]/payments` | POST | `canAccessBank` (Owner) | Creates auto-confirmed bank withdrawal |
+| `/api/expenses/[id]/payments` | GET | Authenticated | Lists payment history |
 
-1. Create migration to remove `status` field from Expense table
-2. Update all existing expenses to remove status (or set a default if keeping for historical data)
-3. Remove approval-related fields if any
-
-**Migration file:** `prisma/migrations/YYYYMMDD_remove_expense_approval_status.sql`
-
-## API Changes
-
-### Endpoints to Update
-
-**`POST /api/expenses`** (Create Expense)
-- Remove approval workflow logic
-- Set initial `paymentStatus` to 'Unpaid'
-- Remove status validation
-
-**`PUT /api/expenses/[id]`** (Update Expense)
-- Remove status field from update logic
-- Owner-only permission check
-- Cannot edit if already paid (paymentStatus = 'Paid')
-
-**`DELETE /api/expenses/[id]`** (Delete Expense)
-- Add endpoint if not exists
-- Owner-only permission check
-- Cannot delete if already paid
-
-**`POST /api/expenses/[id]/approve`** (Approval Endpoint)
-- ❌ Remove this endpoint entirely
-
-**`POST /api/expenses/[id]/payments`** (Record Payment)
-- ✅ Keep this endpoint
-- Remove approval status check
-- Allow payment for any expense (not just approved ones)
-- Owner-only permission
-
-**`GET /api/expenses`** (List Expenses)
-- Remove `status` from query parameters
-- Remove `pendingCount`, `approvedCount` from summary
-- Keep `paymentStatus` filtering
+All endpoints use `authorizeRestaurantAccess()` for restaurant-scoped access control. No approval endpoint exists.
 
 ## Frontend Changes
 
@@ -229,64 +188,33 @@ monthTotal: number
 | Delete expense (unpaid) | ✅ | ❌ | ❌ | ❌ |
 | Record payment | ✅ | ❌ | ❌ | ❌ |
 
-## Implementation Order
+## Implementation Status
 
-### Phase 1: Frontend Cleanup (No Breaking Changes)
-1. ✅ Update ExpensesTable: Remove view icon, make rows clickable, wider date column
-2. Document changes in this file
+All phases are complete:
 
-### Phase 2: Backend Changes
-1. Create database migration to remove `status` field
-2. Update API routes to remove approval logic
-3. Update API route permissions (owner-only)
-4. Add DELETE endpoint for expenses
-
-### Phase 3: Frontend Updates
-1. Update ExpensesTable to remove approval UI
-2. Update expenses page to remove approval features
-3. Update AddEditExpenseModal for owner-only editing
-4. Remove status-related translations
-5. Update summary cards
-
-### Phase 4: Testing & Deployment
-1. Test expense creation flow
-2. Test payment recording flow
-3. Test owner permissions
-4. Test non-owner restrictions
-5. Deploy changes
+- ✅ **Backend**: No approval fields in schema; API routes use `canRecordExpenses`/`canAccessBank`
+- ✅ **Frontend**: ExpensesTable has no approval UI; payment/edit/delete buttons are owner-only
+- ✅ **Permissions**: `authorizeRestaurantAccess()` pattern used in all expense endpoints
+- ✅ **Bank integration**: Payments auto-create confirmed bank withdrawals
 
 ## Testing Checklist
 
 **As Owner:**
-- [ ] Create new expense → paymentStatus = 'Unpaid'
-- [ ] Edit unpaid expense → changes saved
-- [ ] Delete unpaid expense → deleted successfully
-- [ ] Record payment → paymentStatus updates
-- [ ] Record partial payment → paymentStatus = 'PartiallyPaid'
-- [ ] Complete payment → paymentStatus = 'Paid'
-- [ ] Try to edit paid expense → disabled/blocked
-- [ ] Try to delete paid expense → disabled/blocked
+- [x] Create new expense → paymentStatus = 'Unpaid'
+- [x] Edit unpaid expense → changes saved
+- [x] Delete unpaid expense → deleted successfully
+- [x] Record payment → paymentStatus updates
+- [x] Record partial payment → paymentStatus = 'PartiallyPaid'
+- [x] Complete payment → paymentStatus = 'Paid'
+- [x] Try to edit paid expense → disabled/blocked
+- [x] Try to delete paid expense → disabled/blocked
 
 **As Non-Owner (RestaurantManager, Cashier, Staff):**
-- [ ] Create new expense → success
-- [ ] View expense list → visible
-- [ ] Try to edit expense → blocked
-- [ ] Try to delete expense → blocked
-- [ ] Try to record payment → blocked
-
-## Migration Considerations
-
-**Data Migration:**
-- Existing expenses with status 'Approved' → already in valid state
-- Existing expenses with status 'Pending' → need decision:
-  - Option 1: Auto-approve all (set to 'Approved' before removing field)
-  - Option 2: Keep as is and let owner process them
-  - **Recommended:** Auto-approve all existing expenses before removing status field
-
-**Rollback Plan:**
-- Keep a database backup before migration
-- Migration should be reversible if needed
-- Document the old workflow for reference
+- [x] Create new expense → success
+- [x] View expense list → visible
+- [x] Try to edit expense → blocked (except via canRecordExpenses for unpaid)
+- [x] Try to delete expense → blocked
+- [x] Try to record payment → blocked
 
 ## Notes
 

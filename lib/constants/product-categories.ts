@@ -25,17 +25,29 @@ export const PRODUCT_CATEGORY_ICONS: Record<ProductCategoryValue, LucideIcon> = 
 }
 
 // Colors for each category (Tailwind classes)
-export const PRODUCT_CATEGORY_COLORS: Record<ProductCategoryValue, { text: string; bg: string; border: string; hex: string }> = {
+// IMPORTANT: All classes must be complete static strings for Tailwind to compile them
+export const PRODUCT_CATEGORY_COLORS: Record<ProductCategoryValue, {
+  text: string
+  bg: string
+  bgLight: string  // Background for selected state
+  border: string   // Complete border class
+  ring: string     // Ring for focus/selected state
+  hex: string
+}> = {
   Patisserie: {
     text: 'text-amber-600 dark:text-amber-400',
     bg: 'bg-amber-100 dark:bg-amber-900/30',
-    border: 'amber-400',
+    bgLight: 'bg-amber-50 dark:bg-amber-900/20',
+    border: 'border-amber-400 dark:border-amber-500',
+    ring: 'ring-2 ring-amber-500/20',
     hex: '#D97706',
   },
   Boulangerie: {
     text: 'text-yellow-700 dark:text-yellow-400',
     bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-    border: 'yellow-500',
+    bgLight: 'bg-yellow-50 dark:bg-yellow-900/20',
+    border: 'border-yellow-500 dark:border-yellow-500',
+    ring: 'ring-2 ring-yellow-500/20',
     hex: '#A16207',
   },
 }
@@ -68,6 +80,27 @@ export const PRODUCT_CATEGORIES: ProductCategoryConfig[] = [
     hexColor: PRODUCT_CATEGORY_COLORS.Boulangerie.hex,
   },
 ]
+
+// Static class strings for production type buttons
+// These are exported separately to ensure Tailwind compiles them
+export const PRODUCTION_TYPE_BUTTON_CLASSES = {
+  Patisserie: {
+    selected: 'border-amber-400 dark:border-amber-500 bg-amber-50 dark:bg-amber-900/20 ring-2 ring-amber-500/20',
+    unselected: 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500 bg-white dark:bg-stone-800',
+    iconSelected: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+    iconUnselected: 'bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400',
+    textSelected: 'text-amber-700 dark:text-amber-300',
+    textUnselected: 'text-stone-700 dark:text-stone-300',
+  },
+  Boulangerie: {
+    selected: 'border-yellow-500 dark:border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 ring-2 ring-yellow-500/20',
+    unselected: 'border-stone-200 dark:border-stone-600 hover:border-stone-300 dark:hover:border-stone-500 bg-white dark:bg-stone-800',
+    iconSelected: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
+    iconUnselected: 'bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400',
+    textSelected: 'text-yellow-700 dark:text-yellow-300',
+    textUnselected: 'text-stone-700 dark:text-stone-300',
+  },
+} as const
 
 /**
  * Validates if a string is a valid product category.

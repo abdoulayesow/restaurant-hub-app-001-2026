@@ -1,11 +1,13 @@
 /**
- * Development Database Seeding Script
+ * Production Test Restaurant Seeding Script
  *
- * This script clears and recreates business data for the first restaurant only.
- * It preserves restaurants, users, products, inventory items, and categories.
+ * Creates a test restaurant "Bliss test" in PRODUCTION with realistic data
+ * for visualization and testing purposes.
  *
- * Usage: npx ts-node prisma/seed-dev.ts
- * Or: npm run seed:dev
+ * Usage: npx ts-node scripts/seed-prod-test.ts
+ *
+ * NOTE: This script connects to PRODUCTION database!
+ * To remove this data, run: npx ts-node scripts/cleanup-prod-test.ts
  */
 
 import {
@@ -22,45 +24,40 @@ import {
   CustomerType,
 } from '@prisma/client'
 
-const prisma = new PrismaClient()
+// PRODUCTION DATABASE CONNECTION
+const PROD_DATABASE_URL = 'postgresql://neondb_owner:npg_1WiBuoTD5YRJ@ep-odd-smoke-abj5exe3-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require'
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: { url: PROD_DATABASE_URL }
+  }
+})
 
 // Constants
-const RESTAURANT_ID = 'bliss-miniere'
+const RESTAURANT_ID = 'bliss-test'
+const RESTAURANT_NAME = 'Bliss test'
 const START_DATE = new Date(Date.UTC(2026, 0, 1)) // Jan 1, 2026
-const END_DATE = new Date(Date.UTC(2026, 1, 15)) // Feb 15, 2026
-// Total days from Jan 1 to Feb 15 inclusive = 46
-const TOTAL_DAYS = 46
+const END_DATE = new Date(Date.UTC(2026, 1, 1)) // Feb 1, 2026
+
+// Calculate number of days
+const TOTAL_DAYS = Math.ceil((END_DATE.getTime() - START_DATE.getTime()) / (1000 * 60 * 60 * 24))
 
 // Helper to round to 100,000 GNF
 function roundTo100k(amount: number): number {
   return Math.round(amount / 100000) * 100000
 }
 
-// Helper to get a date by offset from START_DATE (1-indexed: day 1 = Jan 1)
-function getDate(dayOffset: number): Date {
-  const d = new Date(Date.UTC(2026, 0, dayOffset, 12, 0, 0))
-  return d
-}
-
-// Helper to get a YYYY-MM-DD date key for use in IDs
-function getDateKey(dayOffset: number): string {
-  const d = getDate(dayOffset)
-  const y = d.getUTCFullYear()
-  const m = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const dd = String(d.getUTCDate()).padStart(2, '0')
-  return `${y}-${m}-${dd}`
-}
-
-// Helper to get display label for a date (e.g., "Jan 15" or "Feb 3")
-function getDateLabel(dayOffset: number): string {
-  const d = getDate(dayOffset)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}`
+// Helper to get date for a specific day (starting from Jan 1)
+function getDate(dayNumber: number): Date {
+  const date = new Date(START_DATE)
+  date.setUTCDate(date.getUTCDate() + dayNumber - 1)
+  date.setUTCHours(12, 0, 0, 0)
+  return date
 }
 
 // Helper to check if a day is weekend (Saturday = 6, Sunday = 0)
-function isWeekend(dayOffset: number): boolean {
-  const date = getDate(dayOffset)
+function isWeekend(dayNumber: number): boolean {
+  const date = getDate(dayNumber)
   const dayOfWeek = date.getUTCDay()
   return dayOfWeek === 0 || dayOfWeek === 6
 }
@@ -76,271 +73,140 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-// ============================================================================
-// PHASE 1: CLEAR BUSINESS DATA
-// ============================================================================
-async function clearBusinessData() {
-  console.log('Phase 1: Clearing existing business data...')
-
-  // Delete in correct order to respect FK constraints
-  // Must delete in reverse dependency order
-
-  // 1. Bank transactions (linked to sales, debtPayments, expensePayments)
-  const bankTxCount = await prisma.bankTransaction.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${bankTxCount.count} bank transactions`)
-
-  // 2. Debt payments (linked to debts, customers, bank transactions)
-  const debtPaymentCount = await prisma.debtPayment.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${debtPaymentCount.count} debt payments`)
-
-  // 3. Debts (linked to sales, customers)
-  const debtCount = await prisma.debt.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${debtCount.count} debts`)
-
-  // 4. Sale items (linked to sales)
-  const saleItemCount = await prisma.saleItem.deleteMany({
-    where: { sale: { restaurantId: RESTAURANT_ID } }
-  })
-  console.log(`  Deleted ${saleItemCount.count} sale items`)
-
-  // 5. Sales
-  const saleCount = await prisma.sale.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${saleCount.count} sales`)
-
-  // 6. Expense payments (linked to expenses)
-  const expPaymentCount = await prisma.expensePayment.deleteMany({
-    where: { expense: { restaurantId: RESTAURANT_ID } }
-  })
-  console.log(`  Deleted ${expPaymentCount.count} expense payments`)
-
-  // 7. Expense items (linked to expenses, inventory)
-  const expItemCount = await prisma.expenseItem.deleteMany({
-    where: { expense: { restaurantId: RESTAURANT_ID } }
-  })
-  console.log(`  Deleted ${expItemCount.count} expense items`)
-
-  // 8. Stock movements (linked to expenses, production logs)
-  const stockMovCount = await prisma.stockMovement.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${stockMovCount.count} stock movements`)
-
-  // 9. Expenses
-  const expenseCount = await prisma.expense.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${expenseCount.count} expenses`)
-
-  // 10. Production items (linked to production logs)
-  const prodItemCount = await prisma.productionItem.deleteMany({
-    where: { productionLog: { restaurantId: RESTAURANT_ID } }
-  })
-  console.log(`  Deleted ${prodItemCount.count} production items`)
-
-  // 11. Production logs
-  const prodLogCount = await prisma.productionLog.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${prodLogCount.count} production logs`)
-
-  // 12. Customers (we'll recreate them)
-  const customerCount = await prisma.customer.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${customerCount.count} customers`)
-
-  // 13. Daily summaries
-  const summaryCount = await prisma.dailySummary.deleteMany({
-    where: { restaurantId: RESTAURANT_ID }
-  })
-  console.log(`  Deleted ${summaryCount.count} daily summaries`)
-
-  console.log('  Business data cleared successfully!')
+// Format date for display
+function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0]
 }
 
 // ============================================================================
-// PHASE 2: FETCH OR CREATE REQUIRED REFERENCES
+// PHASE 1: CHECK IF TEST RESTAURANT EXISTS
 // ============================================================================
-async function fetchOrCreateReferences() {
-  console.log('Phase 2: Fetching/creating required references...')
-
-  // Get restaurant
-  let restaurant = await prisma.restaurant.findUnique({
+async function checkExistingRestaurant(): Promise<boolean> {
+  const existing = await prisma.restaurant.findUnique({
     where: { id: RESTAURANT_ID }
   })
-  if (!restaurant) {
-    console.log('  Creating restaurant...')
-    restaurant = await prisma.restaurant.create({
+  return !!existing
+}
+
+// ============================================================================
+// PHASE 2: CREATE RESTAURANT AND REFERENCES
+// ============================================================================
+async function createRestaurantAndReferences() {
+  console.log('Phase 2: Creating restaurant and references...')
+
+  // Create restaurant
+  const restaurant = await prisma.restaurant.create({
+    data: {
+      id: RESTAURANT_ID,
+      name: RESTAURANT_NAME,
+      location: 'Conakry - Test Location',
+      currency: 'GNF',
+      restaurantType: 'Bakery',
+      initialCapital: 50000000,
+      initialCashBalance: 5000000,
+      initialOrangeBalance: 2000000,
+      initialCardBalance: 1000000,
+      contactPhone: '+224 620 99 99 99',
+      managerName: 'Test Manager',
+      trackingStartDate: START_DATE,
+      isActive: true,
+    }
+  })
+  console.log(`  Created restaurant: ${restaurant.name}`)
+
+  // Get or create owner user (use existing owner from production)
+  let ownerUser = await prisma.user.findFirst({
+    where: { role: 'Owner' }
+  })
+
+  if (!ownerUser) {
+    console.log('  WARNING: No owner user found in production. Creating test owner...')
+    ownerUser = await prisma.user.create({
       data: {
-        id: RESTAURANT_ID,
-        name: 'Bliss Minière',
-        location: 'Conakry - Minière',
-        currency: 'GNF',
-        restaurantType: 'Bakery',
-        initialCapital: 50000000,
-        initialCashBalance: 5000000,
-        initialOrangeBalance: 2000000,
-        initialCardBalance: 1000000,
-        contactPhone: '+224 620 10 00 01',
-        managerName: 'Aminata Camara',
-        trackingStartDate: new Date('2026-01-01'),
+        email: 'test-owner@bakery-test.local',
+        name: 'Test Owner',
+        role: 'Owner',
+        defaultRestaurantId: RESTAURANT_ID,
+      }
+    })
+  }
+
+  // Assign owner to test restaurant
+  await prisma.userRestaurant.create({
+    data: {
+      userId: ownerUser.id,
+      restaurantId: RESTAURANT_ID,
+      role: 'Owner',
+    }
+  })
+  console.log(`  Assigned owner: ${ownerUser.name || ownerUser.email}`)
+
+  // Create products for test restaurant
+  console.log('  Creating products...')
+  const productsTemplate = [
+    { name: 'Croissant', nameFr: 'Croissant', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 1 },
+    { name: 'Pain au Chocolat', nameFr: 'Pain au Chocolat', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 2 },
+    { name: 'Eclair', nameFr: 'Éclair', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 3 },
+    { name: 'Brioche', nameFr: 'Brioche', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 4 },
+    { name: 'Baguette', nameFr: 'Baguette', category: ProductCategory.Boulangerie, unit: 'piece', sortOrder: 1 },
+    { name: 'Sandwich Bread', nameFr: 'Pain de Mie', category: ProductCategory.Boulangerie, unit: 'loaf', sortOrder: 2 },
+    { name: 'Petit Pain', nameFr: 'Petit Pain', category: ProductCategory.Boulangerie, unit: 'piece', sortOrder: 3 },
+    { name: 'Country Bread', nameFr: 'Pain de Campagne', category: ProductCategory.Boulangerie, unit: 'loaf', sortOrder: 4 },
+  ]
+
+  const products = []
+  for (let i = 0; i < productsTemplate.length; i++) {
+    const p = productsTemplate[i]
+    const product = await prisma.product.create({
+      data: {
+        id: `prod-test-${String(i + 1).padStart(2, '0')}`,
+        restaurantId: RESTAURANT_ID,
+        name: p.name,
+        nameFr: p.nameFr,
+        category: p.category,
+        unit: p.unit,
+        sortOrder: p.sortOrder,
         isActive: true,
       }
     })
+    products.push(product)
   }
-  console.log(`  Restaurant: ${restaurant.name}`)
+  console.log(`  Created ${products.length} products`)
 
-  // Get owner user
-  let ownerUser = await prisma.user.findFirst({
-    where: {
-      restaurants: {
-        some: {
-          restaurantId: RESTAURANT_ID,
-          role: 'Owner'
-        }
-      }
-    }
-  })
-  if (!ownerUser) {
-    // Try to find any owner user
-    ownerUser = await prisma.user.findFirst({
-      where: { role: 'Owner' }
-    })
-    if (!ownerUser) {
-      console.log('  Creating owner user...')
-      ownerUser = await prisma.user.create({
-        data: {
-          email: 'owner@bakery-dev.local',
-          name: 'Dev Owner',
-          role: 'Owner',
-          defaultRestaurantId: RESTAURANT_ID,
-        }
-      })
-    }
-    // Assign to restaurant
-    await prisma.userRestaurant.upsert({
-      where: {
-        userId_restaurantId: {
-          userId: ownerUser.id,
-          restaurantId: RESTAURANT_ID,
-        }
-      },
-      update: { role: 'Owner' },
-      create: {
-        userId: ownerUser.id,
+  // Create inventory items for test restaurant
+  console.log('  Creating inventory items...')
+  const inventoryTemplate = [
+    { name: 'Wheat Flour', nameFr: 'Farine de blé', category: 'dry_goods', unit: 'kg', currentStock: 300, minStock: 50, reorderPoint: 100, unitCostGNF: 8000 },
+    { name: 'Sugar', nameFr: 'Sucre', category: 'dry_goods', unit: 'kg', currentStock: 150, minStock: 30, reorderPoint: 60, unitCostGNF: 6000 },
+    { name: 'Yeast', nameFr: 'Levure', category: 'dry_goods', unit: 'kg', currentStock: 20, minStock: 5, reorderPoint: 10, unitCostGNF: 25000 },
+    { name: 'Salt', nameFr: 'Sel', category: 'dry_goods', unit: 'kg', currentStock: 30, minStock: 10, reorderPoint: 15, unitCostGNF: 2000 },
+    { name: 'Butter', nameFr: 'Beurre', category: 'dairy', unit: 'kg', currentStock: 80, minStock: 20, reorderPoint: 40, unitCostGNF: 35000 },
+    { name: 'Milk', nameFr: 'Lait', category: 'dairy', unit: 'L', currentStock: 50, minStock: 15, reorderPoint: 30, unitCostGNF: 12000 },
+    { name: 'Eggs', nameFr: 'Oeufs', category: 'dairy', unit: 'unit', currentStock: 200, minStock: 50, reorderPoint: 100, unitCostGNF: 1500 },
+    { name: 'Vanilla Extract', nameFr: 'Extrait de Vanille', category: 'flavorings', unit: 'L', currentStock: 5, minStock: 2, reorderPoint: 3, unitCostGNF: 80000 },
+    { name: 'Chocolate', nameFr: 'Chocolat', category: 'flavorings', unit: 'kg', currentStock: 15, minStock: 5, reorderPoint: 10, unitCostGNF: 45000 },
+    { name: 'Pastry Boxes', nameFr: 'Boîtes à pâtisserie', category: 'packaging', unit: 'unit', currentStock: 300, minStock: 100, reorderPoint: 150, unitCostGNF: 500 },
+  ]
+
+  const inventoryItems = []
+  for (let i = 0; i < inventoryTemplate.length; i++) {
+    const item = inventoryTemplate[i]
+    const invItem = await prisma.inventoryItem.create({
+      data: {
+        id: `inv-test-${String(i + 1).padStart(2, '0')}`,
         restaurantId: RESTAURANT_ID,
-        role: 'Owner',
+        ...item,
       }
     })
+    inventoryItems.push(invItem)
   }
-  console.log(`  Owner: ${ownerUser.name || ownerUser.email}`)
+  console.log(`  Created ${inventoryItems.length} inventory items`)
 
-  // Get or create products
-  let products = await prisma.product.findMany({
-    where: { restaurantId: RESTAURANT_ID, isActive: true }
-  })
-  if (products.length === 0) {
-    console.log('  Creating products...')
-    const productsTemplate = [
-      { name: 'Croissant', nameFr: 'Croissant', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 1 },
-      { name: 'Pain au Chocolat', nameFr: 'Pain au Chocolat', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 2 },
-      { name: 'Eclair', nameFr: 'Éclair', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 3 },
-      { name: 'Brioche', nameFr: 'Brioche', category: ProductCategory.Patisserie, unit: 'piece', sortOrder: 4 },
-      { name: 'Baguette', nameFr: 'Baguette', category: ProductCategory.Boulangerie, unit: 'piece', sortOrder: 1 },
-      { name: 'Sandwich Bread', nameFr: 'Pain de Mie', category: ProductCategory.Boulangerie, unit: 'loaf', sortOrder: 2 },
-      { name: 'Petit Pain', nameFr: 'Petit Pain', category: ProductCategory.Boulangerie, unit: 'piece', sortOrder: 3 },
-      { name: 'Country Bread', nameFr: 'Pain de Campagne', category: ProductCategory.Boulangerie, unit: 'loaf', sortOrder: 4 },
-    ]
-    for (let i = 0; i < productsTemplate.length; i++) {
-      const p = productsTemplate[i]
-      await prisma.product.create({
-        data: {
-          id: `prod-dev-${String(i + 1).padStart(2, '0')}`,
-          restaurantId: RESTAURANT_ID,
-          name: p.name,
-          nameFr: p.nameFr,
-          category: p.category,
-          unit: p.unit,
-          sortOrder: p.sortOrder,
-          isActive: true,
-        }
-      })
-    }
-    products = await prisma.product.findMany({
-      where: { restaurantId: RESTAURANT_ID, isActive: true }
-    })
-  }
-  console.log(`  Products: ${products.length}`)
-
-  // Get or create inventory items
-  let inventoryItems = await prisma.inventoryItem.findMany({
-    where: { restaurantId: RESTAURANT_ID, isActive: true }
-  })
-  if (inventoryItems.length === 0) {
-    console.log('  Creating inventory items...')
-    const inventoryTemplate = [
-      { name: 'Wheat Flour', nameFr: 'Farine de blé', category: 'dry_goods', unit: 'kg', currentStock: 300, minStock: 50, reorderPoint: 100, unitCostGNF: 8000 },
-      { name: 'Sugar', nameFr: 'Sucre', category: 'dry_goods', unit: 'kg', currentStock: 150, minStock: 30, reorderPoint: 60, unitCostGNF: 6000 },
-      { name: 'Yeast', nameFr: 'Levure', category: 'dry_goods', unit: 'kg', currentStock: 20, minStock: 5, reorderPoint: 10, unitCostGNF: 25000 },
-      { name: 'Salt', nameFr: 'Sel', category: 'dry_goods', unit: 'kg', currentStock: 30, minStock: 10, reorderPoint: 15, unitCostGNF: 2000 },
-      { name: 'Butter', nameFr: 'Beurre', category: 'dairy', unit: 'kg', currentStock: 80, minStock: 20, reorderPoint: 40, unitCostGNF: 35000 },
-      { name: 'Milk', nameFr: 'Lait', category: 'dairy', unit: 'L', currentStock: 50, minStock: 15, reorderPoint: 30, unitCostGNF: 12000 },
-      { name: 'Eggs', nameFr: 'Oeufs', category: 'dairy', unit: 'unit', currentStock: 200, minStock: 50, reorderPoint: 100, unitCostGNF: 1500 },
-      { name: 'Vanilla Extract', nameFr: 'Extrait de Vanille', category: 'flavorings', unit: 'L', currentStock: 5, minStock: 2, reorderPoint: 3, unitCostGNF: 80000 },
-      { name: 'Chocolate', nameFr: 'Chocolat', category: 'flavorings', unit: 'kg', currentStock: 15, minStock: 5, reorderPoint: 10, unitCostGNF: 45000 },
-      { name: 'Pastry Boxes', nameFr: 'Boîtes à pâtisserie', category: 'packaging', unit: 'unit', currentStock: 300, minStock: 100, reorderPoint: 150, unitCostGNF: 500 },
-    ]
-    for (let i = 0; i < inventoryTemplate.length; i++) {
-      const item = inventoryTemplate[i]
-      await prisma.inventoryItem.create({
-        data: {
-          id: `inv-dev-${String(i + 1).padStart(2, '0')}`,
-          restaurantId: RESTAURANT_ID,
-          ...item,
-        }
-      })
-    }
-    inventoryItems = await prisma.inventoryItem.findMany({
-      where: { restaurantId: RESTAURANT_ID, isActive: true }
-    })
-  }
-  console.log(`  Inventory items: ${inventoryItems.length}`)
-
-  // Get or create categories
-  let categories = await prisma.category.findMany({
+  // Get existing categories (global)
+  const categories = await prisma.category.findMany({
     where: { isActive: true }
   })
-  if (categories.length === 0) {
-    console.log('  Creating expense categories...')
-    const categoriesData = [
-      { name: 'Flour', nameFr: 'Farine', color: '#22c55e' },
-      { name: 'Electricity', nameFr: 'Électricité', color: '#3b82f6' },
-      { name: 'Staff Salaries', nameFr: 'Salaires du personnel', color: '#a855f7' },
-      { name: 'Packaging', nameFr: 'Emballages', color: '#f97316' },
-    ]
-    for (const cat of categoriesData) {
-      await prisma.category.create({
-        data: {
-          name: cat.name,
-          nameFr: cat.nameFr,
-          color: cat.color,
-          isActive: true,
-        }
-      })
-    }
-    categories = await prisma.category.findMany({
-      where: { isActive: true }
-    })
-  }
-  console.log(`  Categories: ${categories.length}`)
+  console.log(`  Found ${categories.length} existing categories`)
 
   return { restaurant, ownerUser, products, inventoryItems, categories }
 }
@@ -353,7 +219,7 @@ async function createCustomers() {
 
   const customersData = [
     {
-      id: `cust-dev-${RESTAURANT_ID}-01`,
+      id: `cust-test-${RESTAURANT_ID}-01`,
       name: 'Mamadou Diallo',
       phone: '+224 620 001 001',
       email: 'mamadou.diallo@email.gn',
@@ -362,7 +228,7 @@ async function createCustomers() {
       company: null,
     },
     {
-      id: `cust-dev-${RESTAURANT_ID}-02`,
+      id: `cust-test-${RESTAURANT_ID}-02`,
       name: 'Fatou Camara',
       phone: '+224 620 001 002',
       email: 'fatou.camara@email.gn',
@@ -371,7 +237,7 @@ async function createCustomers() {
       company: null,
     },
     {
-      id: `cust-dev-${RESTAURANT_ID}-03`,
+      id: `cust-test-${RESTAURANT_ID}-03`,
       name: 'Hotel Riviera',
       phone: '+224 620 001 003',
       email: 'commandes@hotelriviera.gn',
@@ -380,7 +246,7 @@ async function createCustomers() {
       company: 'Hotel Riviera Conakry',
     },
     {
-      id: `cust-dev-${RESTAURANT_ID}-04`,
+      id: `cust-test-${RESTAURANT_ID}-04`,
       name: 'Restaurant Le Maquis',
       phone: '+224 620 001 004',
       email: 'chef@lemaquis.gn',
@@ -389,7 +255,7 @@ async function createCustomers() {
       company: 'Le Maquis SARL',
     },
     {
-      id: `cust-dev-${RESTAURANT_ID}-05`,
+      id: `cust-test-${RESTAURANT_ID}-05`,
       name: 'Boutique Chez Aissatou',
       phone: '+224 620 001 005',
       email: 'aissatou@boutique.gn',
@@ -422,14 +288,14 @@ async function createCustomers() {
 }
 
 // ============================================================================
-// PHASE 4: CREATE DAILY SALES (Jan 1-28)
+// PHASE 4: CREATE DAILY SALES (Jan 1 - Feb 1)
 // ============================================================================
 async function createDailySales(
   ownerId: string,
   ownerName: string | null,
   products: Array<{ id: string; name: string; category: ProductCategory }>
 ) {
-  console.log(`Phase 4: Creating daily sales (Jan 1 - Feb 15, ${TOTAL_DAYS} days)...`)
+  console.log(`Phase 4: Creating daily sales (${formatDate(START_DATE)} to ${formatDate(END_DATE)})...`)
 
   const sales = []
   const saleItems = []
@@ -437,14 +303,10 @@ async function createDailySales(
 
   for (let day = 1; day <= TOTAL_DAYS; day++) {
     const date = getDate(day)
-    const dateKey = getDateKey(day)
-    const dateLabel = getDateLabel(day)
     const isWknd = isWeekend(day)
 
     // Base sales: 2.5M weekday, 3.5M weekend
-    // Add slight upward trend in February (~10% growth)
-    const trendMultiplier = day > 31 ? 1.10 : 1.0
-    const baseSales = (isWknd ? 3500000 : 2500000) * trendMultiplier
+    const baseSales = isWknd ? 3500000 : 2500000
     const totalGNF = varyAmount(baseSales, 15)
 
     // Payment split: 60% cash, 25% mobile, 15% card
@@ -452,7 +314,7 @@ async function createDailySales(
     const orangeMoneyGNF = roundTo100k(totalGNF * 0.25)
     const cardGNF = totalGNF - cashGNF - orangeMoneyGNF
 
-    const saleId = `sale-dev-${RESTAURANT_ID}-${dateKey}`
+    const saleId = `sale-test-${RESTAURANT_ID}-day${String(day).padStart(2, '0')}`
 
     // Create sale
     const sale = await prisma.sale.create({
@@ -492,11 +354,10 @@ async function createDailySales(
     }
 
     // Create bank transactions for each payment method (sales deposit)
-    // Cash deposit
     if (cashGNF > 0) {
       const bankTxCash = await prisma.bankTransaction.create({
         data: {
-          id: `bank-sale-cash-${dateKey}`,
+          id: `bank-test-sale-cash-day${String(day).padStart(2, '0')}`,
           restaurantId: RESTAURANT_ID,
           date: date,
           amount: cashGNF,
@@ -504,10 +365,10 @@ async function createDailySales(
           method: BankPaymentMethod.Cash,
           reason: TransactionReason.SalesDeposit,
           saleId: saleId,
-          description: `Daily sales deposit (Cash) - ${dateLabel}`,
+          description: `Daily sales deposit (Cash) - ${formatDate(date)}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: date,
-          bankRef: `DEP-CASH-${dateKey}`,
+          bankRef: `DEP-TEST-CASH-${String(day).padStart(3, '0')}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -515,11 +376,10 @@ async function createDailySales(
       bankTransactions.push(bankTxCash)
     }
 
-    // Orange Money deposit
     if (orangeMoneyGNF > 0) {
       const bankTxOrange = await prisma.bankTransaction.create({
         data: {
-          id: `bank-sale-orange-${dateKey}`,
+          id: `bank-test-sale-orange-day${String(day).padStart(2, '0')}`,
           restaurantId: RESTAURANT_ID,
           date: date,
           amount: orangeMoneyGNF,
@@ -527,10 +387,10 @@ async function createDailySales(
           method: BankPaymentMethod.OrangeMoney,
           reason: TransactionReason.SalesDeposit,
           saleId: saleId,
-          description: `Daily sales deposit (Orange Money) - ${dateLabel}`,
+          description: `Daily sales deposit (Orange Money) - ${formatDate(date)}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: date,
-          bankRef: `DEP-OM-${dateKey}`,
+          bankRef: `DEP-TEST-OM-${String(day).padStart(3, '0')}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -538,11 +398,10 @@ async function createDailySales(
       bankTransactions.push(bankTxOrange)
     }
 
-    // Card deposit
     if (cardGNF > 0) {
       const bankTxCard = await prisma.bankTransaction.create({
         data: {
-          id: `bank-sale-card-${dateKey}`,
+          id: `bank-test-sale-card-day${String(day).padStart(2, '0')}`,
           restaurantId: RESTAURANT_ID,
           date: date,
           amount: cardGNF,
@@ -550,10 +409,10 @@ async function createDailySales(
           method: BankPaymentMethod.Card,
           reason: TransactionReason.SalesDeposit,
           saleId: saleId,
-          description: `Daily sales deposit (Card) - ${dateLabel}`,
+          description: `Daily sales deposit (Card) - ${formatDate(date)}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: date,
-          bankRef: `DEP-CARD-${dateKey}`,
+          bankRef: `DEP-TEST-CARD-${String(day).padStart(3, '0')}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -562,7 +421,7 @@ async function createDailySales(
     }
 
     if (day % 7 === 0) {
-      console.log(`  Week ${day / 7}: Created ${day} sales`)
+      console.log(`  Week ${Math.ceil(day / 7)}: Created ${day} sales`)
     }
   }
 
@@ -593,15 +452,13 @@ async function createExpenses(
   const packagingCat = categories.find(c => c.name === 'Packaging')
   const flourItem = inventoryItems.find(i => i.name === 'Wheat Flour')
 
-  // Inventory purchases every 2 days (days 2, 4, 6, ... TOTAL_DAYS)
+  // Inventory purchases every 2 days
   for (let day = 2; day <= TOTAL_DAYS; day += 2) {
     const date = getDate(day)
-    const dateKey = getDateKey(day)
-    const dateLabel = getDateLabel(day)
-    const amount = varyAmount(2000000, 25) // 1.5M - 2.5M
-    const expId = `exp-inv-${dateKey}`
-    const bankTxId = `bank-exp-inv-${dateKey}`
-    const expPayId = `exp-pay-inv-${dateKey}`
+    const amount = varyAmount(2000000, 25)
+    const expId = `exp-test-inv-day${String(day).padStart(2, '0')}`
+    const bankTxId = `bank-test-exp-inv-day${String(day).padStart(2, '0')}`
+    const expPayId = `exp-test-pay-inv-day${String(day).padStart(2, '0')}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -612,7 +469,7 @@ async function createExpenses(
         categoryName: 'Flour',
         amountGNF: amount,
         paymentMethod: 'Cash',
-        description: `Inventory restock - ${dateLabel}`,
+        description: `Inventory restock - ${formatDate(date)}`,
         isInventoryPurchase: true,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -621,7 +478,6 @@ async function createExpenses(
     })
     expenses.push(expense)
 
-    // Bank transaction (withdrawal)
     const bankTx = await prisma.bankTransaction.create({
       data: {
         id: bankTxId,
@@ -631,17 +487,16 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.Cash,
         reason: TransactionReason.ExpensePayment,
-        description: `Inventory purchase - ${dateLabel}`,
+        description: `Inventory purchase - ${formatDate(date)}`,
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-INV-${dateKey}`,
+        bankRef: `WTH-TEST-INV-${String(day).padStart(3, '0')}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
     })
     bankTransactions.push(bankTx)
 
-    // Expense payment
     const expPay = await prisma.expensePayment.create({
       data: {
         id: expPayId,
@@ -656,18 +511,17 @@ async function createExpenses(
     })
     expensePayments.push(expPay)
 
-    // Stock movement for purchase
     if (flourItem) {
       const qty = Math.round(amount / flourItem.unitCostGNF)
       const stockMov = await prisma.stockMovement.create({
         data: {
-          id: `mov-purchase-${dateKey}`,
+          id: `mov-test-purchase-day${String(day).padStart(2, '0')}`,
           restaurantId: RESTAURANT_ID,
           itemId: flourItem.id,
           type: 'Purchase',
           quantity: qty,
           unitCost: flourItem.unitCostGNF,
-          reason: `Inventory restock - ${dateLabel}`,
+          reason: `Inventory restock - ${formatDate(date)}`,
           expenseId: expId,
           createdBy: ownerId,
           createdByName: ownerName,
@@ -679,16 +533,14 @@ async function createExpenses(
   }
   console.log(`  Created ${expenses.length} inventory expenses`)
 
-  // Weekly utilities (every 7 days)
-  for (const day of [7, 14, 21, 28, 35, 42]) {
+  // Weekly utilities (days 7, 14, 21, 28)
+  const utilityDays = [7, 14, 21, 28].filter(d => d <= TOTAL_DAYS)
+  for (const day of utilityDays) {
     const date = getDate(day)
-    const dateKey = getDateKey(day)
-    const dateLabel = getDateLabel(day)
-    const weekNum = Math.ceil(day / 7)
-    const amount = varyAmount(600000, 20) // 500K - 700K
-    const expId = `exp-util-${dateKey}`
-    const bankTxId = `bank-util-${dateKey}`
-    const expPayId = `exp-pay-util-${dateKey}`
+    const amount = varyAmount(600000, 20)
+    const expId = `exp-test-util-day${String(day).padStart(2, '0')}`
+    const bankTxId = `bank-test-util-day${String(day).padStart(2, '0')}`
+    const expPayId = `exp-test-pay-util-day${String(day).padStart(2, '0')}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -699,7 +551,7 @@ async function createExpenses(
         categoryName: 'Electricity',
         amountGNF: amount,
         paymentMethod: 'Orange Money',
-        description: `Weekly utilities - Week ${weekNum}`,
+        description: `Weekly utilities - Week ${Math.ceil(day / 7)}`,
         isInventoryPurchase: false,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -717,10 +569,10 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.OrangeMoney,
         reason: TransactionReason.ExpensePayment,
-        description: `Utilities - Week ${weekNum}`,
+        description: `Utilities - Week ${Math.ceil(day / 7)}`,
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-UTL-${dateKey}`,
+        bankRef: `WTH-TEST-UTL-${String(day).padStart(3, '0')}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
@@ -741,17 +593,16 @@ async function createExpenses(
     })
     expensePayments.push(expPay)
   }
-  console.log(`  Created 6 utility expenses`)
+  console.log(`  Created ${utilityDays.length} utility expenses`)
 
-  // Bi-monthly salaries (days 15, 28, 46 = Jan 15, Jan 28, Feb 15)
-  for (const day of [15, 28, 46]) {
+  // Bi-monthly salaries (days 15, 28+)
+  const salaryDays = [15, 28].filter(d => d <= TOTAL_DAYS)
+  for (const day of salaryDays) {
     const date = getDate(day)
-    const dateKey = getDateKey(day)
-    const dateLabel = getDateLabel(day)
-    const amount = varyAmount(3500000, 10) // 3.2M - 3.8M
-    const expId = `exp-sal-${dateKey}`
-    const bankTxId = `bank-sal-${dateKey}`
-    const expPayId = `exp-pay-sal-${dateKey}`
+    const amount = varyAmount(3500000, 10)
+    const expId = `exp-test-sal-day${String(day).padStart(2, '0')}`
+    const bankTxId = `bank-test-sal-day${String(day).padStart(2, '0')}`
+    const expPayId = `exp-test-pay-sal-day${String(day).padStart(2, '0')}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -762,7 +613,7 @@ async function createExpenses(
         categoryName: 'Staff Salaries',
         amountGNF: amount,
         paymentMethod: 'Cash',
-        description: `Salaries - ${dateLabel}`,
+        description: day === 15 ? 'Mid-month salaries' : 'End-of-month salaries',
         isInventoryPurchase: false,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -780,10 +631,10 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.Cash,
         reason: TransactionReason.ExpensePayment,
-        description: `Salaries - ${dateLabel}`,
+        description: day === 15 ? 'Mid-month salaries' : 'End-of-month salaries',
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-SAL-${dateKey}`,
+        bankRef: `WTH-TEST-SAL-${String(day).padStart(3, '0')}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
@@ -804,18 +655,16 @@ async function createExpenses(
     })
     expensePayments.push(expPay)
   }
-  console.log(`  Created 3 salary expenses`)
+  console.log(`  Created ${salaryDays.length} salary expenses`)
 
-  // Weekly supplies
-  for (const day of [5, 12, 19, 26, 33, 40]) {
+  // Weekly supplies (days 5, 12, 19, 26)
+  const supplyDays = [5, 12, 19, 26].filter(d => d <= TOTAL_DAYS)
+  for (const day of supplyDays) {
     const date = getDate(day)
-    const dateKey = getDateKey(day)
-    const dateLabel = getDateLabel(day)
-    const weekNum = Math.ceil(day / 7)
-    const amount = varyAmount(400000, 30) // 300K - 500K
-    const expId = `exp-sup-${dateKey}`
-    const bankTxId = `bank-sup-${dateKey}`
-    const expPayId = `exp-pay-sup-${dateKey}`
+    const amount = varyAmount(400000, 30)
+    const expId = `exp-test-sup-day${String(day).padStart(2, '0')}`
+    const bankTxId = `bank-test-sup-day${String(day).padStart(2, '0')}`
+    const expPayId = `exp-test-pay-sup-day${String(day).padStart(2, '0')}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -826,7 +675,7 @@ async function createExpenses(
         categoryName: 'Packaging',
         amountGNF: amount,
         paymentMethod: 'Card',
-        description: `Supplies purchase - Week ${weekNum}`,
+        description: `Supplies purchase - Week ${Math.ceil(day / 7)}`,
         isInventoryPurchase: false,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -844,10 +693,10 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.Card,
         reason: TransactionReason.ExpensePayment,
-        description: `Supplies - Week ${weekNum}`,
+        description: `Supplies - Week ${Math.ceil(day / 7)}`,
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-SUP-${dateKey}`,
+        bankRef: `WTH-TEST-SUP-${String(day).padStart(3, '0')}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
@@ -868,7 +717,7 @@ async function createExpenses(
     })
     expensePayments.push(expPay)
   }
-  console.log(`  Created 6 supply expenses`)
+  console.log(`  Created ${supplyDays.length} supply expenses`)
 
   console.log(`  Total: ${expenses.length} expenses, ${expensePayments.length} payments, ${bankTransactions.length} bank transactions`)
   return { expenses, expensePayments, bankTransactions, stockMovements }
@@ -883,20 +732,18 @@ async function createProductionLogs(
   products: Array<{ id: string; name: string; category: ProductCategory }>,
   inventoryItems: Array<{ id: string; name: string; unitCostGNF: number }>
 ) {
-  console.log(`Phase 6: Creating daily production logs (Jan 1 - Feb 15, ${TOTAL_DAYS} days)...`)
+  console.log(`Phase 6: Creating daily production logs (${TOTAL_DAYS} days)...`)
 
   const productionLogs = []
   const productionItems = []
   const stockMovements = []
 
-  // Get specific inventory item IDs
   const flourItem = inventoryItems.find(i => i.name === 'Wheat Flour')
   const butterItem = inventoryItems.find(i => i.name === 'Butter')
   const yeastItem = inventoryItems.find(i => i.name === 'Yeast')
   const eggsItem = inventoryItems.find(i => i.name === 'Eggs')
   const chocolateItem = inventoryItems.find(i => i.name === 'Chocolate')
 
-  // Daily production template
   const dailyProductionTemplate = [
     { productName: 'Baguette', baseQty: 120, flourKg: 30, butterKg: 0, yeastKg: 1.2, eggsUnit: 0, chocolateKg: 0 },
     { productName: 'Croissant', baseQty: 60, flourKg: 6, butterKg: 3, yeastKg: 0.3, eggsUnit: 12, chocolateKg: 0 },
@@ -907,19 +754,14 @@ async function createProductionLogs(
 
   for (let day = 1; day <= TOTAL_DAYS; day++) {
     const date = getDate(day)
-    const dateKey = getDateKey(day)
-    const dateLabel = getDateLabel(day)
     const dayOfWeek = date.getUTCDay()
 
-    // Alternate production type based on day
-    // Mon/Wed/Fri/Sun = Boulangerie, Tue/Thu/Sat = Patisserie
     const productionType = [0, 1, 3, 5].includes(dayOfWeek)
       ? ProductCategory.Boulangerie
       : ProductCategory.Patisserie
 
-    const prodLogId = `prod-log-${dateKey}`
+    const prodLogId = `prod-test-log-day${String(day).padStart(2, '0')}`
 
-    // Calculate daily production with variation
     const ingredientDetails = dailyProductionTemplate.map((p) => {
       const qty = randomInt(Math.floor(p.baseQty * 0.8), Math.floor(p.baseQty * 1.2))
       const ratio = qty / p.baseQty
@@ -941,7 +783,6 @@ async function createProductionLogs(
     const totalChocolate = ingredientDetails.reduce((sum, d) => sum + d.chocolate, 0)
     const totalQuantity = ingredientDetails.reduce((sum, d) => sum + d.quantity, 0)
 
-    // Calculate estimated cost
     const estimatedCost = Math.round(
       totalFlour * (flourItem?.unitCostGNF || 8000) +
       totalButter * (butterItem?.unitCostGNF || 35000) +
@@ -950,7 +791,6 @@ async function createProductionLogs(
       totalChocolate * (chocolateItem?.unitCostGNF || 45000)
     )
 
-    // Create production log
     const prodLog = await prisma.productionLog.create({
       data: {
         id: prodLogId,
@@ -979,13 +819,12 @@ async function createProductionLogs(
     })
     productionLogs.push(prodLog)
 
-    // Create production items (link to products)
     for (const prodData of ingredientDetails) {
       const product = products.find(p => p.name === prodData.product)
       if (product) {
         const prodItem = await prisma.productionItem.create({
           data: {
-            id: `prod-item-${dateKey}-${prodData.product.toLowerCase().replace(/\s+/g, '-')}`,
+            id: `prod-test-item-day${String(day).padStart(2, '0')}-${prodData.product.toLowerCase().replace(/\s+/g, '-')}`,
             productionLogId: prodLogId,
             productId: product.id,
             quantity: prodData.quantity,
@@ -995,7 +834,6 @@ async function createProductionLogs(
       }
     }
 
-    // Create stock movements (usage)
     const movements = [
       { item: flourItem, qty: -totalFlour },
       { item: butterItem, qty: -totalButter },
@@ -1008,13 +846,13 @@ async function createProductionLogs(
       if (mov.item && mov.qty !== 0) {
         const stockMov = await prisma.stockMovement.create({
           data: {
-            id: `mov-usage-${dateKey}-${mov.item.name.toLowerCase().replace(/\s+/g, '-')}`,
+            id: `mov-test-usage-day${String(day).padStart(2, '0')}-${mov.item.name.toLowerCase().replace(/\s+/g, '-')}`,
             restaurantId: RESTAURANT_ID,
             itemId: mov.item.id,
             type: 'Usage',
             quantity: mov.qty,
             unitCost: mov.item.unitCostGNF,
-            reason: `Production: ${dateLabel}`,
+            reason: `Production: ${formatDate(date)}`,
             productionLogId: prodLogId,
             createdBy: ownerId,
             createdByName: ownerName,
@@ -1026,7 +864,7 @@ async function createProductionLogs(
     }
 
     if (day % 7 === 0) {
-      console.log(`  Week ${day / 7}: Created ${day} production logs`)
+      console.log(`  Week ${Math.ceil(day / 7)}: Created ${day} production logs`)
     }
   }
 
@@ -1035,36 +873,34 @@ async function createProductionLogs(
 }
 
 // ============================================================================
-// PHASE 7: CREATE DEBTS (Weekly)
+// PHASE 7: CREATE DEBTS
 // ============================================================================
 async function createDebts(
   ownerId: string,
   ownerName: string | null,
   customers: Array<{ id: string; name: string }>
 ) {
-  console.log('Phase 7: Creating weekly debts (6 total)...')
+  console.log('Phase 7: Creating weekly debts...')
 
   const debts = []
   const debtPayments = []
   const bankTransactions = []
 
-  // Create debts weekly: Jan 5, 12, 19, 26, Feb 2 (day 33), Feb 9 (day 40)
+  const debtDays = [5, 12, 19, 26].filter(d => d <= TOTAL_DAYS)
   const debtData = [
     { day: 5, customerIndex: 0, principal: 300000, paid: 0, status: DebtStatus.Outstanding, desc: 'Weekly bread order' },
     { day: 12, customerIndex: 2, principal: 500000, paid: 200000, status: DebtStatus.PartiallyPaid, desc: 'Hotel catering order' },
     { day: 19, customerIndex: 3, principal: 400000, paid: 400000, status: DebtStatus.FullyPaid, desc: 'Restaurant supply' },
     { day: 26, customerIndex: 4, principal: 200000, paid: 0, status: DebtStatus.Outstanding, desc: 'Wholesale order' },
-    { day: 33, customerIndex: 1, principal: 350000, paid: 350000, status: DebtStatus.FullyPaid, desc: 'February catering order' },
-    { day: 40, customerIndex: 3, principal: 450000, paid: 150000, status: DebtStatus.PartiallyPaid, desc: 'February supply order' },
   ]
 
   for (const d of debtData) {
-    const date = getDate(d.day)
-    const dateKey = getDateKey(d.day)
-    const customer = customers[d.customerIndex]
-    const debtId = `debt-dev-${dateKey}`
+    if (d.day > TOTAL_DAYS) continue
 
-    // Due date is 14 days after creation
+    const date = getDate(d.day)
+    const customer = customers[d.customerIndex]
+    const debtId = `debt-test-day${String(d.day).padStart(2, '0')}`
+
     const dueDate = new Date(date)
     dueDate.setDate(dueDate.getDate() + 14)
 
@@ -1086,13 +922,12 @@ async function createDebts(
     debts.push(debt)
     console.log(`  Created debt: ${customer.name} - ${d.principal.toLocaleString()} GNF (${d.status})`)
 
-    // Create payment if paid > 0
     if (d.paid > 0) {
       const paymentDate = new Date(date)
-      paymentDate.setDate(paymentDate.getDate() + 7) // Payment 7 days after debt
+      paymentDate.setDate(paymentDate.getDate() + 7)
 
-      const paymentId = `debt-pay-${dateKey}`
-      const bankTxId = `bank-debt-${dateKey}`
+      const paymentId = `debt-test-pay-day${String(d.day).padStart(2, '0')}`
+      const bankTxId = `bank-test-debt-day${String(d.day).padStart(2, '0')}`
       const paymentMethod = d.status === DebtStatus.FullyPaid ? 'Cash' : 'Orange Money'
 
       const debtPayment = await prisma.debtPayment.create({
@@ -1104,7 +939,7 @@ async function createDebts(
           amount: d.paid,
           paymentMethod: paymentMethod,
           paymentDate: paymentDate,
-          receiptNumber: `REC-DEBT-${dateKey}`,
+          receiptNumber: `REC-TEST-DEBT-${String(d.day).padStart(3, '0')}`,
           notes: d.status === DebtStatus.FullyPaid ? 'Full payment received' : 'Partial payment',
           receivedBy: ownerId,
           receivedByName: ownerName,
@@ -1112,7 +947,6 @@ async function createDebts(
       })
       debtPayments.push(debtPayment)
 
-      // Bank transaction for debt collection
       const bankTx = await prisma.bankTransaction.create({
         data: {
           id: bankTxId,
@@ -1126,7 +960,7 @@ async function createDebts(
           description: `Debt collection: ${d.desc}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: paymentDate,
-          bankRef: `DEB-${dateKey}`,
+          bankRef: `DEB-TEST-${String(d.day).padStart(3, '0')}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -1147,20 +981,19 @@ async function createCapitalMovements(ownerId: string, ownerName: string | null)
 
   const bankTransactions = []
 
-  // Initial capital injection (Jan 1)
   const capitalTx = await prisma.bankTransaction.create({
     data: {
-      id: 'bank-capital-injection',
+      id: 'bank-test-capital-injection',
       restaurantId: RESTAURANT_ID,
       date: getDate(1),
-      amount: 10000000, // 10M GNF
+      amount: 10000000,
       type: BankTransactionType.Deposit,
       method: BankPaymentMethod.Cash,
       reason: TransactionReason.CapitalInjection,
       description: 'Owner capital injection - January startup',
       status: BankTransactionStatus.Confirmed,
       confirmedAt: getDate(1),
-      bankRef: 'CAP-001',
+      bankRef: 'CAP-TEST-001',
       createdBy: ownerId,
       createdByName: ownerName,
     }
@@ -1168,26 +1001,27 @@ async function createCapitalMovements(ownerId: string, ownerName: string | null)
   bankTransactions.push(capitalTx)
   console.log('  Created capital injection: 10,000,000 GNF')
 
-  // Owner withdrawal (mid-month)
-  const withdrawalTx = await prisma.bankTransaction.create({
-    data: {
-      id: 'bank-owner-withdrawal',
-      restaurantId: RESTAURANT_ID,
-      date: getDate(15),
-      amount: 5000000, // 5M GNF
-      type: BankTransactionType.Withdrawal,
-      method: BankPaymentMethod.Cash,
-      reason: TransactionReason.OwnerWithdrawal,
-      description: 'Owner withdrawal - Mid-month',
-      status: BankTransactionStatus.Confirmed,
-      confirmedAt: getDate(15),
-      bankRef: 'OWN-001',
-      createdBy: ownerId,
-      createdByName: ownerName,
-    }
-  })
-  bankTransactions.push(withdrawalTx)
-  console.log('  Created owner withdrawal: 5,000,000 GNF')
+  if (TOTAL_DAYS >= 15) {
+    const withdrawalTx = await prisma.bankTransaction.create({
+      data: {
+        id: 'bank-test-owner-withdrawal',
+        restaurantId: RESTAURANT_ID,
+        date: getDate(15),
+        amount: 5000000,
+        type: BankTransactionType.Withdrawal,
+        method: BankPaymentMethod.Cash,
+        reason: TransactionReason.OwnerWithdrawal,
+        description: 'Owner withdrawal - Mid-month',
+        status: BankTransactionStatus.Confirmed,
+        confirmedAt: getDate(15),
+        bankRef: 'OWN-TEST-001',
+        createdBy: ownerId,
+        createdByName: ownerName,
+      }
+    })
+    bankTransactions.push(withdrawalTx)
+    console.log('  Created owner withdrawal: 5,000,000 GNF')
+  }
 
   return bankTransactions
 }
@@ -1197,20 +1031,28 @@ async function createCapitalMovements(ownerId: string, ownerName: string | null)
 // ============================================================================
 async function main() {
   console.log('='.repeat(60))
-  console.log('Bakery Hub - Development Database Seeding')
+  console.log('Bakery Hub - PRODUCTION Test Restaurant Seeding')
   console.log('='.repeat(60))
-  console.log(`Target: ${RESTAURANT_ID}`)
-  console.log(`Date Range: Jan 1 - Feb 15, 2026 (${TOTAL_DAYS} days)`)
+  console.log(`Target: ${RESTAURANT_NAME} (${RESTAURANT_ID})`)
+  console.log(`Date Range: ${formatDate(START_DATE)} to ${formatDate(END_DATE)} (${TOTAL_DAYS} days)`)
+  console.log(`Database: PRODUCTION (Neon)`)
   console.log('='.repeat(60))
   console.log('')
 
-  try {
-    // Phase 1: Clear existing data
-    await clearBusinessData()
-    console.log('')
+  // Safety check
+  console.log('Phase 1: Checking if test restaurant already exists...')
+  const exists = await checkExistingRestaurant()
+  if (exists) {
+    console.log(`  ERROR: Restaurant '${RESTAURANT_NAME}' already exists!`)
+    console.log('  To recreate, first run: npx ts-node scripts/cleanup-prod-test.ts')
+    process.exit(1)
+  }
+  console.log('  Restaurant does not exist. Proceeding with seeding...')
+  console.log('')
 
-    // Phase 2: Fetch or create references
-    const { restaurant, ownerUser, products, inventoryItems, categories } = await fetchOrCreateReferences()
+  try {
+    // Phase 2: Create restaurant and references
+    const { restaurant, ownerUser, products, inventoryItems, categories } = await createRestaurantAndReferences()
     console.log('')
 
     // Phase 3: Create customers
@@ -1239,7 +1081,7 @@ async function main() {
 
     // Summary
     console.log('='.repeat(60))
-    console.log('SEEDING COMPLETED SUCCESSFULLY')
+    console.log('PRODUCTION SEEDING COMPLETED SUCCESSFULLY')
     console.log('='.repeat(60))
     console.log('')
     console.log('Data Summary:')
@@ -1266,13 +1108,8 @@ async function main() {
       productionResult.stockMovements.length
     console.log(`  Stock Movements: ${totalStockMov}`)
     console.log('')
-    console.log('Next Steps:')
-    console.log('  1. Start dev server: npm run dev')
-    console.log('  2. Check Sales page: /finances/sales')
-    console.log('  3. Check Expenses page: /finances/expenses')
-    console.log('  4. Check Bank page: /finances/bank')
-    console.log('  5. Check Production page: /baking/production')
-    console.log('  6. Check Debts page: /finances/debts')
+    console.log('To remove this test data, run:')
+    console.log('  npx ts-node scripts/cleanup-prod-test.ts')
     console.log('='.repeat(60))
   } catch (error) {
     console.error('Seeding failed:', error)

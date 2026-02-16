@@ -143,6 +143,18 @@ export async function PUT(
       )
     }
 
+    // Validate that new amount is not less than what has already been paid
+    if (amountGNF !== undefined && existingExpense.totalPaidAmount > 0) {
+      if (amountGNF < existingExpense.totalPaidAmount) {
+        return NextResponse.json(
+          {
+            error: `Cannot reduce expense amount below paid amount. Already paid: ${existingExpense.totalPaidAmount.toLocaleString()} GNF`
+          },
+          { status: 400 }
+        )
+      }
+    }
+
     // Validate payment method if provided
     let normalizedPaymentMethod: string | undefined
     if (paymentMethod !== undefined) {

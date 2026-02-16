@@ -182,6 +182,112 @@ UPDATE "User" SET role = 'Cashier' WHERE role = 'Editor';
 
 ---
 
+## Dual Role System (Technical Documentation)
+
+**Last Updated**: 2026-02-05
+**Status**: ⚠️ Partially Migrated - Action Required
+
+### Overview
+
+The system has TWO role fields that serve different purposes:
+
+| Field | Location | Purpose | Default |
+|-------|----------|---------|---------|
+| `User.role` | User model | Global/session role (legacy) | `Editor` |
+| `UserRestaurant.role` | UserRestaurant junction table | Per-restaurant role (current standard) | `RestaurantManager` |
+
+### How They Work
+
+**User.role (Global)**
+- Stored in the `User` table
+- Loaded into JWT during authentication (`lib/auth.ts:119`)
+- Available via `session.user.role` in API routes
+- Originally intended for simple Manager/Editor distinction
+- **Legacy field** - should eventually be deprecated
+
+**UserRestaurant.role (Per-Restaurant)**
+- Stored in the `UserRestaurant` junction table
+- Allows different roles at different restaurants (e.g., Owner at Restaurant A, Baker at Restaurant B)
+- Accessed via `authorizeRestaurantAccess()` helper in `lib/auth.ts`
+- **Current standard** - all new code should use this
+
+### Authorization Patterns
+
+**Correct Pattern (Per-Restaurant Role)**
+```typescript
+import { authorizeRestaurantAccess } from '@/lib/auth'
+import { canRecordSales } from '@/lib/roles'
+
+const auth = await authorizeRestaurantAccess(
+  session.user.id,
+  restaurantId,
+  canRecordSales,
+  'Your role does not have permission to record sales'
+)
+if (!auth.authorized) {
+  return NextResponse.json({ error: auth.error }, { status: auth.status })
+}
+// auth.role contains the user's role at this specific restaurant
+```
+
+**Legacy Pattern (Global Role) - DO NOT USE FOR NEW CODE**
+```typescript
+// This checks User.role, NOT UserRestaurant.role
+if (!isManagerRole(session.user.role)) {
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+}
+```
+
+### Current API Authorization Audit (2026-02-05)
+
+**APIs Using `authorizeRestaurantAccess` (Correct):**
+- `POST /api/sales` - Sales creation
+- `PATCH /api/sales/[id]` - Sales editing
+- `POST /api/sales/[id]/approve` - Sales approval
+- `POST /api/expenses` - Expense creation
+- `PATCH /api/expenses/[id]` - Expense editing
+- `POST /api/debts/[id]/payments` - Debt payment collection
+- `POST /api/stock-movements` - Stock movement creation
+- `POST /api/inventory/[id]/adjust` - Inventory adjustments
+- `POST /api/production` - Production log creation
+
+**APIs Using `session.user.role` (Legacy - Needs Migration):**
+- `POST/PUT/DELETE /api/products/[id]` - Product management
+- `POST /api/inventory` - Inventory item creation
+- `PUT/DELETE /api/inventory/[id]` - Inventory item management
+- `GET/POST /api/bank/transactions` - Bank transactions
+- `GET/PUT/DELETE /api/bank/transactions/[id]` - Bank transaction management
+- `GET /api/bank/balances` - Bank balances
+- `GET /api/bank/analytics` - Bank analytics
+- `PATCH /api/reconciliation/[id]` - Stock reconciliation approval
+- `PATCH/DELETE /api/production/[id]` - Production status/delete
+- `POST /api/expenses/[id]/payments` - Expense payments
+
+### Security Implications
+
+**Risk**: A user with `User.role = 'Owner'` (global) but `UserRestaurant.role = 'Cashier'` at a specific restaurant could bypass restrictions on legacy APIs.
+
+**Mitigation**: Most critical operations (sales, expenses, debts, stock) already use per-restaurant authorization. Bank-related APIs using global role are acceptable since bank access is Owner-only regardless of restaurant.
+
+### Migration Recommendation
+
+**Priority**: Medium (not blocking, but should be addressed)
+
+1. **Bank APIs** - Keep using `session.user.role` for Owner check (acceptable since bank access is global Owner privilege)
+2. **Products/Inventory CRUD** - Migrate to `authorizeRestaurantAccess`
+3. **Reconciliation/Production Admin** - Migrate to `authorizeRestaurantAccess`
+4. **Eventually**: Consider deprecating `User.role` field entirely
+
+### When to Use Each
+
+| Scenario | Use |
+|----------|-----|
+| Restaurant-scoped operations (sales, expenses, production) | `authorizeRestaurantAccess()` |
+| Owner-only global features (bank, settings) | `session.user.role` is acceptable |
+| New API endpoints | Always use `authorizeRestaurantAccess()` |
+
+---
+
 ## Implementation Checklist
 
 - [x] Finalize role names (FR/EN) - Completed in lib/roles.ts
@@ -196,5 +302,7 @@ UPDATE "User" SET role = 'Cashier' WHERE role = 'Editor';
 - [x] Update existing pages with access guards - All 11 pages updated
 
 ### Remaining Tasks
-- [x] Update API routes to check UserRestaurant.role for authorization
+- [x] Update critical API routes to check UserRestaurant.role for authorization (sales, expenses, debts, stock - Phase 1)
+- [ ] Migrate remaining APIs (products, inventory CRUD, reconciliation) - Phase 2
 - [ ] Test complete RBAC flow with different roles
+- [x] Document dual role system - Completed 2026-02-05

@@ -4,7 +4,7 @@ import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { normalizePaymentMethod } from '@/lib/constants/payment-methods'
 import { canRecordExpenses } from '@/lib/roles'
-import { parseToUTCDate, formatDateForInput } from '@/lib/date-utils'
+import { parseToUTCDate, extractDatePart } from '@/lib/date-utils'
 
 // GET /api/expenses - List expenses for a bakery
 export async function GET(request: NextRequest) {
@@ -172,9 +172,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Build expensesByDay for trend chart using Map for O(n) aggregation
+    // Use extractDatePart to avoid timezone conversion issues on the server
     const expensesByDayMap = new Map<string, number>()
     for (const expense of expenses) {
-      const dateStr = formatDateForInput(expense.date)
+      const dateStr = extractDatePart(expense.date)
       expensesByDayMap.set(dateStr, (expensesByDayMap.get(dateStr) ?? 0) + expense.amountGNF)
     }
     const expensesByDay = Array.from(expensesByDayMap.entries())
