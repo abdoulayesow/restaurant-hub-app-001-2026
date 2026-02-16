@@ -43,7 +43,8 @@
       "Bash(npx ts-node:*)",
       "Bash(npm run typecheck)",
       "Bash(npm run lint)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)"
     ]
   }
 }

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { extractDatePart } from '@/lib/date-utils'
+import { parsePaginationParams } from '@/lib/pagination'
 import {
   calculateDailyAverage,
   calculateDaysUntilDepletion,
@@ -78,8 +79,17 @@ export async function GET(request: NextRequest) {
     const forecastPeriodsStr = searchParams.get('forecastPeriods') || '7,14,30'
     const forecastPeriods = forecastPeriodsStr.split(',').map(p => parseInt(p, 10))
 
-    const analysisStartDate = new Date()
-    analysisStartDate.setDate(analysisStartDate.getDate() - analysisWindow)
+    // Stock forecasts pagination (default 50 items, max 100)
+    const stockPagination = parsePaginationParams(searchParams, 50, 100)
+
+    // Create UTC-based date to avoid timezone shifts in database queries
+    const now = new Date()
+    const analysisStartDate = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() - analysisWindow,
+      0, 0, 0, 0
+    ))
 
     // ============================================================================
     // Fetch Data (Optimized - All in Parallel)
@@ -228,6 +238,11 @@ export async function GET(request: NextRequest) {
       return a.daysUntilDepletion - b.daysUntilDepletion
     })
 
+    // Apply pagination to stock forecasts for response
+    const totalStockForecasts = stockForecasts.length
+    const hasMoreForecasts = stockForecasts.length > stockPagination.limit
+    const paginatedStockForecasts = stockForecasts.slice(0, stockPagination.limit)
+
     // ============================================================================
     // 2. Reorder Recommendations
     // ============================================================================
@@ -298,12 +313,27 @@ export async function GET(request: NextRequest) {
     // ============================================================================
     // 4. Demand Forecasts
     // ============================================================================
-    const salesByDate = sales.map(s => s.totalGNF)
+    // Build sales-by-date map first (reused in historical data section below)
+    const salesByDateMap = new Map<string, number>()
+    for (const sale of sales) {
+      const dateStr = extractDatePart(sale.date)
+      salesByDateMap.set(dateStr, (salesByDateMap.get(dateStr) || 0) + sale.totalGNF)
+    }
+
+    // Build continuous daily series (one entry per day, 0 for missing days)
+    // This ensures the regression model treats gaps correctly instead of collapsing them
+    const dailySales: number[] = []
+    for (let i = analysisWindow - 1; i >= 0; i--) {
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i))
+      const dateStr = d.toISOString().split('T')[0]
+      dailySales.push(salesByDateMap.get(dateStr) || 0)
+    }
+
     const demandForecasts: DemandForecast[] = []
 
     for (const days of forecastPeriods) {
-      const forecast = calculateDemandForecast(salesByDate, days)
-      const { trend, percentage } = getTrend(salesByDate)
+      const forecast = calculateDemandForecast(dailySales, days)
+      const { trend, percentage } = getTrend(dailySales)
 
       demandForecasts.push({
         period: `${days}d` as '7d' | '14d' | '30d',
@@ -373,14 +403,8 @@ export async function GET(request: NextRequest) {
     // ============================================================================
     const historicalData: Array<{ date: string; revenue: number; expenses: number }> = []
 
-    // Group sales and expenses by date
-    const salesByDateMap = new Map<string, number>()
+    // Group expenses by date (salesByDateMap already built in section 4)
     const expensesByDateMap = new Map<string, number>()
-
-    for (const sale of sales) {
-      const dateStr = extractDatePart(sale.date)
-      salesByDateMap.set(dateStr, (salesByDateMap.get(dateStr) || 0) + sale.totalGNF)
-    }
 
     for (const expense of expenses) {
       const dateStr = extractDatePart(expense.date)
@@ -401,7 +425,12 @@ export async function GET(request: NextRequest) {
     // Response
     // ============================================================================
     return NextResponse.json({
-      stockForecasts,
+      stockForecasts: paginatedStockForecasts,
+      stockForecastsPagination: {
+        total: totalStockForecasts,
+        hasMore: hasMoreForecasts,
+        limit: stockPagination.limit
+      },
       reorderRecommendations,
       cashRunway,
       demandForecasts,

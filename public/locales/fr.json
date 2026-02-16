@@ -1036,7 +1036,10 @@
     "thisQuarter": "Ce trimestre",
     "period7d": "7 jours",
     "period14d": "14 jours",
-    "period30d": "30 jours"
+    "period30d": "30 jours",
+    "moreItemsAvailable": "plus d'articles disponibles",
+    "noRecentSalesData": "Aucune donnee de vente dans cette periode",
+    "tryLongerPeriod": "Essayez de selectionner une periode plus longue"
   },
   "bakery": {
     "myBakeries": "Mes Restaurants",

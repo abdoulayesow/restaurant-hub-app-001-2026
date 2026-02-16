@@ -350,3 +350,20 @@ export function parseLocaleInputToISO(displayDate: string, locale: string = 'en'
 export function getDatePlaceholder(locale: string = 'en'): string {
   return locale === 'fr' ? 'JJ/MM/AAAA' : 'MM/DD/YYYY'
 }
+
+/**
+ * Normalizes a Date object or string to an ISO string
+ * Use this when working with dates from API responses (which are serialized as strings)
+ *
+ * @param date - Date object or ISO string
+ * @returns ISO string or null if input is falsy
+ *
+ * @example
+ * toISOString(new Date()) // "2026-02-05T12:00:00.000Z"
+ * toISOString("2026-02-05T12:00:00.000Z") // "2026-02-05T12:00:00.000Z" (passthrough)
+ * toISOString(null) // null
+ */
+export function toISOString(date: Date | string | null | undefined): string | null {
+  if (!date) return null
+  return typeof date === 'string' ? date : date.toISOString()
+}

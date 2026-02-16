@@ -15,16 +15,34 @@ import { DemandForecastCard } from '@/components/projection/DemandForecastCard'
 import { StockDepletionTable } from '@/components/projection/StockDepletionTable'
 import { DemandForecastChart, type ForecastPeriod } from '@/components/projection/DemandForecastChart'
 import type {
-  StockForecast,
-  ReorderRecommendation,
   CashRunwayData,
   DemandForecast,
   ProfitabilityData
 } from '@/lib/projection-utils'
 
+// After JSON serialization, Date fields become strings
+interface SerializedStockForecast {
+  itemId: string
+  itemName: string
+  category: string
+  currentStock: number
+  unit: string
+  dailyAverageUsage: number
+  daysUntilDepletion: number | null
+  depletionDate: string | null
+  status: 'CRITICAL' | 'WARNING' | 'LOW' | 'OK' | 'NO_DATA'
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW'
+}
+
+interface StockForecastsPagination {
+  total: number
+  hasMore: boolean
+  limit: number
+}
+
 interface ProjectionData {
-  stockForecasts: StockForecast[]
-  reorderRecommendations: ReorderRecommendation[]
+  stockForecasts: SerializedStockForecast[]
+  stockForecastsPagination: StockForecastsPagination
   cashRunway: CashRunwayData
   demandForecasts: DemandForecast[]
   profitability: ProfitabilityData
@@ -195,14 +213,17 @@ export default function ProjectionPage() {
 
         {/* Top KPI Row */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <CashRunwayCard data={projectionData.cashRunway} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} />
+          <CashRunwayCard data={projectionData.cashRunway} />
           <DemandForecastCard forecasts={projectionData.demandForecasts} selectedPeriod={selectedPeriod} />
           <ProfitabilityCard data={projectionData.profitability} palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'} />
         </div>
 
         {/* Stock Depletion Section (PRIMARY FOCUS) */}
         <div className="mb-8">
-          <StockDepletionTable forecasts={projectionData.stockForecasts} />
+          <StockDepletionTable
+            forecasts={projectionData.stockForecasts}
+            pagination={projectionData.stockForecastsPagination}
+          />
         </div>
 
         {/* Revenue & Expense Projection Chart */}

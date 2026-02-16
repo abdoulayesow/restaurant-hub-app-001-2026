@@ -1040,7 +1040,10 @@
     "thisQuarter": "This Quarter",
     "period7d": "7 days",
     "period14d": "14 days",
-    "period30d": "30 days"
+    "period30d": "30 days",
+    "moreItemsAvailable": "more items available",
+    "noRecentSalesData": "No sales data in this period",
+    "tryLongerPeriod": "Try selecting a longer time period"
   },
   "bakery": {
     "myBakeries": "My Restaurants",

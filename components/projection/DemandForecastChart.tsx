@@ -6,7 +6,7 @@ import { TrendingUp, BarChart3, Eye, EyeOff } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { DemandForecast } from '@/lib/projection-utils'
 import { formatCurrencyCompact } from '@/lib/currency-utils'
-import { formatUTCDateForDisplay, extractDatePart } from '@/lib/date-utils'
+import { formatUTCDateForDisplay } from '@/lib/date-utils'
 
 export type ForecastPeriod = '7d' | '14d' | '30d'
 
@@ -90,8 +90,8 @@ export function DemandForecastChart({
     for (let i = config.days; i >= 1; i--) {
       const pastDate = new Date(today)
       pastDate.setDate(pastDate.getDate() - i)
-      const dateStr = extractDatePart(pastDate)
-      // Using UTC version to avoid timezone shifts
+      // Use local date components directly (no UTC conversion) to match API date strings
+      const dateStr = `${pastDate.getFullYear()}-${String(pastDate.getMonth() + 1).padStart(2, '0')}-${String(pastDate.getDate()).padStart(2, '0')}`
       const label = formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
 
       // Get data from map, or default to 0
@@ -119,8 +119,7 @@ export function DemandForecastChart({
         const futureDate = new Date(today)
         futureDate.setDate(futureDate.getDate() + (i * config.intervalDays))
 
-        const dateStr = extractDatePart(futureDate)
-        // Using UTC version to avoid timezone shifts
+        const dateStr = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, '0')}-${String(futureDate.getDate()).padStart(2, '0')}`
         const label = formatUTCDateForDisplay(dateStr, locale === 'fr' ? 'fr-GN' : 'en-GN', { month: 'short', day: 'numeric' })
 
         // Show daily value (averaged over interval days if interval > 1)
@@ -179,6 +178,9 @@ export function DemandForecastChart({
       </div>
     )
   }
+
+  // Check if there's any actual historical data in the selected period
+  const hasRecentData = chartData.some(d => (d.revenue ?? 0) > 0 || (d.expenses ?? 0) > 0)
 
   if (chartData.length === 0) {
     return (
@@ -260,7 +262,20 @@ export function DemandForecastChart({
       </div>
 
       {/* Chart */}
-      <div className="p-6">
+      <div className="p-6 relative">
+        {!hasRecentData && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-stone-800/80 rounded-b-2xl">
+            <div className="text-center">
+              <BarChart3 className="w-10 h-10 mx-auto mb-2 text-stone-400 dark:text-stone-500" />
+              <p className="text-sm font-medium text-stone-600 dark:text-stone-300">
+                {t('projection.noRecentSalesData') || 'No sales data in this period'}
+              </p>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                {t('projection.tryLongerPeriod') || 'Try selecting a longer time period'}
+              </p>
+            </div>
+          </div>
+        )}
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>

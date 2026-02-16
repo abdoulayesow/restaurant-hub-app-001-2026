@@ -27,21 +27,40 @@ const prisma = new PrismaClient()
 // Constants
 const RESTAURANT_ID = 'bliss-miniere'
 const START_DATE = new Date(Date.UTC(2026, 0, 1)) // Jan 1, 2026
-const END_DATE = new Date(Date.UTC(2026, 0, 28)) // Jan 28, 2026
+const END_DATE = new Date(Date.UTC(2026, 1, 15)) // Feb 15, 2026
+// Total days from Jan 1 to Feb 15 inclusive = 46
+const TOTAL_DAYS = 46
 
 // Helper to round to 100,000 GNF
 function roundTo100k(amount: number): number {
   return Math.round(amount / 100000) * 100000
 }
 
-// Helper to get date for a specific day in January 2026
-function getJanDate(day: number): Date {
-  return new Date(Date.UTC(2026, 0, day, 12, 0, 0))
+// Helper to get a date by offset from START_DATE (1-indexed: day 1 = Jan 1)
+function getDate(dayOffset: number): Date {
+  const d = new Date(Date.UTC(2026, 0, dayOffset, 12, 0, 0))
+  return d
+}
+
+// Helper to get a YYYY-MM-DD date key for use in IDs
+function getDateKey(dayOffset: number): string {
+  const d = getDate(dayOffset)
+  const y = d.getUTCFullYear()
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(d.getUTCDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
+}
+
+// Helper to get display label for a date (e.g., "Jan 15" or "Feb 3")
+function getDateLabel(dayOffset: number): string {
+  const d = getDate(dayOffset)
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}`
 }
 
 // Helper to check if a day is weekend (Saturday = 6, Sunday = 0)
-function isWeekend(day: number): boolean {
-  const date = getJanDate(day)
+function isWeekend(dayOffset: number): boolean {
+  const date = getDate(dayOffset)
   const dayOfWeek = date.getUTCDay()
   return dayOfWeek === 0 || dayOfWeek === 6
 }
@@ -410,18 +429,22 @@ async function createDailySales(
   ownerName: string | null,
   products: Array<{ id: string; name: string; category: ProductCategory }>
 ) {
-  console.log('Phase 4: Creating daily sales (Jan 1-28)...')
+  console.log(`Phase 4: Creating daily sales (Jan 1 - Feb 15, ${TOTAL_DAYS} days)...`)
 
   const sales = []
   const saleItems = []
   const bankTransactions = []
 
-  for (let day = 1; day <= 28; day++) {
-    const date = getJanDate(day)
+  for (let day = 1; day <= TOTAL_DAYS; day++) {
+    const date = getDate(day)
+    const dateKey = getDateKey(day)
+    const dateLabel = getDateLabel(day)
     const isWknd = isWeekend(day)
 
     // Base sales: 2.5M weekday, 3.5M weekend
-    const baseSales = isWknd ? 3500000 : 2500000
+    // Add slight upward trend in February (~10% growth)
+    const trendMultiplier = day > 31 ? 1.10 : 1.0
+    const baseSales = (isWknd ? 3500000 : 2500000) * trendMultiplier
     const totalGNF = varyAmount(baseSales, 15)
 
     // Payment split: 60% cash, 25% mobile, 15% card
@@ -429,7 +452,7 @@ async function createDailySales(
     const orangeMoneyGNF = roundTo100k(totalGNF * 0.25)
     const cardGNF = totalGNF - cashGNF - orangeMoneyGNF
 
-    const saleId = `sale-dev-${RESTAURANT_ID}-day${String(day).padStart(2, '0')}`
+    const saleId = `sale-dev-${RESTAURANT_ID}-${dateKey}`
 
     // Create sale
     const sale = await prisma.sale.create({
@@ -473,7 +496,7 @@ async function createDailySales(
     if (cashGNF > 0) {
       const bankTxCash = await prisma.bankTransaction.create({
         data: {
-          id: `bank-sale-cash-day${String(day).padStart(2, '0')}`,
+          id: `bank-sale-cash-${dateKey}`,
           restaurantId: RESTAURANT_ID,
           date: date,
           amount: cashGNF,
@@ -481,10 +504,10 @@ async function createDailySales(
           method: BankPaymentMethod.Cash,
           reason: TransactionReason.SalesDeposit,
           saleId: saleId,
-          description: `Daily sales deposit (Cash) - Jan ${day}`,
+          description: `Daily sales deposit (Cash) - ${dateLabel}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: date,
-          bankRef: `DEP-CASH-${String(day).padStart(3, '0')}`,
+          bankRef: `DEP-CASH-${dateKey}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -496,7 +519,7 @@ async function createDailySales(
     if (orangeMoneyGNF > 0) {
       const bankTxOrange = await prisma.bankTransaction.create({
         data: {
-          id: `bank-sale-orange-day${String(day).padStart(2, '0')}`,
+          id: `bank-sale-orange-${dateKey}`,
           restaurantId: RESTAURANT_ID,
           date: date,
           amount: orangeMoneyGNF,
@@ -504,10 +527,10 @@ async function createDailySales(
           method: BankPaymentMethod.OrangeMoney,
           reason: TransactionReason.SalesDeposit,
           saleId: saleId,
-          description: `Daily sales deposit (Orange Money) - Jan ${day}`,
+          description: `Daily sales deposit (Orange Money) - ${dateLabel}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: date,
-          bankRef: `DEP-OM-${String(day).padStart(3, '0')}`,
+          bankRef: `DEP-OM-${dateKey}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -519,7 +542,7 @@ async function createDailySales(
     if (cardGNF > 0) {
       const bankTxCard = await prisma.bankTransaction.create({
         data: {
-          id: `bank-sale-card-day${String(day).padStart(2, '0')}`,
+          id: `bank-sale-card-${dateKey}`,
           restaurantId: RESTAURANT_ID,
           date: date,
           amount: cardGNF,
@@ -527,10 +550,10 @@ async function createDailySales(
           method: BankPaymentMethod.Card,
           reason: TransactionReason.SalesDeposit,
           saleId: saleId,
-          description: `Daily sales deposit (Card) - Jan ${day}`,
+          description: `Daily sales deposit (Card) - ${dateLabel}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: date,
-          bankRef: `DEP-CARD-${String(day).padStart(3, '0')}`,
+          bankRef: `DEP-CARD-${dateKey}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -570,13 +593,15 @@ async function createExpenses(
   const packagingCat = categories.find(c => c.name === 'Packaging')
   const flourItem = inventoryItems.find(i => i.name === 'Wheat Flour')
 
-  // Inventory purchases every 2 days (days 2, 4, 6, ... 28)
-  for (let day = 2; day <= 28; day += 2) {
-    const date = getJanDate(day)
+  // Inventory purchases every 2 days (days 2, 4, 6, ... TOTAL_DAYS)
+  for (let day = 2; day <= TOTAL_DAYS; day += 2) {
+    const date = getDate(day)
+    const dateKey = getDateKey(day)
+    const dateLabel = getDateLabel(day)
     const amount = varyAmount(2000000, 25) // 1.5M - 2.5M
-    const expId = `exp-inv-day${String(day).padStart(2, '0')}`
-    const bankTxId = `bank-exp-inv-day${String(day).padStart(2, '0')}`
-    const expPayId = `exp-pay-inv-day${String(day).padStart(2, '0')}`
+    const expId = `exp-inv-${dateKey}`
+    const bankTxId = `bank-exp-inv-${dateKey}`
+    const expPayId = `exp-pay-inv-${dateKey}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -587,7 +612,7 @@ async function createExpenses(
         categoryName: 'Flour',
         amountGNF: amount,
         paymentMethod: 'Cash',
-        description: `Inventory restock - Jan ${day}`,
+        description: `Inventory restock - ${dateLabel}`,
         isInventoryPurchase: true,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -606,10 +631,10 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.Cash,
         reason: TransactionReason.ExpensePayment,
-        description: `Inventory purchase - Jan ${day}`,
+        description: `Inventory purchase - ${dateLabel}`,
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-INV-${String(day).padStart(3, '0')}`,
+        bankRef: `WTH-INV-${dateKey}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
@@ -636,13 +661,13 @@ async function createExpenses(
       const qty = Math.round(amount / flourItem.unitCostGNF)
       const stockMov = await prisma.stockMovement.create({
         data: {
-          id: `mov-purchase-day${String(day).padStart(2, '0')}`,
+          id: `mov-purchase-${dateKey}`,
           restaurantId: RESTAURANT_ID,
           itemId: flourItem.id,
           type: 'Purchase',
           quantity: qty,
           unitCost: flourItem.unitCostGNF,
-          reason: `Inventory restock - Jan ${day}`,
+          reason: `Inventory restock - ${dateLabel}`,
           expenseId: expId,
           createdBy: ownerId,
           createdByName: ownerName,
@@ -654,13 +679,16 @@ async function createExpenses(
   }
   console.log(`  Created ${expenses.length} inventory expenses`)
 
-  // Weekly utilities (days 7, 14, 21, 28)
-  for (const day of [7, 14, 21, 28]) {
-    const date = getJanDate(day)
+  // Weekly utilities (every 7 days)
+  for (const day of [7, 14, 21, 28, 35, 42]) {
+    const date = getDate(day)
+    const dateKey = getDateKey(day)
+    const dateLabel = getDateLabel(day)
+    const weekNum = Math.ceil(day / 7)
     const amount = varyAmount(600000, 20) // 500K - 700K
-    const expId = `exp-util-day${String(day).padStart(2, '0')}`
-    const bankTxId = `bank-util-day${String(day).padStart(2, '0')}`
-    const expPayId = `exp-pay-util-day${String(day).padStart(2, '0')}`
+    const expId = `exp-util-${dateKey}`
+    const bankTxId = `bank-util-${dateKey}`
+    const expPayId = `exp-pay-util-${dateKey}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -671,7 +699,7 @@ async function createExpenses(
         categoryName: 'Electricity',
         amountGNF: amount,
         paymentMethod: 'Orange Money',
-        description: `Weekly utilities - Week ${Math.ceil(day / 7)}`,
+        description: `Weekly utilities - Week ${weekNum}`,
         isInventoryPurchase: false,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -689,10 +717,10 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.OrangeMoney,
         reason: TransactionReason.ExpensePayment,
-        description: `Utilities - Week ${Math.ceil(day / 7)}`,
+        description: `Utilities - Week ${weekNum}`,
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-UTL-${String(day).padStart(3, '0')}`,
+        bankRef: `WTH-UTL-${dateKey}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
@@ -713,15 +741,17 @@ async function createExpenses(
     })
     expensePayments.push(expPay)
   }
-  console.log(`  Created 4 utility expenses`)
+  console.log(`  Created 6 utility expenses`)
 
-  // Bi-monthly salaries (days 15, 28)
-  for (const day of [15, 28]) {
-    const date = getJanDate(day)
+  // Bi-monthly salaries (days 15, 28, 46 = Jan 15, Jan 28, Feb 15)
+  for (const day of [15, 28, 46]) {
+    const date = getDate(day)
+    const dateKey = getDateKey(day)
+    const dateLabel = getDateLabel(day)
     const amount = varyAmount(3500000, 10) // 3.2M - 3.8M
-    const expId = `exp-sal-day${String(day).padStart(2, '0')}`
-    const bankTxId = `bank-sal-day${String(day).padStart(2, '0')}`
-    const expPayId = `exp-pay-sal-day${String(day).padStart(2, '0')}`
+    const expId = `exp-sal-${dateKey}`
+    const bankTxId = `bank-sal-${dateKey}`
+    const expPayId = `exp-pay-sal-${dateKey}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -732,7 +762,7 @@ async function createExpenses(
         categoryName: 'Staff Salaries',
         amountGNF: amount,
         paymentMethod: 'Cash',
-        description: day === 15 ? 'Mid-month salaries' : 'End-of-month salaries',
+        description: `Salaries - ${dateLabel}`,
         isInventoryPurchase: false,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -750,10 +780,10 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.Cash,
         reason: TransactionReason.ExpensePayment,
-        description: day === 15 ? 'Mid-month salaries' : 'End-of-month salaries',
+        description: `Salaries - ${dateLabel}`,
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-SAL-${String(day).padStart(3, '0')}`,
+        bankRef: `WTH-SAL-${dateKey}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
@@ -774,15 +804,18 @@ async function createExpenses(
     })
     expensePayments.push(expPay)
   }
-  console.log(`  Created 2 salary expenses`)
+  console.log(`  Created 3 salary expenses`)
 
-  // Weekly supplies (days 5, 12, 19, 26)
-  for (const day of [5, 12, 19, 26]) {
-    const date = getJanDate(day)
+  // Weekly supplies
+  for (const day of [5, 12, 19, 26, 33, 40]) {
+    const date = getDate(day)
+    const dateKey = getDateKey(day)
+    const dateLabel = getDateLabel(day)
+    const weekNum = Math.ceil(day / 7)
     const amount = varyAmount(400000, 30) // 300K - 500K
-    const expId = `exp-sup-day${String(day).padStart(2, '0')}`
-    const bankTxId = `bank-sup-day${String(day).padStart(2, '0')}`
-    const expPayId = `exp-pay-sup-day${String(day).padStart(2, '0')}`
+    const expId = `exp-sup-${dateKey}`
+    const bankTxId = `bank-sup-${dateKey}`
+    const expPayId = `exp-pay-sup-${dateKey}`
 
     const expense = await prisma.expense.create({
       data: {
@@ -793,7 +826,7 @@ async function createExpenses(
         categoryName: 'Packaging',
         amountGNF: amount,
         paymentMethod: 'Card',
-        description: `Supplies purchase - Week ${Math.ceil(day / 7)}`,
+        description: `Supplies purchase - Week ${weekNum}`,
         isInventoryPurchase: false,
         paymentStatus: PaymentStatus.Paid,
         totalPaidAmount: amount,
@@ -811,10 +844,10 @@ async function createExpenses(
         type: BankTransactionType.Withdrawal,
         method: BankPaymentMethod.Card,
         reason: TransactionReason.ExpensePayment,
-        description: `Supplies - Week ${Math.ceil(day / 7)}`,
+        description: `Supplies - Week ${weekNum}`,
         status: BankTransactionStatus.Confirmed,
         confirmedAt: date,
-        bankRef: `WTH-SUP-${String(day).padStart(3, '0')}`,
+        bankRef: `WTH-SUP-${dateKey}`,
         createdBy: ownerId,
         createdByName: ownerName,
       }
@@ -835,7 +868,7 @@ async function createExpenses(
     })
     expensePayments.push(expPay)
   }
-  console.log(`  Created 4 supply expenses`)
+  console.log(`  Created 6 supply expenses`)
 
   console.log(`  Total: ${expenses.length} expenses, ${expensePayments.length} payments, ${bankTransactions.length} bank transactions`)
   return { expenses, expensePayments, bankTransactions, stockMovements }
@@ -850,7 +883,7 @@ async function createProductionLogs(
   products: Array<{ id: string; name: string; category: ProductCategory }>,
   inventoryItems: Array<{ id: string; name: string; unitCostGNF: number }>
 ) {
-  console.log('Phase 6: Creating daily production logs (Jan 1-28)...')
+  console.log(`Phase 6: Creating daily production logs (Jan 1 - Feb 15, ${TOTAL_DAYS} days)...`)
 
   const productionLogs = []
   const productionItems = []
@@ -872,8 +905,10 @@ async function createProductionLogs(
     { productName: 'Brioche', baseQty: 25, flourKg: 3.75, butterKg: 2, yeastKg: 0.15, eggsUnit: 50, chocolateKg: 0 },
   ]
 
-  for (let day = 1; day <= 28; day++) {
-    const date = getJanDate(day)
+  for (let day = 1; day <= TOTAL_DAYS; day++) {
+    const date = getDate(day)
+    const dateKey = getDateKey(day)
+    const dateLabel = getDateLabel(day)
     const dayOfWeek = date.getUTCDay()
 
     // Alternate production type based on day
@@ -882,7 +917,7 @@ async function createProductionLogs(
       ? ProductCategory.Boulangerie
       : ProductCategory.Patisserie
 
-    const prodLogId = `prod-log-day${String(day).padStart(2, '0')}`
+    const prodLogId = `prod-log-${dateKey}`
 
     // Calculate daily production with variation
     const ingredientDetails = dailyProductionTemplate.map((p) => {
@@ -950,7 +985,7 @@ async function createProductionLogs(
       if (product) {
         const prodItem = await prisma.productionItem.create({
           data: {
-            id: `prod-item-day${String(day).padStart(2, '0')}-${prodData.product.toLowerCase().replace(/\s+/g, '-')}`,
+            id: `prod-item-${dateKey}-${prodData.product.toLowerCase().replace(/\s+/g, '-')}`,
             productionLogId: prodLogId,
             productId: product.id,
             quantity: prodData.quantity,
@@ -973,13 +1008,13 @@ async function createProductionLogs(
       if (mov.item && mov.qty !== 0) {
         const stockMov = await prisma.stockMovement.create({
           data: {
-            id: `mov-usage-day${String(day).padStart(2, '0')}-${mov.item.name.toLowerCase().replace(/\s+/g, '-')}`,
+            id: `mov-usage-${dateKey}-${mov.item.name.toLowerCase().replace(/\s+/g, '-')}`,
             restaurantId: RESTAURANT_ID,
             itemId: mov.item.id,
             type: 'Usage',
             quantity: mov.qty,
             unitCost: mov.item.unitCostGNF,
-            reason: `Production: Jan ${day}`,
+            reason: `Production: ${dateLabel}`,
             productionLogId: prodLogId,
             createdBy: ownerId,
             createdByName: ownerName,
@@ -1007,25 +1042,27 @@ async function createDebts(
   ownerName: string | null,
   customers: Array<{ id: string; name: string }>
 ) {
-  console.log('Phase 7: Creating weekly debts (4 total)...')
+  console.log('Phase 7: Creating weekly debts (6 total)...')
 
   const debts = []
   const debtPayments = []
   const bankTransactions = []
 
-  // Create debts on Sundays: Jan 5, 12, 19, 26
-  const debtDays = [5, 12, 19, 26]
+  // Create debts weekly: Jan 5, 12, 19, 26, Feb 2 (day 33), Feb 9 (day 40)
   const debtData = [
     { day: 5, customerIndex: 0, principal: 300000, paid: 0, status: DebtStatus.Outstanding, desc: 'Weekly bread order' },
     { day: 12, customerIndex: 2, principal: 500000, paid: 200000, status: DebtStatus.PartiallyPaid, desc: 'Hotel catering order' },
     { day: 19, customerIndex: 3, principal: 400000, paid: 400000, status: DebtStatus.FullyPaid, desc: 'Restaurant supply' },
     { day: 26, customerIndex: 4, principal: 200000, paid: 0, status: DebtStatus.Outstanding, desc: 'Wholesale order' },
+    { day: 33, customerIndex: 1, principal: 350000, paid: 350000, status: DebtStatus.FullyPaid, desc: 'February catering order' },
+    { day: 40, customerIndex: 3, principal: 450000, paid: 150000, status: DebtStatus.PartiallyPaid, desc: 'February supply order' },
   ]
 
   for (const d of debtData) {
-    const date = getJanDate(d.day)
+    const date = getDate(d.day)
+    const dateKey = getDateKey(d.day)
     const customer = customers[d.customerIndex]
-    const debtId = `debt-dev-day${String(d.day).padStart(2, '0')}`
+    const debtId = `debt-dev-${dateKey}`
 
     // Due date is 14 days after creation
     const dueDate = new Date(date)
@@ -1054,8 +1091,8 @@ async function createDebts(
       const paymentDate = new Date(date)
       paymentDate.setDate(paymentDate.getDate() + 7) // Payment 7 days after debt
 
-      const paymentId = `debt-pay-day${String(d.day).padStart(2, '0')}`
-      const bankTxId = `bank-debt-day${String(d.day).padStart(2, '0')}`
+      const paymentId = `debt-pay-${dateKey}`
+      const bankTxId = `bank-debt-${dateKey}`
       const paymentMethod = d.status === DebtStatus.FullyPaid ? 'Cash' : 'Orange Money'
 
       const debtPayment = await prisma.debtPayment.create({
@@ -1067,7 +1104,7 @@ async function createDebts(
           amount: d.paid,
           paymentMethod: paymentMethod,
           paymentDate: paymentDate,
-          receiptNumber: `REC-DEBT-${String(d.day).padStart(3, '0')}`,
+          receiptNumber: `REC-DEBT-${dateKey}`,
           notes: d.status === DebtStatus.FullyPaid ? 'Full payment received' : 'Partial payment',
           receivedBy: ownerId,
           receivedByName: ownerName,
@@ -1089,7 +1126,7 @@ async function createDebts(
           description: `Debt collection: ${d.desc}`,
           status: BankTransactionStatus.Confirmed,
           confirmedAt: paymentDate,
-          bankRef: `DEB-${String(d.day).padStart(3, '0')}`,
+          bankRef: `DEB-${dateKey}`,
           createdBy: ownerId,
           createdByName: ownerName,
         }
@@ -1115,14 +1152,14 @@ async function createCapitalMovements(ownerId: string, ownerName: string | null)
     data: {
       id: 'bank-capital-injection',
       restaurantId: RESTAURANT_ID,
-      date: getJanDate(1),
+      date: getDate(1),
       amount: 10000000, // 10M GNF
       type: BankTransactionType.Deposit,
       method: BankPaymentMethod.Cash,
       reason: TransactionReason.CapitalInjection,
       description: 'Owner capital injection - January startup',
       status: BankTransactionStatus.Confirmed,
-      confirmedAt: getJanDate(1),
+      confirmedAt: getDate(1),
       bankRef: 'CAP-001',
       createdBy: ownerId,
       createdByName: ownerName,
@@ -1136,14 +1173,14 @@ async function createCapitalMovements(ownerId: string, ownerName: string | null)
     data: {
       id: 'bank-owner-withdrawal',
       restaurantId: RESTAURANT_ID,
-      date: getJanDate(15),
+      date: getDate(15),
       amount: 5000000, // 5M GNF
       type: BankTransactionType.Withdrawal,
       method: BankPaymentMethod.Cash,
       reason: TransactionReason.OwnerWithdrawal,
       description: 'Owner withdrawal - Mid-month',
       status: BankTransactionStatus.Confirmed,
-      confirmedAt: getJanDate(15),
+      confirmedAt: getDate(15),
       bankRef: 'OWN-001',
       createdBy: ownerId,
       createdByName: ownerName,
@@ -1163,7 +1200,7 @@ async function main() {
   console.log('Bakery Hub - Development Database Seeding')
   console.log('='.repeat(60))
   console.log(`Target: ${RESTAURANT_ID}`)
-  console.log(`Date Range: Jan 1-28, 2026`)
+  console.log(`Date Range: Jan 1 - Feb 15, 2026 (${TOTAL_DAYS} days)`)
   console.log('='.repeat(60))
   console.log('')
 

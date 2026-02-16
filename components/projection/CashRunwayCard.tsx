@@ -7,7 +7,6 @@ import { formatCurrencyCompact } from '@/lib/currency-utils'
 
 interface CashRunwayCardProps {
   data: CashRunwayData
-  palette: 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'
 }
 
 export function CashRunwayCard({ data }: CashRunwayCardProps) {
