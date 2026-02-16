@@ -44,7 +44,9 @@
       "Bash(npm run typecheck)",
       "Bash(npm run lint)",
       "Bash(grep:*)",
-      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)"
+      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
+      "Bash(done)",
+      "Bash(git log:*)"
     ]
   }
 }
