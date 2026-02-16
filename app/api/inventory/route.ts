@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canAdjustStock } from '@/lib/roles'
 import { getExpiryInfo } from '@/lib/inventory-helpers'
 
 // GET /api/inventory - List inventory items
@@ -144,11 +144,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    if (!isManagerRole(session.user.role)) {
-      return NextResponse.json({ error: 'Forbidden - Manager role required' }, { status: 403 })
-    }
-
     const body = await request.json()
     const {
       restaurantId,
@@ -171,18 +166,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and permission to manage inventory
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      restaurantId,
+      canAdjustStock,
+      'Your role does not have permission to manage inventory'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Create inventory item

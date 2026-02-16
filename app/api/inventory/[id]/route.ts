@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isManagerRole } from '@/lib/roles'
+import { canAdjustStock } from '@/lib/roles'
 import { calculateRestockPrediction } from '@/lib/inventory-helpers'
 
 // GET /api/inventory/[id] - Get single inventory item with recent movements
@@ -104,11 +104,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    if (!isManagerRole(session.user.role)) {
-      return NextResponse.json({ error: 'Forbidden - Manager role required' }, { status: 403 })
-    }
-
     const { id } = await params
 
     // First, get the existing item to check restaurant access
@@ -120,18 +115,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: existingItem.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and permission to manage inventory
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      existingItem.restaurantId,
+      canAdjustStock,
+      'Your role does not have permission to manage inventory'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     const body = await request.json()
@@ -190,11 +182,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check Manager role
-    if (!isManagerRole(session.user.role)) {
-      return NextResponse.json({ error: 'Forbidden - Manager role required' }, { status: 403 })
-    }
-
     const { id } = await params
 
     // First, get the existing item to check restaurant access
@@ -206,18 +193,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
 
-    // Validate user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId: existingItem.restaurantId,
-        },
-      },
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Validate user has access to this restaurant and permission to manage inventory
+    const auth = await authorizeRestaurantAccess(
+      session.user.id,
+      existingItem.restaurantId,
+      canAdjustStock,
+      'Your role does not have permission to manage inventory'
+    )
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // Soft delete by setting isActive to false
