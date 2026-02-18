@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { ShoppingCart, AlertTriangle, Clock, Calendar } from 'lucide-react'
 import { useLocale } from '@/components/providers/LocaleProvider'
 import { ReorderRecommendation } from '@/lib/projection-utils'
-import { formatAmount } from '@/lib/currency-utils'
+import { formatAmount, formatCurrency } from '@/lib/currency-utils'
 
 interface ReorderTableProps {
   recommendations: ReorderRecommendation[]
@@ -153,7 +153,7 @@ export function ReorderTable({ recommendations, palette }: ReorderTableProps) {
                     {t('projection.subtotal') || 'Subtotal'}
                   </p>
                   <p className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-                    {formatAmount(items.reduce((sum, item) => sum + item.estimatedCostGNF, 0), locale)} GNF
+                    {formatCurrency(items.reduce((sum, item) => sum + item.estimatedCostGNF, 0), locale)}
                   </p>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export function ReorderTable({ recommendations, palette }: ReorderTableProps) {
                       {/* Estimated Cost */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-stone-900 dark:text-stone-100">
-                          {formatAmount(item.estimatedCostGNF, locale)} GNF
+                          {formatCurrency(item.estimatedCostGNF, locale)}
                         </div>
                       </td>
 

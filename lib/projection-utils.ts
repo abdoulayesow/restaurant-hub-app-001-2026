@@ -6,6 +6,13 @@
  */
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const TREND_THRESHOLD_PERCENT = 5
+const MARGIN_CHANGE_THRESHOLD = 2
+
+// ============================================================================
 // Minimal Types for Calculations
 // ============================================================================
 
@@ -273,10 +280,10 @@ export function calculateDemandForecast(
   salesData: number[],
   forecastDays: number,
   confidenceLevel: number = 0.1 // 10% confidence interval
-): { expectedRevenue: number; confidenceInterval: { low: number; high: number } } {
+): { expectedValue: number; confidenceInterval: { low: number; high: number } } {
   if (salesData.length === 0) {
     return {
-      expectedRevenue: 0,
+      expectedValue: 0,
       confidenceInterval: { low: 0, high: 0 }
     }
   }
@@ -286,14 +293,14 @@ export function calculateDemandForecast(
 
   // Forecast: moving average + trend adjustment
   const dailyForecast = movingAvg + (slope * forecastDays / 2)
-  const expectedRevenue = dailyForecast * forecastDays
+  const expectedTotal = dailyForecast * forecastDays
 
   // Confidence interval
-  const low = expectedRevenue * (1 - confidenceLevel)
-  const high = expectedRevenue * (1 + confidenceLevel)
+  const low = expectedTotal * (1 - confidenceLevel)
+  const high = expectedTotal * (1 + confidenceLevel)
 
   return {
-    expectedRevenue: Math.max(0, expectedRevenue),
+    expectedValue: Math.max(0, expectedTotal),
     confidenceInterval: {
       low: Math.max(0, low),
       high: Math.max(0, high)
@@ -314,8 +321,8 @@ export function getTrend(values: number[]): { trend: Trend; percentage: number }
 
   const trendPercentage = (slope / average) * 100
 
-  if (trendPercentage > 5) return { trend: 'GROWING', percentage: trendPercentage }
-  if (trendPercentage < -5) return { trend: 'DECLINING', percentage: trendPercentage }
+  if (trendPercentage > TREND_THRESHOLD_PERCENT) return { trend: 'GROWING', percentage: trendPercentage }
+  if (trendPercentage < -TREND_THRESHOLD_PERCENT) return { trend: 'DECLINING', percentage: trendPercentage }
   return { trend: 'STABLE', percentage: trendPercentage }
 }
 
@@ -345,7 +352,7 @@ export function comparePeriodMargins(
 
   const change = recent - previous
 
-  if (change > 2) return 'GROWING'
-  if (change < -2) return 'DECLINING'
+  if (change > MARGIN_CHANGE_THRESHOLD) return 'GROWING'
+  if (change < -MARGIN_CHANGE_THRESHOLD) return 'DECLINING'
   return 'STABLE'
 }

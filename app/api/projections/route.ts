@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, authorizeRestaurantAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { extractDatePart } from '@/lib/date-utils'
 import { parsePaginationParams } from '@/lib/pagination'
@@ -23,6 +23,9 @@ import {
   type CashRunwayData,
   type ProfitabilityData
 } from '@/lib/projection-utils'
+
+const LEAD_TIME_DAYS = 5
+const SAFETY_STOCK_DAYS = 3
 
 /**
  * GET /api/projections
@@ -56,20 +59,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify user has access to this restaurant
-    const userRestaurant = await prisma.userRestaurant.findUnique({
-      where: {
-        userId_restaurantId: {
-          userId: session.user.id,
-          restaurantId
-        }
-      }
-    })
-
-    if (!userRestaurant) {
-      return NextResponse.json(
-        { error: 'You do not have access to this restaurant' },
-        { status: 403 }
-      )
+    const auth = await authorizeRestaurantAccess(session.user.id, restaurantId)
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status })
     }
 
     // ============================================================================
@@ -258,8 +250,8 @@ export async function GET(request: NextRequest) {
       const recommendedOrderQuantity = calculateReorderQuantity(
         forecast.currentStock,
         forecast.dailyAverageUsage,
-        5, // Lead time days (default)
-        3  // Safety days
+        LEAD_TIME_DAYS,
+        SAFETY_STOCK_DAYS
       )
 
       if (recommendedOrderQuantity > 0) {
@@ -353,9 +345,9 @@ export async function GET(request: NextRequest) {
 
       demandForecasts.push({
         period: `${days}d` as '7d' | '14d' | '30d',
-        expectedRevenue: revenueForecast.expectedRevenue,
+        expectedRevenue: revenueForecast.expectedValue,
         confidenceInterval: revenueForecast.confidenceInterval,
-        expectedExpenses: expenseForecast.expectedRevenue,
+        expectedExpenses: expenseForecast.expectedValue,
         expenseConfidenceInterval: expenseForecast.confidenceInterval,
         trend,
         trendPercentage: percentage

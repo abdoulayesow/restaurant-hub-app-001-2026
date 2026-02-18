@@ -13,12 +13,16 @@ import { CashRunwayCard } from '@/components/projection/CashRunwayCard'
 import { ProfitabilityCard } from '@/components/projection/ProfitabilityCard'
 import { DemandForecastCard } from '@/components/projection/DemandForecastCard'
 import { StockDepletionTable } from '@/components/projection/StockDepletionTable'
-import { DemandForecastChart, type ForecastPeriod } from '@/components/projection/DemandForecastChart'
+import { BusinessInsightsRow } from '@/components/projection/BusinessInsightsRow'
+import { ReorderTable } from '@/components/projection/ReorderTable'
 import type {
   CashRunwayData,
   DemandForecast,
-  ProfitabilityData
+  ProfitabilityData,
+  ReorderRecommendation
 } from '@/lib/projection-utils'
+
+type ForecastPeriod = '7d' | '14d' | '30d'
 
 // After JSON serialization, Date fields become strings
 interface SerializedStockForecast {
@@ -43,6 +47,7 @@ interface StockForecastsPagination {
 interface ProjectionData {
   stockForecasts: SerializedStockForecast[]
   stockForecastsPagination: StockForecastsPagination
+  reorderRecommendations: ReorderRecommendation[]
   cashRunway: CashRunwayData
   demandForecasts: DemandForecast[]
   profitability: ProfitabilityData
@@ -226,13 +231,18 @@ export default function ProjectionPage() {
           />
         </div>
 
-        {/* Revenue & Expense Projection Chart */}
+        {/* Business Insights */}
         <div className="mb-8">
-          <DemandForecastChart
-            forecasts={projectionData.demandForecasts}
+          <BusinessInsightsRow
             historicalData={projectionData.historicalData}
+          />
+        </div>
+
+        {/* Reorder Recommendations */}
+        <div className="mb-8">
+          <ReorderTable
+            recommendations={projectionData.reorderRecommendations}
             palette={currentPalette as 'terracotta' | 'warmBrown' | 'burntSienna' | 'gold'}
-            selectedPeriod={selectedPeriod}
           />
         </div>
 
