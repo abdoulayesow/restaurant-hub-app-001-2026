@@ -1043,7 +1043,19 @@
     "period30d": "30 days",
     "moreItemsAvailable": "more items available",
     "noRecentSalesData": "No sales data in this period",
-    "tryLongerPeriod": "Try selecting a longer time period"
+    "tryLongerPeriod": "Try selecting a longer time period",
+    "revenueInsights": "Revenue Insights",
+    "dailyAverage": "Daily average",
+    "bestDay": "Best day",
+    "expenseInsights": "Expense Insights",
+    "highestDay": "Highest day",
+    "netIncomeOverview": "Net Income",
+    "margin": "margin",
+    "netIncome": "Net income",
+    "usagePerDay": "{rate} {unit}/day",
+    "cashRunwayProfitable": "Business is profitable",
+    "cashRunwayProfitableDescription": "Revenue exceeds expenses across all scenarios",
+    "profitable": "Profitable"
   },
   "bakery": {
     "myBakeries": "My Restaurants",

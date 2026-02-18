@@ -303,7 +303,9 @@ export function StockDepletionTable({ forecasts, pagination }: StockDepletionTab
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-stone-600 dark:text-stone-300">
                         {forecast.dailyAverageUsage > 0
-                          ? `${forecast.dailyAverageUsage.toFixed(2)} ${forecast.unit}/day`
+                          ? (t('projection.usagePerDay') || '{rate} {unit}/day')
+                              .replace('{rate}', forecast.dailyAverageUsage.toFixed(2))
+                              .replace('{unit}', forecast.unit)
                           : '—'}
                       </div>
                     </td>

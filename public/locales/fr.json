@@ -1039,7 +1039,19 @@
     "period30d": "30 jours",
     "moreItemsAvailable": "plus d'articles disponibles",
     "noRecentSalesData": "Aucune donnee de vente dans cette periode",
-    "tryLongerPeriod": "Essayez de selectionner une periode plus longue"
+    "tryLongerPeriod": "Essayez de selectionner une periode plus longue",
+    "revenueInsights": "Aperçu des revenus",
+    "dailyAverage": "Moyenne quotidienne",
+    "bestDay": "Meilleur jour",
+    "expenseInsights": "Aperçu des dépenses",
+    "highestDay": "Jour le plus élevé",
+    "netIncomeOverview": "Revenu net",
+    "margin": "marge",
+    "netIncome": "Revenu net",
+    "usagePerDay": "{rate} {unit}/jour",
+    "cashRunwayProfitable": "L'entreprise est rentable",
+    "cashRunwayProfitableDescription": "Les revenus dépassent les dépenses dans tous les scénarios",
+    "profitable": "Rentable"
   },
   "bakery": {
     "myBakeries": "Mes Restaurants",

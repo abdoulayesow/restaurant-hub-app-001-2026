@@ -63,16 +63,38 @@ export function DemandForecastCard({ forecasts, selectedPeriod = '30d' }: Demand
         </div>
       </div>
 
-      {/* Primary Forecast - Large Display */}
-      <div className="mb-4">
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-            {formatCurrencyCompact(primaryForecast.expectedRevenue, locale)}
+      {/* Primary Forecast - Revenue, Expenses & Net */}
+      <div className="mb-4 space-y-2">
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
+              {formatCurrencyCompact(primaryForecast.expectedRevenue, locale)}
+            </span>
+          </div>
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            {t('projection.expectedRevenue') || 'Expected revenue'}
+          </p>
+        </div>
+        <div className="flex items-center justify-between pt-1.5 border-t border-stone-100 dark:border-stone-700">
+          <span className="text-xs text-stone-500 dark:text-stone-400">
+            {t('dashboard.expenses') || 'Expenses'}
+          </span>
+          <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+            {formatCurrencyCompact(primaryForecast.expectedExpenses, locale)}
           </span>
         </div>
-        <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-          {t('projection.expectedRevenue') || 'Expected revenue'}
-        </p>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-stone-600 dark:text-stone-300">
+            {t('projection.netIncome') || 'Net income'}
+          </span>
+          <span className={`text-sm font-bold ${
+            primaryForecast.expectedRevenue - primaryForecast.expectedExpenses >= 0
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-red-600 dark:text-red-400'
+          }`}>
+            {formatCurrencyCompact(primaryForecast.expectedRevenue - primaryForecast.expectedExpenses, locale)}
+          </span>
+        </div>
       </div>
 
       {/* All Periods - Compact List */}
